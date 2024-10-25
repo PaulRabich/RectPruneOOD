@@ -1,0 +1,12 @@
+# torch
+
+numpy
+matplotlib
+seaborn
+numpy
+lightning
+
+# jupyter
+ipykernel
+jupyter
+ipywidgets
