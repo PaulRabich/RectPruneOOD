@@ -29,8 +29,8 @@ def get_in_data_loader(in_dataset_name : in_datasets, batch_size : int = 100, sh
         - val_loader (DataLoader or None): DataLoader for the in-distribution dataset if the dataset name is recognized; None otherwise.
         - num_classes (int): Number of classes in the dataset (10 for CIFAR-10). Defaults to 0 if dataset name is not recognized.
     """
-    
-    id_path = f'./datasets/id/{in_dataset_name}'
+
+    id_path = f'./datasets/id_datasets/{in_dataset_name}'
 
     val_loader = None
     num_classes = 0
@@ -57,7 +57,7 @@ def get_out_data_loader(out_dataset_name : str, batch_size : int = 100, shuffle 
         - val_loader (DataLoader or None): DataLoader for the specified OOD dataset if available; None otherwise.
     """
 
-    ood_path =  f'./datasets/id/{out_dataset_name}'
+    ood_path =  f'./datasets/ood_datasets/{out_dataset_name}'
 
     val_loader = None
 
