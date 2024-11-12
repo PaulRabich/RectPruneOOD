@@ -4,7 +4,7 @@ import torch
 
 
 class FeatureExtractor(Module):
-    def __init__(self, backbone: Module, layer: str, fc_name="fc"):
+    def __init__(self, backbone: Module, layer: str, fc_name:str="fc"):
         super().__init__()
         self.backbone = backbone
         self.layer = layer

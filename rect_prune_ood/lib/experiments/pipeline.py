@@ -1,4 +1,5 @@
 from lightning import LightningModule
+from torchmetrics import MetricCollection
 
 
 
@@ -9,6 +10,7 @@ class Pipeline(LightningModule):
         self.featureExtractor = featureExtractor
         self.rect_method = rect_method
         self.prune_method = prune_method
+        #self.metrics = 
 
 
 
@@ -28,4 +30,6 @@ class Pipeline(LightningModule):
     
     def test_step(self, batch, batch_idx):
         out = self(batch)
+
+
 

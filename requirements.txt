@@ -1,10 +1,9 @@
-# torch
-
 numpy
 matplotlib
 seaborn
 numpy
 lightning
+scipy
 
 # jupyter
 ipykernel
