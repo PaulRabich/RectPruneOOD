@@ -4,7 +4,7 @@ import torch
 
 
 class FeatureExtractor(Module):
-    def __init__(self, backbone: Module, layer: str, fc_name:str="fc"):
+    def __init__(self, backbone: Module, layer: str, fc_name:str="fc") -> None:
         super().__init__()
         self.backbone = backbone
         self.layer = layer
@@ -36,8 +36,10 @@ class FeatureExtractor(Module):
 
 
 
-    def _forward_hook(self, module: Module, input: Any, output: Any):
-        #note: other forward hook methods use a dictionary to save the output... this somehow works
+    """
+        Note: other forward hook methods use a dictionary to save the output
+    """
+    def _forward_hook(self, module: Module, input: Any, output: Any) -> None:
         self.feature = output
 
 
@@ -45,7 +47,7 @@ class FeatureExtractor(Module):
         _ = self.backbone(x)
         return self.feature
     
-    def get_fc_layer(self):
+    def get_fc_layer(self) -> Module:
         return self.fc_layer
     
 
