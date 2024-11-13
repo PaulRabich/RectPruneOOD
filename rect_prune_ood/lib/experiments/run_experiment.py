@@ -25,15 +25,19 @@ def get_backbone(backbone: backbones):
 def run_experiment(backbone: backbones, layer:str, dataset:dataset_types, rectification_method:rectification_types, prune_method:prune_types):
     backbone = get_backbone(backbone)
     feature_extractor = FeatureExtractor(backbone, layer)
+
     #return appropriate methods
-    rect_method, prune_method = get_methods(rectification=rectification_method, pruning=prune_method)
-    rect_method, prune_method = get_classes(rectification, pruning)
+    rect_cls, prune_cls= get_classes(rectification=rectification_method, pruning=prune_method)
+
+    rect_method = rect_cls()
+    prune_method = prune_cls(fc_layer=feature_extractor.get_fc_layer())
+
 
     pipeline = Pipeline(feature_extractor, rect_method, prune_method)
     
     dataloader = get_in_data_loader(dataset)[0]
     
-    module = Trainer(pipeline)
-    ood_performance = module.test(dataloaders=dataloader)
+    trainer = Trainer()
+    trainer.test(pipeline, dataloaders=dataloader)
 
     return pipeline.energy_scores

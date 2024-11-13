@@ -20,11 +20,7 @@ class Pipeline(LightningModule):
         rectified_out = self.rect_method(out)
         pruned_out = self.prune_method(rectified_out)
 
-        prune_fc = self.featureExtractor.get_fc_layer()
-
-        pruned_out = torch.flatten(pruned_out, 1)
-        final_out = prune_fc(pruned_out)
-        return final_out
+        return pruned_out
     
     def training_step(self, batch, batch_idx) -> None:
         raise NotImplementedError("Only Evaluation is supported")
@@ -42,12 +38,10 @@ class Pipeline(LightningModule):
         logits = self(inputs)
 
         outputs = F.softmax(logits, dim=1)
-        outputs = outputs.detach().cpu().numpy()
-        preds = np.argmax(outputs, axis=1)
-        confs = np.max(outputs, axis=1)
+        outputs = outputs.detach().cpu()
         
         # compute the energy score
-        scores = torch.logsumexp(logits.data.cpu(), dim=1).numpy() 
+        scores = torch.logsumexp(outputs, dim=1).numpy() 
         self.energy_scores.extend(scores)
 
 
