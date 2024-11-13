@@ -7,6 +7,7 @@ from rect_prune_ood.lib.experiments.pipeline import Pipeline
 from rect_prune_ood.lib.experiments.backbones import get_resnet50
 from rect_prune_ood.lib.experiments.rect_prune_methods import get_classes
 
+from rect_prune_ood.lib.util.data_loader import get_in_data_loader, get_out_data_loader
 
 
 prune_types = Literal["", "ashb", "ashp", "ashs", "dice", "line"]
@@ -21,26 +22,18 @@ def get_backbone(backbone: backbones):
         return get_resnet50()
 
 
-
-
-def run_experiment(backbone: backbones, layer:str, dataset:dataset_types, rectification:rectification_types, pruning:prune_types):
+def run_experiment(backbone: backbones, layer:str, dataset:dataset_types, rectification_method:rectification_types, prune_method:prune_types):
     backbone = get_backbone(backbone)
     feature_extractor = FeatureExtractor(backbone, layer)
     #return appropriate methods
+    rect_method, prune_method = get_methods(rectification=rectification_method, pruning=prune_method)
     rect_method, prune_method = get_classes(rectification, pruning)
 
     pipeline = Pipeline(feature_extractor, rect_method, prune_method)
     
-    dataloader = ...
+    dataloader = get_in_data_loader(dataset)[0]
     
     module = Trainer(pipeline)
     ood_performance = module.test(dataloaders=dataloader)
 
-    return ood_performance
-
-
-
-
-
-
-
+    return pipeline.energy_scores

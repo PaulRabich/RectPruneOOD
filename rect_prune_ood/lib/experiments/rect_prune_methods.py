@@ -170,6 +170,43 @@ class BatsRectModule(torch.nn.Module):
         x = torch.where(x>(-feature_std*lam+feature_mean),x,-feature_std*lam+feature_mean)
         return x
 
+#ash, distinguishes between three ash modes
+def pruning_ash(x, percentile=65, mode="p"):
+    if mode == "p":
+         return ash_p(x, percentile)
+    if mode == "s":
+         return ash_s(x, percentile)
+    if mode == "b":
+         return ash_b(x, percentile)
+    else:
+        raise Exception("Unsupported ashe mode provided")
+    #match mode:
+    #    case "p":
+    #        return ash_p(x, percentile)
+    #    case "s":
+    #        return ash_s(x, percentile)
+    #    case "b":
+    #        return ash_b(x, percentile)
+    #    case _:
+    #        raise Exception("Unsupported ashe mode provided")
+    
+
+#dice, distinguishes between three ash modes
+def pruning_dice(x):
+    
+    p = 90
+    weight_info = "CIFAR-10_densenet_feat_stat.npy"
+    info = np.load(os.path.join("RectPruneOOD", "cache", weight_info)) #f"cache/{args.in_dataset}_{args.model_arch}_feat_stat.npy")
+    in_features = 512 * 4 #block.expansion
+    out_features = 100 #num_classes
+    last_layer = RouteDICE(in_features, out_features, p=p, info=info)
+
+    return x #, last_layer
+    
+
+
+pruning_methods = {"ash": pruning_ash, "dice": pruning_dice}
+rectification_method = {"react": rectification_react, "bats": rectification_bats}
 
  
     
@@ -179,6 +216,9 @@ pruning_classes = defaultdict(lambda: NeutralPruningModule, {"ashp": AshPPruning
 rectification_classes = defaultdict(lambda: NeutralRectModule, {"react": ReactRectModule, "bats": BatsRectModule})
 
 
+def get_methods(rectification, pruning):
+    recting = rectification_method[rectification]
+    pruning = pruning_methods[pruning]
 def get_classes(rectification, pruning):
     rectification_class = rectification_classes[rectification]
     pruning_class = pruning_classes[pruning]

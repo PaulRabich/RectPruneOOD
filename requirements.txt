@@ -4,6 +4,7 @@ seaborn
 numpy
 lightning
 scipy
+torchvision
 
 # jupyter
 ipykernel
