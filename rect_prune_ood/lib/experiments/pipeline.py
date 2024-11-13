@@ -11,7 +11,7 @@ class Pipeline(LightningModule):
         self.featureExtractor = featureExtractor
         self.rect_method = rect_method
         self.prune_method = prune_method
-        #self.metrics = 
+        self.energy_scores = []
 
 
 
@@ -35,17 +35,20 @@ class Pipeline(LightningModule):
     def test_step(self, batch, batch_idx):
         image, label = batch
 
-        image = image.cuda()
-        label = label.cuda()
+        images = image.cuda()
+        labels = label.cuda()
 
-        inputs = image.float()
+        inputs = images.float()
         logits = self(inputs)
 
         outputs = F.softmax(logits, dim=1)
         outputs = outputs.detach().cpu().numpy()
         preds = np.argmax(outputs, axis=1)
         confs = np.max(outputs, axis=1)
-        return preds, label
+        
+        # compute the energy score
+        scores = torch.logsumexp(logits.data.cpu(), dim=1).numpy() 
+        self.energy_scores.extend(scores)
 
 
 

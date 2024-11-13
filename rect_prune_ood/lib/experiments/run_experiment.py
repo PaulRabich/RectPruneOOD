@@ -34,6 +34,6 @@ def run_experiment(backbone: backbones, layer:str, dataset:dataset_types, rectif
     
     trainer = Trainer()
 
-    ood_performance = trainer.test(pipeline, dataloaders=dataloader)
+    trainer.test(pipeline, dataloaders=dataloader)
 
-    return ood_performance
+    return pipeline.energy_scores
