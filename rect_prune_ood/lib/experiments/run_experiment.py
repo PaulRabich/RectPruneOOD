@@ -5,11 +5,11 @@ from lightning import Trainer
 from rect_prune_ood.lib.experiments.feature_extractor import FeatureExtractor
 from rect_prune_ood.lib.experiments.pipeline import Pipeline
 from rect_prune_ood.lib.experiments.backbones import get_resnet50
-from rect_prune_ood.lib.experiments.rect_prune_methods import get_methods
+from rect_prune_ood.lib.experiments.rect_prune_methods import get_classes
 
 
 
-prune_types = Literal["", "ash", "dice", "line"]
+prune_types = Literal["", "ashb", "ashp", "ashs", "dice", "line"]
 #weight_pruning_types= Literal["Methoden", "hier", "einfügen"]
 rectification_types = Literal["", "react", "bats"]
 dataset_types = Literal["Methoden", "hier", "einfügen"]
@@ -27,7 +27,7 @@ def run_experiment(backbone: backbones, layer:str, dataset:dataset_types, rectif
     backbone = get_backbone(backbone)
     feature_extractor = FeatureExtractor(backbone, layer)
     #return appropriate methods
-    rect_method, prune_method = get_methods(rectification, pruning)
+    rect_method, prune_method = get_classes(rectification, pruning)
 
     pipeline = Pipeline(feature_extractor, rect_method, prune_method)
     
@@ -37,3 +37,10 @@ def run_experiment(backbone: backbones, layer:str, dataset:dataset_types, rectif
     ood_performance = module.test(dataloaders=dataloader)
 
     return ood_performance
+
+
+
+
+
+
+
