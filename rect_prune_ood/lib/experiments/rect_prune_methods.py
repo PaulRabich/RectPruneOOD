@@ -70,15 +70,15 @@ def pruning_dice(x):
     
 
 
-pruning_methods = defaultdict(lambda: neutral_function, {"ash": pruning_ash, "dice": pruning_dice})
-rectification_method = defaultdict(lambda: neutral_function, {"react": rectification_react, "bats": rectification_bats})
+pruning_methods = {"ash": pruning_ash, "dice": pruning_dice}
+rectification_method = {"react": rectification_react, "bats": rectification_bats}
 
 
 def get_methods(rectification, pruning):
-    rectification_method = rectification_method[rectification]
-    pruning_method = pruning_methods[pruning]
+    recting = rectification_method[rectification]
+    pruning = pruning_methods[pruning]
 
-    return rectification_method, pruning_method
+    return recting, pruning
 
 
 #gejoinkt direkt aus ash repo

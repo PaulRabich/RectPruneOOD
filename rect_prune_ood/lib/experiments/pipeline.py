@@ -1,6 +1,8 @@
 from lightning import LightningModule
 from torchmetrics import MetricCollection
 import torch
+from torch.nn import functional as F
+import numpy as np
 
 
 class Pipeline(LightningModule):
@@ -16,8 +18,11 @@ class Pipeline(LightningModule):
     def forward(self, x) -> torch.Tensor:
         out = self.featureExtractor(x)
         rectified_out = self.rect_method(out)
-        pruned_out, prune_fc = self.prune_method(rectified_out, self.featureExtractor.get_fc_layer())
+        pruned_out = self.prune_method(rectified_out)
 
+        prune_fc = self.featureExtractor.get_fc_layer()
+
+        pruned_out = torch.flatten(pruned_out, 1)
         final_out = prune_fc(pruned_out)
         return final_out
     
@@ -28,7 +33,19 @@ class Pipeline(LightningModule):
         raise NotImplementedError("Only Evaluation is supported")
     
     def test_step(self, batch, batch_idx):
-        out = self(batch)
+        image, label = batch
+
+        image = image.cuda()
+        label = label.cuda()
+
+        inputs = image.float()
+        logits = self(inputs)
+
+        outputs = F.softmax(logits, dim=1)
+        outputs = outputs.detach().cpu().numpy()
+        preds = np.argmax(outputs, axis=1)
+        confs = np.max(outputs, axis=1)
+        return preds, label
 
 
 

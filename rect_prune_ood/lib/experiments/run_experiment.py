@@ -21,24 +21,19 @@ def get_backbone(backbone: backbones):
     if backbone == "resnet50":
         return get_resnet50()
 
-def get_prune_method(prune: prune_types):
-    pass
 
-def get_rectification_method(rectification: rectification_types):
-    pass
-
-
-def run_experiment(backbone: backbones, layer:str, dataset:dataset_types, rectification_method:rectification_types, prune_methog:prune_types):
+def run_experiment(backbone: backbones, layer:str, dataset:dataset_types, rectification_method:rectification_types, prune_method:prune_types):
     backbone = get_backbone(backbone)
     feature_extractor = FeatureExtractor(backbone, layer)
     #return appropriate methods
-    rect_method, prune_method = get_methods(rectification=rectification_method, prune=prune_methog)
+    rect_method, prune_method = get_methods(rectification=rectification_method, pruning=prune_method)
 
     pipeline = Pipeline(feature_extractor, rect_method, prune_method)
     
-    dataloader = get_in_data_loader(dataset)
+    dataloader = get_in_data_loader(dataset)[0]
     
-    module = Trainer(pipeline)
-    ood_performance = module.test(dataloaders=dataloader)
+    trainer = Trainer()
+
+    ood_performance = trainer.test(pipeline, dataloaders=dataloader)
 
     return ood_performance

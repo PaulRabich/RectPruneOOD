@@ -4,7 +4,7 @@ WORKDIR /usr/src/app
 
 COPY requirements.txt ./
 
-RUN pip install torch --index-url https://download.pytorch.org/whl/cu118
+RUN pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .

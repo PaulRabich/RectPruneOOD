@@ -3,3 +3,6 @@
 /venv/
 
 /rect_prune_ood/datasets/*
+
+**/lightning_logs/*
+**/datasets/*
