@@ -3,7 +3,7 @@ import torch
 import numpy as np
 import torch.nn as nn
 import os
-from util.route_classes import RouteDICE, RouteLUNCH
+from rect_prune_ood.lib.util.route_classes import RouteDICE, RouteLUNCH
 
 
 # methods to use from run experiment:
