@@ -9,9 +9,9 @@ import numpy as np
 from rect_prune_ood.lib.experiments.feature_extractor import FeatureExtractor
 from rect_prune_ood.lib.experiments.pipeline import Pipeline
 from rect_prune_ood.lib.experiments.backbones import get_resnet50
-from rect_prune_ood.lib.experiments.rect_prune_methods import get_classes
-from rect_prune_ood.lib.util.data_loader import get_in_data_loader, get_out_data_loader
-from rect_prune_ood.lib.util.scores import get_score
+from rect_prune_ood.lib.methods.rect_prune_methods import get_classes
+from rect_prune_ood.lib.util import get_in_data_loader, get_out_data_loader, get_top_level_path
+from rect_prune_ood.lib.eval.scores import get_score
 from tqdm import tqdm
 
 
@@ -55,13 +55,7 @@ def evalualte_performance(pipeline:Module, dataset:str, result_dir:str):
     with open(result_dir+"energy_scores.txt", "w") as f:
         np.savetxt(f, energy_scores)
         
-def get_top_level_path():
-    # get the absolute path of this file
-    abs_path = os.path.dirname(os.path.abspath(__file__))
-    # get the parent directory
-    top_level_path = os.path.abspath(os.path.join(abs_path, "../../../"))
 
-    return top_level_path
 
 def run_experiment(backbone: backbones, layer:str, dataset:dataset_types, rectification_method:rectification_types, prune_method:prune_types):
     backbone = get_backbone(backbone)
