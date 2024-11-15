@@ -16,6 +16,9 @@ class BasePruningModule(torch.nn.Module):
         # Enforcing that all subclasses must set `self.fc_layer`
         self.fc_layer = fc_layer
 
+    def forward(self, x):
+        return self.fc_layer(x)
+
 
 class NeutralPruningModule(BasePruningModule):
     def __init__(self, fc_layer):

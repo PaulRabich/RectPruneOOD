@@ -18,7 +18,7 @@ from tqdm import tqdm
 prune_types = Literal["", "ashb", "ashp", "ashs", "dice", "line"]
 #weight_pruning_types= Literal["Methoden", "hier", "einfügen"]
 rectification_types = Literal["", "react", "bats"]
-dataset_types = Literal["Methoden", "hier", "einfügen"]
+dataset_types = Literal["cifar10"]
 backbones = Literal["resnet50"]
 
 
@@ -52,7 +52,7 @@ def evalualte_performance(pipeline:Module, dataset:str, result_dir:str):
 
     energy_scores = np.concatenate(energy_scores).flatten()
 
-    with open(result_dir+"energy_scores.txt", "w") as f:
+    with open(result_dir+"energy_scores.np", "w") as f:
         np.savetxt(f, energy_scores)
         
 
