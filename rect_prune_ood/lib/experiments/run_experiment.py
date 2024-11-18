@@ -51,8 +51,9 @@ def evalualte_performance(pipeline:Module, dataset:str, result_dir:str):
 
 
     energy_scores = np.concatenate(energy_scores).flatten()
-
-    with open(result_dir+"energy_scores.np", "w") as f:
+    os.makedirs(result_dir, exist_ok=True)
+    final_path = os.path.join(result_dir,"energy_scores.np") 
+    with open(final_path, "w") as f:
         np.savetxt(f, energy_scores)
         
 
@@ -69,7 +70,7 @@ def run_experiment(backbone: backbones, layer:str, dataset:dataset_types, rectif
     
     pipeline = Pipeline(feature_extractor, rect_method, prune_method)
 
-    result_dir = os.path.join(get_top_level_path(), "results/")
+    result_dir = os.path.join(get_top_level_path(), "results")
 
     evalualte_performance(pipeline, dataset, result_dir=result_dir)
     

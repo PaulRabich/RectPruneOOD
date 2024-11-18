@@ -1,6 +1,6 @@
 **/__pycache__/
 
-/venv/
+/.venv/
 
 /rect_prune_ood/datasets/*
 
