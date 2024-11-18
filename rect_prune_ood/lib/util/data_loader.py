@@ -19,6 +19,14 @@ transform_test = transforms.Compose([
     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
 ])
 
+transform_test_largescale = transforms.Compose([
+    transforms.Resize(256),
+    transforms.CenterCrop(224),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                         std=[0.229, 0.224, 0.225]),
+])
+
 top_level_path = get_top_level_path()
 
 def get_in_data_loader(in_dataset_name : in_datasets, batch_size : int = 100, shuffle : bool = True):
@@ -47,6 +55,15 @@ def get_in_data_loader(in_dataset_name : in_datasets, batch_size : int = 100, sh
 
         num_classes = 10
 
+    elif in_dataset_name == 'imagenet':
+        val_loader = DataLoader(
+            ImageFolder(root=id_path, transform=transform_test_largescale),
+            batch_size=batch_size, 
+            shuffle=shuffle, 
+            num_workers=2
+        )
+        num_classes = 1000
+
     return val_loader, num_classes
 
 
@@ -69,6 +86,33 @@ def get_out_data_loader(out_dataset_name : str, batch_size : int = 100, shuffle 
     val_loader = None
 
     if out_dataset_name == 'dtd':
-        val_loader = DataLoader(ImageFolder(root=ood_path + '/images', transform=transform_test), batch_size=batch_size, shuffle=shuffle, num_workers=2)
+        dtd_images_path = os.path.join(ood_path, 'images')
+        val_loader = DataLoader(
+            ImageFolder(root=dtd_images_path, transform=transform_test), 
+            batch_size=batch_size, 
+            shuffle=shuffle, 
+            num_workers=2
+        )
+    elif out_dataset_name == 'places365':
+        val_loader = DataLoader(
+            ImageFolder(root=ood_path, transform=transform_test_largescale), 
+            batch_size=batch_size, 
+            shuffle=shuffle, 
+            num_workers=2
+        )
+    elif out_dataset_name == 'sun':
+        val_loader = DataLoader(
+            ImageFolder(root=ood_path, transform=transform_test), 
+            batch_size=batch_size, 
+            shuffle=shuffle, 
+            num_workers=2
+        )
+    elif out_dataset_name == 'inat':
+        val_loader = DataLoader(
+            ImageFolder(root=ood_path, transform=transform_test), 
+            batch_size=batch_size, 
+            shuffle=shuffle, 
+            num_workers=2
+        )
 
     return val_loader
