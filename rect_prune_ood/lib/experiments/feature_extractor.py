@@ -43,6 +43,7 @@ class FeatureExtractor(Module):
         self.feature = output
 
 
+
     def forward(self, x: Any) -> torch.Tensor:
         _ = self.backbone(x)
         return self.feature

@@ -4,6 +4,7 @@ import os
 from torch.utils.data import DataLoader
 from torchvision.datasets import ImageFolder, CIFAR10
 from torchvision import transforms
+from torchvision.datasets import ImageNet
 
 from rect_prune_ood.lib.util.paths import get_top_level_path
 
@@ -57,10 +58,10 @@ def get_in_data_loader(in_dataset_name : in_datasets, batch_size : int = 100, sh
 
     elif in_dataset_name == 'imagenet':
         val_loader = DataLoader(
-            ImageFolder(root=id_path, transform=transform_test_largescale),
+            ImageFolder(root=os.path.join(id_path, "val"), transform=transform_test_largescale),
             batch_size=batch_size, 
             shuffle=shuffle, 
-            num_workers=2
+            num_workers=8
         )
         num_classes = 1000
 

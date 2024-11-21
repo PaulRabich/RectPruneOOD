@@ -1,11 +1,14 @@
 from __future__ import print_function
 import argparse
+from rect_prune_ood.lib.util.paths import get_top_level_path
+import numpy as np
 import os
 
-import sys
 
-from scipy import misc
-import numpy as np
+"""
+in_labels.txt: labels, predictions, confidences
+in_scores.txt: scores
+"""
 
 def cal_metric(known, novel, method=None):
     tp, fp, fpr_at_tpr95 = get_curve(known, novel, method)
@@ -199,9 +202,12 @@ def compute_stat(base_dir, in_dataset, out_datasets, method, name):
     print(f"OOD mean: {sum(all_mean) / len(out_datasets)} std: {sum(all_std) / len(out_datasets)}")
     return
 
-def compute_in(base_dir, in_dataset, method, name):
+def compute_in(path_to_results:str, method:str,):
 
-    known_nat = np.loadtxt('{base_dir}/{in_dataset}/{method}/{name}/in_scores.txt'.format(base_dir=base_dir, in_dataset=in_dataset, method=method, name=name), delimiter='\n')
+    result_path = os.path.join(get_top_level_path(), "results", "results.npy")
+    results = np.load(result_path, allow_pickle=True).item()
+    known_nat = results[method].cpu().numpy()
+    # known_nat = np.loadtxt('{base_dir}/{in_dataset}/{method}/{name}/in_scores.txt'.format(base_dir=base_dir, in_dataset=in_dataset, method=method, name=name), delimiter='\n')
     known_nat_sorted = np.sort(known_nat)
     num_k = known_nat.shape[0]
 
@@ -210,11 +216,11 @@ def compute_in(base_dir, in_dataset, method, name):
     else:
         threshold = known_nat_sorted[round(0.05 * num_k)]
 
-    known_nat_label = np.loadtxt('{base_dir}/{in_dataset}/{method}/{name}/in_labels.txt'.format(base_dir=base_dir, in_dataset=in_dataset, method=method, name=name))
+    #known_nat_label = np.loadtxt('{base_dir}/{in_dataset}/{method}/{name}/in_labels.txt'.format(base_dir=base_dir, in_dataset=in_dataset, method=method, name=name))
 
     nat_in_cond = (known_nat>threshold).astype(np.float32)
-    nat_correct = (known_nat_label[:,0] == known_nat_label[:,1]).astype(np.float32)
-    nat_conf = np.mean(known_nat_label[:,2])
+    nat_correct = (results["label"] == results["prediction"]).astype(np.float32)
+    nat_conf = np.mean(results["confidence"])
     known_nat_cond_acc = np.sum(nat_correct * nat_in_cond) / max(np.sum(nat_in_cond), 1)
     known_nat_acc = np.mean(nat_correct)
     known_nat_cond_fnr = np.sum(nat_correct * (1.0 - nat_in_cond)) / max(np.sum(nat_correct),1)
