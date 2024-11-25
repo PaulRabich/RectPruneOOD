@@ -8,10 +8,20 @@ from torchvision.datasets import ImageNet
 
 from rect_prune_ood.lib.util.paths import get_top_level_path
 
-in_datasets = Literal['cifar10', 'imagenet']
-out_datasets = Literal['inat', 'dtd', 'sun', 'places365']
+in_datasets = Literal[
+    #'cifar10', TODO
+    'imagenet'
+]
+out_datasets = Literal[
+    'inat', 
+    'dtd', 
+    'sun', 
+    'places'
+]
 
 imagesize = 32
+
+num_workers = 8
 
 transform_test = transforms.Compose([
     transforms.Resize((imagesize, imagesize)),
@@ -28,7 +38,18 @@ transform_test_largescale = transforms.Compose([
                          std=[0.229, 0.224, 0.225]),
 ])
 
-top_level_path = get_top_level_path()
+ood_base_path = os.path.join("fastdata", "vilab17", "out_distribution")
+imagenet_base_path = os.path.join('data', 'vimb06', 'imagenet')
+
+paths = {
+    'cifar10': os.path.join('TODO'), # TODO
+    'imagenet_val': os.path.join(imagenet_base_path, 'val'),
+    'imagenet_train': os.path.join(imagenet_base_path, 'train'),
+    'dtd': os.path.join(ood_base_path, 'dtd', 'images'),
+    'places': os.path.join(ood_base_path, 'Places'),
+    'inat': os.path.join(ood_base_path, 'iNaturalist'),
+    'sun': os.path.join(ood_base_path, 'SUN')
+}
 
 def get_in_data_loader(in_dataset_name : in_datasets, batch_size : int = 100, shuffle : bool = True):
     """
@@ -44,24 +65,21 @@ def get_in_data_loader(in_dataset_name : in_datasets, batch_size : int = 100, sh
         - num_classes (int): Number of classes in the dataset (10 for CIFAR-10). Defaults to 0 if dataset name is not recognized.
     """
 
-    id_path = os.path.join(top_level_path, f'./datasets/id_datasets/{in_dataset_name}')
-    os.makedirs(id_path, exist_ok=True)
-
     val_loader = None
     num_classes = 0
     
     if in_dataset_name == 'cifar10':
-        valset = CIFAR10(root=id_path, train=False, download=True, transform=transform_test)
+        valset = CIFAR10(root=paths['cifar10'], train=False, download=True, transform=transform_test)
         val_loader = DataLoader(valset, batch_size=batch_size, shuffle=shuffle, num_workers=2)
 
         num_classes = 10
 
     elif in_dataset_name == 'imagenet':
         val_loader = DataLoader(
-            ImageFolder(root=os.path.join(id_path, "val"), transform=transform_test_largescale),
+            ImageFolder(root=paths['imagenet_val'], transform=transform_test_largescale),
             batch_size=batch_size, 
             shuffle=shuffle, 
-            num_workers=8
+            num_workers=num_workers
         )
         num_classes = 1000
 
@@ -81,39 +99,37 @@ def get_out_data_loader(out_dataset_name : str, batch_size : int = 100, shuffle 
         - val_loader (DataLoader or None): DataLoader for the specified OOD dataset if available; None otherwise.
     """
 
-    ood_path = os.path.join(top_level_path, f'./datasets/ood_datasets/{out_dataset_name}')
-    os.makedirs(ood_path, exist_ok=True)
+    ood_path = paths[out_dataset_name]
 
     val_loader = None
 
     if out_dataset_name == 'dtd':
-        dtd_images_path = os.path.join(ood_path, 'images')
         val_loader = DataLoader(
-            ImageFolder(root=dtd_images_path, transform=transform_test), 
+            ImageFolder(root=ood_path, transform=transform_test), 
             batch_size=batch_size, 
             shuffle=shuffle, 
-            num_workers=2
+            num_workers=num_workers
         )
-    elif out_dataset_name == 'places365':
+    elif out_dataset_name == 'places':
         val_loader = DataLoader(
             ImageFolder(root=ood_path, transform=transform_test_largescale), 
             batch_size=batch_size, 
             shuffle=shuffle, 
-            num_workers=2
+            num_workers=num_workers
         )
     elif out_dataset_name == 'sun':
         val_loader = DataLoader(
             ImageFolder(root=ood_path, transform=transform_test), 
             batch_size=batch_size, 
             shuffle=shuffle, 
-            num_workers=2
+            num_workers=num_workers
         )
     elif out_dataset_name == 'inat':
         val_loader = DataLoader(
             ImageFolder(root=ood_path, transform=transform_test), 
             batch_size=batch_size, 
             shuffle=shuffle, 
-            num_workers=2
+            num_workers=num_workers
         )
 
     return val_loader
