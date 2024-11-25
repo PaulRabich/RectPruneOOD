@@ -157,8 +157,13 @@ def compute_average_results(all_results):
 
     return avg_results
 
-def compute_traditional_ood(base_dir, in_dataset, out_datasets, method, name, args=None):
-    known = np.loadtxt('{base_dir}/{in_dataset}/{method}/{name}/in_scores.txt'.format(base_dir=base_dir, in_dataset=in_dataset, method=method, name=name), delimiter='\n')
+def compute_traditional_ood(base_dir, id_dataset, ood_datasets, method, name, args=None):
+    result_dir = os.path.join(get_top_level_path(), f"results/{id_dataset}") 
+    
+    known = np.load(
+        os.path.join(result_dir, f"id_{id_dataset}.npy"),
+        allow_pickle=True
+    ).item()["energy_score"].cpu().numpy()
 
     known_sorted = np.sort(known)
     num_k = known.shape[0]
@@ -172,8 +177,11 @@ def compute_traditional_ood(base_dir, in_dataset, out_datasets, method, name, ar
 
     total = 0.0
 
-    for out_dataset in out_datasets:
-        novel = np.loadtxt('{base_dir}/{in_dataset}/{method}/{name}/{out_dataset}/out_scores.txt'.format(base_dir=base_dir, in_dataset=in_dataset, method=method, name=name, out_dataset=out_dataset), delimiter='\n')
+    for ood_dataset in ood_datasets:
+        novel = np.load(
+            os.path.join(result_dir, f"ood_{ood_dataset}.npy"),
+            allow_pickle=True
+        ).item()["energy_score"].cpu().numpy()
 
         in_cond = (novel>threshold).astype(np.float32)
         total += novel.shape[0]
@@ -181,7 +189,7 @@ def compute_traditional_ood(base_dir, in_dataset, out_datasets, method, name, ar
         results = cal_metric(known, novel, method)
         all_results.append(results)
 
-    print_all_results(all_results, out_datasets, method)
+    print_all_results(all_results, ood_datasets, method)
     return
 
 def compute_stat(base_dir, in_dataset, out_datasets, method, name):

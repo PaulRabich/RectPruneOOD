@@ -9,13 +9,13 @@ from rect_prune_ood.lib.experiments.feature_extractor import FeatureExtractor
 from rect_prune_ood.lib.experiments.pipeline import Pipeline
 from rect_prune_ood.lib.experiments.backbones import get_resnet50
 from rect_prune_ood.lib.methods.rect_prune_methods import get_classes
-from rect_prune_ood.lib.util import get_in_data_loader, get_out_data_loader, get_top_level_path
+from rect_prune_ood.lib.util import get_id_data_loader, get_ood_data_loader, get_top_level_path
+from rect_prune_ood.lib.util.data_loader import id_datasets, ood_datasets
 
 
 prune_types = Literal["", "ashb", "ashp", "ashs", "dice", "line"]
 #weight_pruning_types= Literal["Methoden", "hier", "einfügen"]
 rectification_types = Literal["", "react", "bats"]
-dataset_types = Literal["cifar10"]
 backbones = Literal["resnet50"]
 
 
@@ -26,7 +26,7 @@ def get_backbone(backbone: backbones):
  
 
 
-def run_experiment(backbone: backbones, layer:str, dataset:dataset_types, rectification_method:rectification_types, prune_method:prune_types):
+def run_experiment(backbone: backbones, layer:str, id_dataset: id_datasets, ood_datasets:list[ood_datasets], rectification_method:rectification_types, prune_method:prune_types):
     backbone = get_backbone(backbone)
     feature_extractor = FeatureExtractor(backbone, layer)
 
@@ -38,17 +38,33 @@ def run_experiment(backbone: backbones, layer:str, dataset:dataset_types, rectif
     
     # get the pipeline and the dataloader
     pipeline = Pipeline(feature_extractor, rect_method, prune_method)
-    dataloader, num_classes = get_in_data_loader(dataset, shuffle=False, batch_size=16)
+
+    result_dir = os.path.join(get_top_level_path(), f"results/{id_dataset}") 
+    os.makedirs(result_dir, exist_ok=True)
+
+    print(f"Evaluating id dataset \"{id_dataset}\"")
+    dataloader, _ = get_id_data_loader(id_dataset, batch_size=16)
 
     # Trainer
     trainer = Trainer(logger=None)
     trainer.test(pipeline, dataloader)
 
-    res = pipeline.results
+    id_result = pipeline.results
 
-    result_dir = os.path.join(get_top_level_path(), "results") 
-    os.makedirs(result_dir, exist_ok=True)
-    np.save(os.path.join(result_dir, "results.npy"), res)
-    return res
+    np.save(os.path.join(result_dir, f"id_{id_dataset}.npy"), id_result)
+
+    for ood_dataset in ood_datasets:
+        print(f"Evaluating ood dataset \"{ood_dataset}\"")
+
+        dataloader = get_ood_data_loader(
+            ood_dataset,
+            batch_size=16
+        )
+
+        trainer.test(pipeline, dataloader)
+
+        ood_result = pipeline.results
+
+        np.save(os.path.join(result_dir, f"ood_{ood_dataset}.npy"), ood_result)
 
     
