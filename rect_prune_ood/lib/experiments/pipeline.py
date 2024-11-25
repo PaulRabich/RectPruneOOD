@@ -50,7 +50,7 @@ class Pipeline(LightningModule):
 
     def on_test_epoch_end(self):
         self.results = {}
-        metrics = self.metrics.compute()
+        self.results = self.metrics.compute()
 
         prediction, label, confidence = zip(*self.prediction_list)
         prediction = torch.cat(prediction).cpu().numpy()
@@ -65,7 +65,6 @@ class Pipeline(LightningModule):
         self.metrics.reset()
         self.prediction_list = []
 
-        self.results = metrics
         
 
 
