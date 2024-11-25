@@ -46,7 +46,9 @@ def run_experiment(backbone: backbones, layer:str, dataset:dataset_types, rectif
 
     res = pipeline.results
 
-    np.save(os.path.join(get_top_level_path(), "results", "results.npy"), res)
+    result_dir = os.path.join(get_top_level_path(), "results") 
+    os.makedirs(result_dir, exist_ok=True)
+    np.save(os.path.join(result_dir, "results.npy"), res)
     return res
 
     
