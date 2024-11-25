@@ -38,8 +38,8 @@ transform_test_largescale = transforms.Compose([
                          std=[0.229, 0.224, 0.225]),
 ])
 
-ood_base_path = os.path.join("fastdata", "vilab17", "out_distribution")
-imagenet_base_path = os.path.join('data', 'vimb06', 'imagenet')
+ood_base_path = os.path.abspath('/fastdata/vilab17/out_distribution')
+imagenet_base_path = os.path.abspath('/data/vimb06/imagenet')
 
 paths = {
     'cifar10': os.path.join('TODO'), # TODO
