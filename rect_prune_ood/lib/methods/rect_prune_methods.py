@@ -36,7 +36,7 @@ class AshBPruningModule(BasePruningModule):
 
     def forward(self, x):
         x = self.ash_b(x, self.percentage)
-        # x = torch.flatten(x, 1)
+        x = torch.flatten(x, 1)
         return self.fc_layer(x)
 
     def ash_b(x, percentile=65):
@@ -64,7 +64,7 @@ class AshSPruningModule(BasePruningModule):
 
     def forward(self, x):
         x = self.ash_s(x, self.percentage)
-        # x = torch.flatten(x, 1)
+        x = torch.flatten(x, 1)
         return self.fc_layer(x)
 
     def ash_s(x, percentile=65):
@@ -97,7 +97,7 @@ class AshPPruningModule(BasePruningModule):
 
     def forward(self, x):
         x = self.ash_p(x, self.percentage)
-        # x = torch.flatten(x, 1)
+        x = torch.flatten(x, 1)
         return self.fc_layer(x)
 
     def ash_p(x, percentile=65):
