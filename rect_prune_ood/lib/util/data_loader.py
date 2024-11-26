@@ -105,7 +105,7 @@ def get_ood_data_loader(ood_dataset : str, batch_size : int = 100, shuffle : boo
 
     if ood_dataset == 'dtd':
         val_loader = DataLoader(
-            ImageFolder(root=ood_path, transform=transform_test), 
+            ImageFolder(root=ood_path, transform=transform_test_largescale), 
             batch_size=batch_size, 
             shuffle=shuffle, 
             num_workers=num_workers
@@ -119,14 +119,14 @@ def get_ood_data_loader(ood_dataset : str, batch_size : int = 100, shuffle : boo
         )
     elif ood_dataset == 'sun':
         val_loader = DataLoader(
-            ImageFolder(root=ood_path, transform=transform_test), 
+            ImageFolder(root=ood_path, transform=transform_test_largescale), 
             batch_size=batch_size, 
             shuffle=shuffle, 
             num_workers=num_workers
         )
     elif ood_dataset == 'inat':
         val_loader = DataLoader(
-            ImageFolder(root=ood_path, transform=transform_test), 
+            ImageFolder(root=ood_path, transform=transform_test_largescale), 
             batch_size=batch_size, 
             shuffle=shuffle, 
             num_workers=num_workers
