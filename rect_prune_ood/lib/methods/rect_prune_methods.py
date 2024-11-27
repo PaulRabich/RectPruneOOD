@@ -30,7 +30,7 @@ class NeutralPruningModule(BasePruningModule):
 
 
 class AshBPruningModule(BasePruningModule):
-    def __init__(self, fc_layer, percentage=90):
+    def __init__(self, fc_layer, percentage=65):
         super(AshBPruningModule, self).__init__(fc_layer)
         self.percentage = percentage
 
@@ -39,7 +39,7 @@ class AshBPruningModule(BasePruningModule):
         x = torch.flatten(x, 1)
         return self.fc_layer(x)
 
-    def ash_b(x, percentile=65):
+    def ash_b(self, x, percentile=65):
         assert x.dim() == 4
         assert 0 <= percentile <= 100
         b, c, h, w = x.shape
@@ -67,7 +67,7 @@ class AshSPruningModule(BasePruningModule):
         x = torch.flatten(x, 1)
         return self.fc_layer(x)
 
-    def ash_s(x, percentile=65):
+    def ash_s(self, x, percentile=65):
         assert x.dim() == 4
         assert 0 <= percentile <= 100
         b, c, h, w = x.shape
@@ -100,7 +100,7 @@ class AshPPruningModule(BasePruningModule):
         x = torch.flatten(x, 1)
         return self.fc_layer(x)
 
-    def ash_p(x, percentile=65):
+    def ash_p(self, x, percentile=65):
         assert x.dim() == 4
         assert 0 <= percentile <= 100
 

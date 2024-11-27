@@ -15,7 +15,7 @@ def get_resnet50(pretrained=True):
     # resnet = resnet50_cifar(num_classes=10, method="energy")
     # Load pretrained resnet50 model
     resnet = resnet50(weights="IMAGENET1K_V1")
-    #if pretrained:
-    #    resnet.load_state_dict(model_zoo.load_url(model_urls['resnet50']))
+    if pretrained:
+        resnet.load_state_dict(model_zoo.load_url(model_urls['resnet50']))
     return resnet
 
