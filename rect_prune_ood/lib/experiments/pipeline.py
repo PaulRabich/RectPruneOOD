@@ -2,12 +2,13 @@ import torch
 import torch.nn.functional as F
 from lightning import LightningModule
 from torchmetrics import MetricCollection
+import numpy as np
 
 from rect_prune_ood.lib.eval.scores import EnergyScore, MSPScore
 
 
 class Pipeline(LightningModule):
-    def __init__(self, featureExtractor, rect_method, prune_method) -> None:
+    def __init__(self, featureExtractor, rect_method, prune_method, caputure_activations=True) -> None:
         super().__init__()
         self.featureExtractor = featureExtractor
         self.rect_method = rect_method
@@ -17,8 +18,17 @@ class Pipeline(LightningModule):
         self.prediction_list = [] 
         self.results = {}
 
+        self.capture_activations = caputure_activations
+        if self.capture_activations:
+            self.activation_list = []
+            self.activations: np.ndarray = None
+
     def forward(self, x) -> torch.Tensor:
         out = self.featureExtractor(x)
+
+        if self.capture_activations:
+            self.activation_list.append(out.squeeze())
+
         rectified_out = self.rect_method(out)
         pruned_out = self.prune_method(rectified_out)
 
@@ -49,6 +59,7 @@ class Pipeline(LightningModule):
         self.metrics.update(logits)
 
     def on_test_epoch_end(self):
+        # Compute Metrics
         self.results = {}
         self.results = self.metrics.compute()
 
@@ -60,13 +71,11 @@ class Pipeline(LightningModule):
         self.results["prediction"] = prediction
         self.results["label"] = label
         self.results["confidence"] = confidence
-        
 
         self.metrics.reset()
         self.prediction_list = []
 
-        
-
-
-
-
+        # Save activations
+        if self.capture_activations:
+            self.activations = torch.cat(self.activation_list).cpu().numpy()
+            self.activation_list = []

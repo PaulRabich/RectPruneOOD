@@ -49,9 +49,10 @@ def run_experiment(backbone: backbones, layer:str, id_dataset: id_datasets, ood_
     trainer = Trainer(logger=None)
     trainer.test(pipeline, dataloader)
 
-    id_result = pipeline.results
+    id_result = pipeline.results        
 
     np.save(os.path.join(result_dir, f"id_{id_dataset}.npy"), id_result)
+    np.save(os.path.join(result_dir, f"id_{id_dataset}_activations.npy"), pipeline.activations)
 
     for ood_dataset in ood_datasets:
         print(f"Evaluating ood dataset \"{ood_dataset}\"")
@@ -66,5 +67,6 @@ def run_experiment(backbone: backbones, layer:str, id_dataset: id_datasets, ood_
         ood_result = pipeline.results
 
         np.save(os.path.join(result_dir, f"ood_{ood_dataset}.npy"), ood_result)
+        np.save(os.path.join(result_dir, f"ood_{ood_dataset}_activations.npy"), pipeline.activations)
 
     
