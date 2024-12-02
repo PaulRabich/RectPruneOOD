@@ -8,7 +8,7 @@ from rect_prune_ood.lib.eval.scores import EnergyScore, MSPScore
 
 
 class Pipeline(LightningModule):
-    def __init__(self, featureExtractor, rect_method, prune_method, caputure_activations=True) -> None:
+    def __init__(self, featureExtractor, rect_method, prune_method, caputure_activations=False) -> None:
         super().__init__()
         self.featureExtractor = featureExtractor
         self.rect_method = rect_method

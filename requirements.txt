@@ -4,6 +4,8 @@ seaborn
 numpy
 lightning
 scipy
+scikit-image
+opencv-python
 
 # jupyter
 ipykernel

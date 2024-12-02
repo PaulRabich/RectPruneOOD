@@ -7,6 +7,7 @@ from torchvision import transforms
 from torchvision.datasets import ImageNet
 
 from rect_prune_ood.lib.util.paths import get_top_level_path
+from rect_prune_ood.lib.util.pertubation_dataset import PertubationDataset
 
 id_datasets = Literal[
     #'cifar10', TODO
@@ -51,7 +52,7 @@ paths = {
     'sun': os.path.join(ood_base_path, 'SUN')
 }
 
-def get_id_data_loader(id_dataset : id_datasets, batch_size : int = 100, shuffle : bool = False):
+def get_id_data_loader(id_dataset : id_datasets, apply_pertubation:False, batch_size : int = 100, shuffle : bool = False):
     """
         Loads an in-distribution (ID) dataset and returns a DataLoader for testing.
 
@@ -69,24 +70,26 @@ def get_id_data_loader(id_dataset : id_datasets, batch_size : int = 100, shuffle
     num_classes = 0
     
     if id_dataset == 'cifar10':
+        raise NotImplementedError("Cifar10 not implemented, Check Pertubation logic")
         valset = CIFAR10(root=paths['cifar10'], train=False, download=True, transform=transform_test)
         val_loader = DataLoader(valset, batch_size=batch_size, shuffle=shuffle, num_workers=2)
 
         num_classes = 10
 
     elif id_dataset == 'imagenet':
-        val_loader = DataLoader(
-            ImageFolder(root=paths['imagenet_val'], transform=transform_test_largescale),
-            batch_size=batch_size, 
-            shuffle=shuffle, 
-            num_workers=num_workers
-        )
+        
+        imagenet =  ImageFolder(root=paths['imagenet_val'], transform=transform_test_largescale)
+        if apply_pertubation:
+            imagenet = PertubationDataset(dataset=imagenet, severity=5)
+        
+        val_loader = DataLoader(imagenet, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
+
         num_classes = 1000
 
     return val_loader, num_classes
 
 
-def get_ood_data_loader(ood_dataset : str, batch_size : int = 100, shuffle : bool = False):
+def get_ood_data_loader(ood_dataset : str,apply_pertubation:bool=False, batch_size : int = 100, shuffle : bool = False):
     """
         Loads an out-of-distribution (OOD) dataset and returns a DataLoader for testing.
 
@@ -104,32 +107,27 @@ def get_ood_data_loader(ood_dataset : str, batch_size : int = 100, shuffle : boo
     val_loader = None
 
     if ood_dataset == 'dtd':
-        val_loader = DataLoader(
-            ImageFolder(root=ood_path, transform=transform_test_largescale), 
-            batch_size=batch_size, 
-            shuffle=shuffle, 
-            num_workers=num_workers
-        )
+        dtd = ImageFolder(root=ood_path, transform=transform_test_largescale)
+        if apply_pertubation:
+            dtd = PertubationDataset(dataset=dtd, severity=5)
+        val_loader = DataLoader(dtd, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
+
     elif ood_dataset == 'places':
-        val_loader = DataLoader(
-            ImageFolder(root=ood_path, transform=transform_test_largescale), 
-            batch_size=batch_size, 
-            shuffle=shuffle, 
-            num_workers=num_workers
-        )
+        places = ImageFolder(root=ood_path, transform=transform_test_largescale)
+        if apply_pertubation:
+            places = PertubationDataset(dataset=places, severity=5)
+        val_loader = DataLoader(places, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
+        
     elif ood_dataset == 'sun':
-        val_loader = DataLoader(
-            ImageFolder(root=ood_path, transform=transform_test_largescale), 
-            batch_size=batch_size, 
-            shuffle=shuffle, 
-            num_workers=num_workers
-        )
+        sun = ImageFolder(root=ood_path, transform=transform_test_largescale)
+        if apply_pertubation:
+            sun = PertubationDataset(dataset=sun, severity=5)
+        val_loader = DataLoader(sun, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
+        
     elif ood_dataset == 'inat':
-        val_loader = DataLoader(
-            ImageFolder(root=ood_path, transform=transform_test_largescale), 
-            batch_size=batch_size, 
-            shuffle=shuffle, 
-            num_workers=num_workers
-        )
+        inat = ImageFolder(root=ood_path, transform=transform_test_largescale)
+        if apply_pertubation:
+            inat = PertubationDataset(inat, severity=5)
+        val_loader = DataLoader(inat, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
 
     return val_loader
