@@ -152,22 +152,26 @@ class ReactRectModule(torch.nn.Module):
 
 class BatsRectModule(torch.nn.Module):
     def __init__(self, dataset: str = "ImageNet", mean_path: str = os.path.join("RectPruneOOD", "cache", "vit_features_std.pt"), std_path: str = os.path.join("RectPruneOOD", "cache", "vit_features_mean.pt")):
-        super(ReactRectModule, self).__init__()
+        super(BatsRectModule, self).__init__()
         self.mean_path = mean_path
         self.std_path = std_path
         self.dataset = dataset
 
     def forward(self, x):
         # mean std data
-        feature_std = torch.load(self.mean_path).cuda()
-        feature_mean = torch.load(self.std_path).cuda()
+        #feature_std = torch.load(self.mean_path).cuda()
+        #feature_mean = torch.load(self.std_path).cuda()
 
         if self.dataset == 'ImageNet':
+            # mean std data
+            feature_std = torch.load(os.path.join(os.path.dirname(os.path.abspath(__file__)), "batchnorm_overall_mean.pt"))#.cuda()
+            feature_mean = torch.load(os.path.join(os.path.dirname(os.path.abspath(__file__)), "batchnorm_overall_std.pt"))#.cuda()
             lam = 1.05
         elif self.dataset == 'CIFAR':
             lam = 3.25
         else:
             raise Exception("Unsupported dataset")
+        x = x.view(x.size(0), -1)  
 
         x = torch.where(x < (feature_std*lam+feature_mean),
                         x, feature_std*lam+feature_mean)
