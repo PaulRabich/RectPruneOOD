@@ -4,6 +4,8 @@ import numpy as np
 import torch.nn as nn
 import os
 from rect_prune_ood.lib.methods.route_classes import RouteDICE, RouteLUNCH
+from rect_prune_ood.lib.methods.route_classes import Bottleneck as BN
+
 
 
 # methods to use from run experiment:
@@ -116,7 +118,7 @@ class AshPPruningModule(BasePruningModule):
 
 
 class DicePruningModule(BasePruningModule):
-    def __init__(self, fc_layer, p=90, num_classes=100, info_path=os.path.join("RectPruneOOD", "cache", "CIFAR-10_densenet_feat_stat.npy")):
+    def __init__(self, fc_layer, p=90, num_classes=1000, info_path=os.path.join(os.path.dirname(os.path.abspath(__file__)), "imagenet_resnet50_feat_stat.npy"), clip_threshold=1e5):
         self.p = p
         self.info_path = info_path
 
@@ -124,12 +126,14 @@ class DicePruningModule(BasePruningModule):
         info = np.load(self.info_path)
         in_features = 512 * 4  # block.expansion
         out_features = num_classes
-        last_layer = RouteDICE(in_features, out_features, p=p, info=info)
+        last_layer = RouteDICE(in_features, out_features, p=p, info=info_path)
+        self.clip_threshold = clip_threshold
 
         super(DicePruningModule, self).__init__(last_layer)
 
     def forward(self, x):
-        x = torch.flatten(x, 1)
+        #x = x.clip(max=self.clip_threshold)
+        x = x.view(x.size(0), -1)
         return self.fc_layer(x)
 
 
@@ -156,27 +160,23 @@ class BatsRectModule(torch.nn.Module):
         self.mean_path = mean_path
         self.std_path = std_path
         self.dataset = dataset
+        #if self.dataset == 'ImageNet':
+        # mean std data
+        self.feature_std = torch.load(os.path.join(os.path.dirname(os.path.abspath(__file__)), "last_batchnorm_mean.pt")).cuda()
+        self.feature_mean = torch.load(os.path.join(os.path.dirname(os.path.abspath(__file__)), "last_batchnorm_std.pt")).cuda()
+        self.lam = 1.05
+
 
     def forward(self, x):
         # mean std data
         #feature_std = torch.load(self.mean_path).cuda()
         #feature_mean = torch.load(self.std_path).cuda()
 
-        if self.dataset == 'ImageNet':
-            # mean std data
-            feature_std = torch.load(os.path.join(os.path.dirname(os.path.abspath(__file__)), "batchnorm_overall_mean.pt"))#.cuda()
-            feature_mean = torch.load(os.path.join(os.path.dirname(os.path.abspath(__file__)), "batchnorm_overall_std.pt"))#.cuda()
-            lam = 1.05
-        elif self.dataset == 'CIFAR':
-            lam = 3.25
-        else:
-            raise Exception("Unsupported dataset")
-        x = x.view(x.size(0), -1)  
-
-        x = torch.where(x < (feature_std*lam+feature_mean),
-                        x, feature_std*lam+feature_mean)
-        x = torch.where(x > (-feature_std*lam+feature_mean),
-                        x, -feature_std*lam+feature_mean)
+        x = x.view(x.size(0), -1)
+        x = torch.where(x < (self.feature_std*self.lam+self.feature_mean),
+                        x, self.feature_std*self.lam+self.feature_mean)
+        x = torch.where(x > (-self.feature_std*self.lam+self.feature_mean),
+                        x, -self.feature_std*self.lam+self.feature_mean)
         return x
 
 

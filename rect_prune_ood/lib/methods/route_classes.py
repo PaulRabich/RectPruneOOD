@@ -63,13 +63,14 @@ class RouteLUNCH(nn.Linear):
 
 #fully connected layer that is weightpruned
 class RouteDICE(nn.Linear):
-                                                            #p=70 für imagenet in .sh
+
     def __init__(self, in_features, out_features, bias=True, p=90, conv1x1=False, info=None):
-        super(RouteDICE, self).__init__(in_features, out_features, bias)
+        #super(RouteDICE, self)
+        super().__init__(in_features, out_features, bias)
         if conv1x1:
             self.weight = nn.Parameter(torch.Tensor(out_features, in_features, 1, 1))
         self.p = p
-        self.info = info
+        self.info = np.load(info)
         self.masked_w = None
 
     def calculate_mask_weight(self):
@@ -90,4 +91,43 @@ class RouteDICE(nn.Linear):
             out = vote.sum(2) + self.bias
         else:
             out = vote.sum(2)
+        return out
+
+
+class Bottleneck(nn.Module):
+    expansion = 4
+
+    def __init__(self, inplanes, planes, stride=1, downsample=None):
+        super(Bottleneck, self).__init__()
+        self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride,
+                               padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+        self.conv3 = nn.Conv2d(planes, planes * 4, kernel_size=1, bias=False)
+        self.bn3 = nn.BatchNorm2d(planes * 4)
+        self.relu = nn.ReLU(inplace=True)
+        self.downsample = downsample
+        self.stride = stride
+
+    def forward(self, x):
+        residual = x
+
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+
+        out = self.conv2(out)
+        out = self.bn2(out)
+        out = self.relu(out)
+
+        out = self.conv3(out)
+        out = self.bn3(out)
+
+        if self.downsample is not None:
+            residual = self.downsample(x)
+
+        out += residual
+        out = self.relu(out)
+
         return out
