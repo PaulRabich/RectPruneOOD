@@ -63,6 +63,9 @@ class Pipeline(LightningModule):
         self.results = {}
         self.results = self.metrics.compute()
 
+        self.results["energy_score"] = self.results["energy_score"].cpu().numpy()
+        self.results["msp_score"] = self.results["msp_score"].cpu().numpy()
+
         prediction, label, confidence = zip(*self.prediction_list)
         prediction = torch.cat(prediction).cpu().numpy()
         label = torch.cat(label).cpu().numpy()

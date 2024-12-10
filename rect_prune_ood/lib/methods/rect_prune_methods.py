@@ -93,7 +93,7 @@ class AshSPruningModule(BasePruningModule):
 
 
 class AshPPruningModule(BasePruningModule):
-    def __init__(self, fc_layer, percentage=90):
+    def __init__(self, fc_layer, percentage=50):
         super(AshPPruningModule, self).__init__(fc_layer)
         self.percentage = percentage
 
@@ -102,7 +102,7 @@ class AshPPruningModule(BasePruningModule):
         x = torch.flatten(x, 1)
         return self.fc_layer(x)
 
-    def ash_p(self, x, percentile=65):
+    def ash_p(self, x, percentile=50):
         assert x.dim() == 4
         assert 0 <= percentile <= 100
 

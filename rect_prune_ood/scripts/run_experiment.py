@@ -18,4 +18,13 @@ from rect_prune_ood.lib.experiments.run_experiment import run_experiment
 
 # Call the search function with the provided arguments
 # run_experiment(args.backbone, args.layer, args.dataset, args.pruning, args.rectification)
-run_experiment(backbone="resnet50", layer="avgpool", dataset="imagenet", rectification_method="", prune_method="")
+result = run_experiment(
+    backbone="resnet50",
+    layer="avgpool",
+    id_dataset="imagenet",
+    ood_datasets=["inat", "sun", "places", "dtd"],
+    apply_pertubation=False, # this is dangerous
+    rectification_method="",
+    prune_method="",
+    capture_activations=False,
+)
