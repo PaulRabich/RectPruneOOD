@@ -192,6 +192,54 @@ def compute_traditional_ood(id_dataset, ood_datasets, pertubated: bool = False, 
     print_all_results(all_results, ood_datasets, method)
     return
 
+def compute_traditional_ood_pertubated(id_dataset, ood_datasets, rectification_method: str = "", prune_method: str = "", method: str = "", id_pertubated: bool = True, ood_pertubated: bool = True, args=None):
+    result_dir = get_method_result_path(id_dataset, True, rectification_method, prune_method)
+    
+    known = np.load(
+        os.path.join(result_dir, f"id_{id_dataset}.npy"),
+        allow_pickle=True
+    ).item()["energy_score"]
+
+    if id_pertubated:
+        known = known.reshape(5, -1)[:4, :] # Only take the pertubated samples
+        known = known.reshape(-1) # undo reshaping
+
+    known_sorted = np.sort(known)
+    num_k = known.shape[0]
+
+    if method == 'rowl':
+        threshold = -0.5
+    else:
+        threshold = known_sorted[round(0.05 * num_k)]
+
+    all_results = []
+
+    total = 0.0
+
+    # AUROC: ID vs. OOD
+    # AUROC: ID vs. OOD_perubated
+    # AUROC: ID_perubated vs. OOD
+    # AUROC: ID_perubated vs. OOD_perubated
+
+    for ood_dataset in ood_datasets:
+        novel = np.load(
+            os.path.join(result_dir, f"ood_{ood_dataset}.npy"),
+            allow_pickle=True
+        ).item()["energy_score"]
+
+        if ood_pertubated:
+            novel = novel.reshape(5, -1)[:4, :] # Only take the pertubated samples
+            novel = novel.reshape(-1) # undo reshaping
+
+        in_cond = (novel>threshold).astype(np.float32)
+        total += novel.shape[0]
+
+        results = cal_metric(known, novel, method)
+        all_results.append(results)
+
+    print_all_results(all_results, ood_datasets, method)
+    return
+
 def compute_stat(base_dir, in_dataset, out_datasets, method, name):
     # print('Natural OOD')
     # print('nat_in vs. nat_out')
