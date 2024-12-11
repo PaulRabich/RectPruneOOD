@@ -13,6 +13,7 @@ from rect_prune_ood.lib.util import (
     get_id_data_loader,
     get_ood_data_loader,
     get_top_level_path,
+    get_method_result_path,
 )
 from rect_prune_ood.lib.util.data_loader import id_datasets, ood_datasets
 
@@ -53,24 +54,7 @@ def run_experiment(
     pipeline = Pipeline(feature_extractor, rectification, pruning, caputure_activations=capture_activations)
     
     # generate the name/path for the result dir. The name should contain the methods and whether it is pertubated or not
-    if rectification_method == "" and prune_method == "":
-        result_dir_name = "baseline"
-    elif rectification_method == "":
-        result_dir_name = f"{prune_method}"
-    elif prune_method == "":
-        result_dir_name = f"{rectification_method}"
-    else:
-        result_dir_name = f"{rectification_method}_{prune_method}".strip("_")
-    
-    if apply_pertubation:
-        result_dir_name += "_pertubated"
-
-
-    result_dir = os.path.join(
-        get_top_level_path(),
-        f"results/{id_dataset}/{result_dir_name}",
-    )
-    os.makedirs(result_dir, exist_ok=True)
+    result_dir = get_method_result_path(id_dataset, apply_pertubation, rectification_method, prune_method)
 
     print(f'Evaluating id dataset "{id_dataset}"')
     dataloader, _ = get_id_data_loader(id_dataset, apply_pertubation, batch_size=16)
