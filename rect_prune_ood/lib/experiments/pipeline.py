@@ -4,7 +4,7 @@ from lightning import LightningModule
 from torchmetrics import MetricCollection
 import numpy as np
 
-from rect_prune_ood.lib.eval.scores import EnergyScore, MSPScore
+from rect_prune_ood.lib.eval.scores import EnergyScore, MSPScore, EntropyScore
 
 
 class Pipeline(LightningModule):
@@ -14,7 +14,8 @@ class Pipeline(LightningModule):
         self.rect_method = rect_method
         self.prune_method = prune_method
         self.metrics = MetricCollection({"energy_score": EnergyScore(), 
-                                         "msp_score": MSPScore()})
+                                         "msp_score": MSPScore(),
+                                         "entropy_score": EntropyScore()})
         self.prediction_list = [] 
         self.results = {}
 
