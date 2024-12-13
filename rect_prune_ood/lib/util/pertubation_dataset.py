@@ -5,6 +5,8 @@ import numpy as np
 from PIL import Image as PILImage
 import skimage as sk
 
+NUM_PERTURBATIONS = 4
+
 class PertubationDataset(Dataset):
     def __init__(self, dataset: Dataset, severity: int = 1):
         super().__init__()
@@ -21,7 +23,7 @@ class PertubationDataset(Dataset):
         return perturbed_image, label
 
     def __len__(self) -> int:
-        return len(self.dataset) * 5
+        return len(self.dataset) * (1 + NUM_PERTURBATIONS)
 
     def apply_perturbation(self, image: Tensor, perturbation: int) -> Tensor:
         if perturbation == 0:
@@ -75,3 +77,26 @@ class PertubationDataset(Dataset):
         img = img.resize((224, 224), PILImage.BOX)
         x = torch.tensor(np.array(img)).permute(2, 0, 1)  # Convert back to CHW format
         return x.to(torch.float32)
+
+
+def split_results(data: np.array) -> tuple[np.array, np.array]:
+    """
+    Splits the data into a tupel of all normal and perturbed data.
+
+    Args:
+    data (np.array): The data to be split.
+
+    Returns:
+    tuple[np.array, np.array]: The normal and perturbed data.
+    """
+    data_reshape = [[] for _ in range(1 + NUM_PERTURBATIONS)]
+
+    for i, element in enumerate(data):
+        data_reshape[i % (1 + NUM_PERTURBATIONS)].append(element)
+
+    data_reshape = np.array(data_reshape)
+
+    pertubated = data_reshape[:NUM_PERTURBATIONS].reshape(-1)
+    normal = data_reshape[-1]
+
+    return normal, pertubated
