@@ -168,13 +168,13 @@ def compute_average_results(all_results):
 
     return avg_results
 
-def compute_traditional_ood(id_dataset, ood_datasets, pertubated: bool = False, rectification_method: str = "", prune_method: str = "", method: str = "", plot_AUROC=False, args=None):
+def compute_traditional_ood(id_dataset, ood_datasets, score_metric:str = "energy_score", pertubated: bool = False, rectification_method: str = "", prune_method: str = "", method: str = "", plot_AUROC=False, args=None):
     result_dir = get_method_result_path(id_dataset, pertubated, rectification_method, prune_method)
     
     known = np.load(
         os.path.join(result_dir, f"id_{id_dataset}.npy"),
         allow_pickle=True
-    ).item()["energy_score"]
+    ).item()[score_metric]
 
     known_sorted = np.sort(known)
     num_k = known.shape[0]
@@ -192,7 +192,7 @@ def compute_traditional_ood(id_dataset, ood_datasets, pertubated: bool = False, 
         novel = np.load(
             os.path.join(result_dir, f"ood_{ood_dataset}.npy"),
             allow_pickle=True
-        ).item()["energy_score"]
+        ).item()[score_metric]
 
         in_cond = (novel>threshold).astype(np.float32)
         total += novel.shape[0]
