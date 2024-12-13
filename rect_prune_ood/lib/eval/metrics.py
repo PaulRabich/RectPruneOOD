@@ -200,39 +200,37 @@ def compute_traditional_ood_pertubated(id_dataset, ood_datasets, rectification_m
         allow_pickle=True
     ).item()["energy_score"]
 
+    known_reshaped = [[] for _ in range(5)]
+
+    for i, element in enumerate(known):
+        known_reshaped[i % 5].append(element)
+
+    known = np.array(known_reshaped)
+
     if id_pertubated:
-        known = known.reshape(5, -1)[:4, :] # Only take the pertubated samples
-        known = known.reshape(-1) # undo reshaping
-
-    known_sorted = np.sort(known)
-    num_k = known.shape[0]
-
-    if method == 'rowl':
-        threshold = -0.5
+        known = known[:4].reshape(-1) # Only take the pertubated samples
     else:
-        threshold = known_sorted[round(0.05 * num_k)]
+        known = known[-1] # Only take the unpertubated samples
 
     all_results = []
-
-    total = 0.0
-
-    # AUROC: ID vs. OOD
-    # AUROC: ID vs. OOD_perubated
-    # AUROC: ID_perubated vs. OOD
-    # AUROC: ID_perubated vs. OOD_perubated
 
     for ood_dataset in ood_datasets:
         novel = np.load(
             os.path.join(result_dir, f"ood_{ood_dataset}.npy"),
             allow_pickle=True
-        ).item()["energy_score"]
+        ).item()["energy_score"] 
+
+        novel_reshaped = [[] for _ in range(5)]
+
+        for i, element in enumerate(novel):
+            novel_reshaped[i % 5].append(element)
+
+        novel = np.array(novel_reshaped)
 
         if ood_pertubated:
-            novel = novel.reshape(5, -1)[:4, :] # Only take the pertubated samples
-            novel = novel.reshape(-1) # undo reshaping
-
-        in_cond = (novel>threshold).astype(np.float32)
-        total += novel.shape[0]
+            novel = novel[:4].reshape(-1) # Only take the pertubated samples
+        else:
+            novel = novel[-1] # Only take the unpertubated samples
 
         results = cal_metric(known, novel, method)
         all_results.append(results)
