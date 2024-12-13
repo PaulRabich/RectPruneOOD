@@ -3,14 +3,14 @@ import argparse
 from rect_prune_ood.lib.util.paths import get_top_level_path, get_method_result_path
 import numpy as np
 import os
-
+import matplotlib.pyplot as plt
 
 """
 in_labels.txt: labels, predictions, confidences
 in_scores.txt: scores
 """
 
-def cal_metric(known, novel, method=None):
+def cal_metric(known, novel, method=None, plot_AUROC=False, AUROC_save_path="no_path_specified_auroc.png"):
     tp, fp, fpr_at_tpr95 = get_curve(known, novel, method)
     results = dict()
     mtypes = ['FPR', 'AUROC', 'DTERR', 'AUIN', 'AUOUT']
@@ -26,6 +26,17 @@ def cal_metric(known, novel, method=None):
     tpr = np.concatenate([[1.], tp/tp[0], [0.]])
     fpr = np.concatenate([[1.], fp/fp[0], [0.]])
     results[mtype] = -np.trapz(1.-fpr, tpr)
+
+    if plot_AUROC:
+        plt.title('Receiver Operating Characteristic')
+        plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % results[mtype])
+        plt.legend(loc = 'lower right')
+        plt.plot([0, 1], [0, 1],'r--')
+        plt.xlim([0, 1])
+        plt.ylim([0, 1])
+        plt.ylabel('True Positive Rate')
+        plt.xlabel('False Positive Rate')
+        plt.savefig(AUROC_save_path)
 
     # DTERR
     mtype = 'DTERR'
@@ -157,13 +168,13 @@ def compute_average_results(all_results):
 
     return avg_results
 
-def compute_traditional_ood(id_dataset, ood_datasets, pertubated: bool = False, rectification_method: str = "", prune_method: str = "", method: str = "", args=None):
+def compute_traditional_ood(id_dataset, ood_datasets, score_metric:str = "energy_score", pertubated: bool = False, rectification_method: str = "", prune_method: str = "", method: str = "", plot_AUROC=False, args=None):
     result_dir = get_method_result_path(id_dataset, pertubated, rectification_method, prune_method)
     
     known = np.load(
         os.path.join(result_dir, f"id_{id_dataset}.npy"),
         allow_pickle=True
-    ).item()["energy_score"]
+    ).item()[score_metric]
 
     known_sorted = np.sort(known)
     num_k = known.shape[0]
@@ -181,10 +192,12 @@ def compute_traditional_ood(id_dataset, ood_datasets, pertubated: bool = False, 
         novel = np.load(
             os.path.join(result_dir, f"ood_{ood_dataset}.npy"),
             allow_pickle=True
-        ).item()["energy_score"]
+        ).item()[score_metric]
 
         in_cond = (novel>threshold).astype(np.float32)
         total += novel.shape[0]
+
+        
 
         results = cal_metric(known, novel, method)
         all_results.append(results)
