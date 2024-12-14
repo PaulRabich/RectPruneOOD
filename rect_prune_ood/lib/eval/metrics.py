@@ -1,6 +1,7 @@
 from __future__ import print_function
 import argparse
 from rect_prune_ood.lib.util.paths import get_top_level_path, get_method_result_path
+from rect_prune_ood.lib.util.pertubation_dataset import split_results
 import numpy as np
 import os
 import matplotlib.pyplot as plt
@@ -197,8 +198,6 @@ def compute_traditional_ood(id_dataset, ood_datasets, score_metric:str = "energy
         in_cond = (novel>threshold).astype(np.float32)
         total += novel.shape[0]
 
-        
-
         results = cal_metric(known, novel, method)
         all_results.append(results)
 
@@ -213,17 +212,9 @@ def compute_traditional_ood_pertubated(id_dataset, ood_datasets, rectification_m
         allow_pickle=True
     ).item()["energy_score"]
 
-    known_reshaped = [[] for _ in range(5)]
+    known_normal, known_pertubated = split_results(known)
 
-    for i, element in enumerate(known):
-        known_reshaped[i % 5].append(element)
-
-    known = np.array(known_reshaped)
-
-    if id_pertubated:
-        known = known[:4].reshape(-1) # Only take the pertubated samples
-    else:
-        known = known[-1] # Only take the unpertubated samples
+    known = known_pertubated if id_pertubated else known_normal
 
     all_results = []
 
@@ -233,17 +224,9 @@ def compute_traditional_ood_pertubated(id_dataset, ood_datasets, rectification_m
             allow_pickle=True
         ).item()["energy_score"] 
 
-        novel_reshaped = [[] for _ in range(5)]
+        novel_normal, novel_pertubated = split_results(novel)
 
-        for i, element in enumerate(novel):
-            novel_reshaped[i % 5].append(element)
-
-        novel = np.array(novel_reshaped)
-
-        if ood_pertubated:
-            novel = novel[:4].reshape(-1) # Only take the pertubated samples
-        else:
-            novel = novel[-1] # Only take the unpertubated samples
+        novel = novel_pertubated if ood_pertubated else novel_normal
 
         results = cal_metric(known, novel, method)
         all_results.append(results)
