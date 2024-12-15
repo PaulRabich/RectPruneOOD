@@ -134,9 +134,7 @@ def plot_pertubated_comparison(id_dataset: str = "imagenet", ood_dataset: str = 
     axs[0].plot(bin_centers, ood_hist, color='red', alpha=0.6, linewidth=0.2)
 
     # Plot IoU  
-    intersection = np.minimum(id_1_hist, ood_hist)
-    union = np.maximum(id_1_hist, ood_hist)
-    iou = np.sum(intersection) / np.sum(union)
+    iou, intersection, _ = compute_iou(id_1_hist, ood_hist)
 
     axs[0].fill_between(bin_centers, 0, intersection, color='darkgray', alpha=0.5, label=f"IoU = {iou:.4f}")
 
@@ -156,9 +154,7 @@ def plot_pertubated_comparison(id_dataset: str = "imagenet", ood_dataset: str = 
     axs[1].plot(bin_centers, id_pertubated_hist, color='red', alpha=0.6, linewidth=0.2)
 
     # Plot IoU
-    intersection = np.minimum(id_2_hist, id_pertubated_hist)
-    union = np.maximum(id_2_hist, id_pertubated_hist)
-    iou = np.sum(intersection) / np.sum(union)
+    iou, intersection, _ = compute_iou(id_2_hist, id_pertubated_hist)
 
     axs[1].fill_between(bin_centers, 0, intersection, color='darkgray', alpha=0.5, label=f"IoU = {iou:.4f}")
 
@@ -253,9 +249,7 @@ def plot_baseline_comparison(id_dataset: str = "imagenet", ood_dataset: str = ""
     axs[0].plot(bin_centers_baseline, ood_baseline_hist, color='red', alpha=0.6, linewidth=0.2)
 
     # Plot IoU
-    intersection = np.minimum(id_baseline_hist, ood_baseline_hist)
-    union = np.maximum(id_baseline_hist, ood_baseline_hist)
-    iou = np.sum(intersection) / np.sum(union)
+    iou, intersection, _ = compute_iou(id_baseline_hist, ood_baseline_hist)
 
     axs[0].fill_between(bin_centers_baseline, 0, intersection, color='darkgray', alpha=0.5, label=f"IoU = {iou:.4f}")
 
@@ -275,9 +269,7 @@ def plot_baseline_comparison(id_dataset: str = "imagenet", ood_dataset: str = ""
     axs[1].plot(bin_centers_method, ood_method_hist, color='red', alpha=0.6, linewidth=0.2)
 
     # Plot IoU
-    intersection = np.minimum(id_method_hist, ood_method_hist)
-    union = np.maximum(id_method_hist, ood_method_hist)
-    iou = np.sum(intersection) / np.sum(union)
+    iou, intersection, _ = compute_iou(id_method_hist, ood_method_hist)
 
     axs[1].fill_between(bin_centers_method, 0, intersection, color='darkgray', alpha=0.5, label=f"IoU = {iou:.4f}")
 
@@ -324,3 +316,51 @@ def _beautify_names(id_dataset_name: str = "imagenet", ood_dataset_name: str = "
         score_function = "Confidence"
 
     return id_dataset_name, ood_dataset_name, score_function
+
+def compute_iou_for_array(data_1: np.array, data_2: np.array, num_bins: int = 1000) -> tuple[float, np.array, np.array]:
+    """
+    Compute the Intersection over Union (IoU) of two arrays.
+
+    Args:
+    data_1 (np.array): First array.
+    data_2 (np.array): Second array.
+    num_bins (int): Number of bins for the histograms.
+
+    Returns:
+    float: Intersection over Union (IoU) of the arrays.
+    np.array: Intersection of the arrays.
+    np.array: Union of the arrays.
+    """
+
+    # Determine range of the histograms
+    max_val = max(max(data_1), max(data_2))
+    min_val = min(min(data_1), min(data_2))
+    bin_range = (min_val, max_val)
+
+    # Calculate histograms and bin edges
+    data_1_hist, _ = np.histogram(data_1, bins=num_bins, range=bin_range, density=True)
+    data_2_hist, _ = np.histogram(data_2, bins=num_bins, range=bin_range, density=True)
+
+    return compute_iou(data_1_hist, data_2_hist)
+
+
+def compute_iou(hist_1: np.histogram, hist_2: np.histogram) -> tuple[float, np.array, np.array]:
+    """
+    Compute the Intersection over Union (IoU) of two histograms.
+
+    Args:
+    hist_1 (np.histogram): First histogram.
+    hist_2 (np.histogram): Second histogram.
+
+    Returns:
+    float: Intersection over Union (IoU) of the histograms.
+    np.array: Intersection of the histograms.
+    np.array: Union of the histograms.
+    """
+
+    # Intersection over Union (IoU)
+    intersection = np.minimum(hist_1, hist_2)
+    union = np.maximum(hist_1, hist_2)
+    iou = np.sum(intersection) / np.sum(union)
+
+    return iou, intersection, union
