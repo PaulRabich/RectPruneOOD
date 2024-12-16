@@ -1,7 +1,6 @@
 from __future__ import print_function
 import argparse
 from rect_prune_ood.lib.util.paths import get_top_level_path, get_method_result_path
-from rect_prune_ood.lib.util.pertubation_dataset import split_results
 import numpy as np
 import os
 import matplotlib.pyplot as plt
@@ -169,6 +168,33 @@ def compute_average_results(all_results):
 
     return avg_results
 
+def compute_and_print_results(id_dataset: str, novel_datasets: list[str], method: str, score_function: str = "energy_score"):
+    result_dir = get_method_result_path(id_dataset, method)
+
+    id_data = np.load(
+        os.path.join(result_dir, f"id_{id_dataset}.npy"),
+        allow_pickle=True
+    ).item()[score_function]
+
+    all_results = []
+
+    for novel_dataset in novel_datasets:
+        file_name = f"ood_{novel_dataset}.npy"
+
+        if novel_dataset == "imagenet_perturbed":
+            file_name = f"id_{novel_dataset}.npy"
+
+        novel_data = np.load(
+            os.path.join(result_dir, file_name),
+            allow_pickle=True
+        ).item()[score_function]
+
+        results = cal_metric(id_data, novel_data, method)
+        all_results.append(results)
+
+    print_all_results(all_results, novel_datasets, method)
+    return
+
 def compute_traditional_ood(id_dataset, ood_datasets, score_metric:str = "energy_score", pertubated: bool = False, rectification_method: str = "", prune_method: str = "", method: str = "", plot_AUROC=False, args=None):
     result_dir = get_method_result_path(id_dataset, pertubated, rectification_method, prune_method)
     
@@ -197,36 +223,6 @@ def compute_traditional_ood(id_dataset, ood_datasets, score_metric:str = "energy
 
         in_cond = (novel>threshold).astype(np.float32)
         total += novel.shape[0]
-
-        results = cal_metric(known, novel, method)
-        all_results.append(results)
-
-    print_all_results(all_results, ood_datasets, method)
-    return
-
-def compute_traditional_ood_pertubated(id_dataset, ood_datasets, rectification_method: str = "", prune_method: str = "", method: str = "", id_pertubated: bool = True, ood_pertubated: bool = True, args=None):
-    result_dir = get_method_result_path(id_dataset, True, rectification_method, prune_method)
-    
-    known = np.load(
-        os.path.join(result_dir, f"id_{id_dataset}.npy"),
-        allow_pickle=True
-    ).item()["energy_score"]
-
-    known_normal, known_pertubated = split_results(known)
-
-    known = known_pertubated if id_pertubated else known_normal
-
-    all_results = []
-
-    for ood_dataset in ood_datasets:
-        novel = np.load(
-            os.path.join(result_dir, f"ood_{ood_dataset}.npy"),
-            allow_pickle=True
-        ).item()["energy_score"] 
-
-        novel_normal, novel_pertubated = split_results(novel)
-
-        novel = novel_pertubated if ood_pertubated else novel_normal
 
         results = cal_metric(known, novel, method)
         all_results.append(results)

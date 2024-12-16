@@ -2,7 +2,6 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from rect_prune_ood.lib.util.paths import get_method_result_path , get_top_level_path
-from rect_prune_ood.lib.util.pertubation_dataset import split_results
 
 def plot_score_distributions(data_1: np.array, data_2: np.array, title: str, x_label: str, y_label: str, data_1_label: str, data_2_label: str, bin_range=None, num_bins: int = 1000, plot_iou: bool = False) -> None:
     """
@@ -69,57 +68,43 @@ def plot_score_distributions(data_1: np.array, data_2: np.array, title: str, x_l
     plt.legend()
     plt.show()
 
-def plot_pertubated_comparison(id_dataset: str = "imagenet", ood_dataset: str = "", method_name: str = "baseline", score_function: str = "energy_score", num_bins: int = 1000, show_title: bool = True) -> None:
-    if "_" in method_name:
-        rectification_method, prune_method = method_name.split("_")
-    else:
-        rectification_method = method_name
-        prune_method = ""
-
+def plot_perturbed_comparison(id_dataset: str = "imagenet", method_name: str = "baseline", score_function: str = "energy_score", num_bins: int = 1000, show_title: bool = True) -> None:
     # Load the results
-    result_dir = get_method_result_path(id_dataset, pertubated=True, rectification_method=rectification_method, prune_method=prune_method)
+    result_dir = get_method_result_path(id_dataset, method_name)
 
     id_scores = np.load(os.path.join(result_dir, f"id_{id_dataset}.npy"), allow_pickle=True).item()[score_function]
 
-    id_scores_normal, id_scores_pertubated = split_results(id_scores)
+    id_scores_perturbed = np.load(os.path.join(result_dir, f"id_{id_dataset}_perturbed.npy"), allow_pickle=True).item()[score_function]
 
-    if ood_dataset:
-        ood_dataset_scores = np.load(os.path.join(result_dir, f"ood_{ood_dataset}.npy"), allow_pickle=True).item()[score_function]
+    ood_scores = []
 
-        ood_scores_normal, _ = split_results(ood_dataset_scores)    
-    else:
-        # Append all OOD results in one np array
-        ood_scores_normal = []
-        for ood_dataset_ in ['inat', 'dtd', 'sun', 'places']:
-            ood_dataset_scores = np.load(os.path.join(result_dir, f"ood_{ood_dataset_}.npy"), allow_pickle=True).item()[score_function]
+    for ood_dataset_ in ['inat', 'dtd', 'sun', 'places']:
+        ood_dataset_scores = np.load(os.path.join(result_dir, f"ood_{ood_dataset_}.npy"), allow_pickle=True).item()[score_function]
+        ood_scores.append(ood_dataset_scores)
 
-            # Only use the normal scores, as pertubated OOD scores are essentially also OOD scores
-            ood_dataset_scores_normal, _ = split_results(ood_dataset_scores)
-
-            ood_scores_normal.append(ood_dataset_scores_normal)
-
-        ood_scores_normal = np.concatenate(ood_scores_normal)
+    ood_scores = np.concatenate(ood_scores)
+        
 
     # Beautify names
-    id_dataset_name, ood_dataset_name, score_function_name = _beautify_names(id_dataset, ood_dataset, score_function)
+    id_dataset_name, _, score_function_name, method_name_b = _beautify_names(id_dataset, "", score_function, method_name)
 
     # Make 
     plot_1_bin_range = (
-        min(min(id_scores_normal), min(ood_scores_normal)),
-        max(max(id_scores_normal), max(ood_scores_normal))
+        min(min(id_scores), min(ood_scores)),
+        max(max(id_scores), max(ood_scores))
     )
     plot_2_bin_range = (
-        min(min(id_scores_normal), min(id_scores_pertubated)),
-        max(max(id_scores_normal), max(id_scores_pertubated))
+        min(min(id_scores), min(id_scores_perturbed)),
+        max(max(id_scores), max(id_scores_perturbed))
     )
 
     # Histograms for the first plot
-    id_1_hist, bin_edges = np.histogram(id_scores_normal, bins=num_bins, range=plot_1_bin_range, density=True)
-    ood_hist, _ = np.histogram(ood_scores_normal, bins=num_bins, range=plot_1_bin_range, density=True)
+    id_1_hist, bin_edges = np.histogram(id_scores, bins=num_bins, range=plot_1_bin_range, density=True)
+    ood_hist, _ = np.histogram(ood_scores, bins=num_bins, range=plot_1_bin_range, density=True)
 
     # Histograms for the second plot
-    id_2_hist, _ = np.histogram(id_scores_normal, bins=num_bins, range=plot_2_bin_range, density=True)
-    id_pertubated_hist, _ = np.histogram(id_scores_pertubated, bins=num_bins, range=plot_2_bin_range, density=True)
+    id_2_hist, _ = np.histogram(id_scores, bins=num_bins, range=plot_2_bin_range, density=True)
+    id_pertubated_hist, _ = np.histogram(id_scores_perturbed, bins=num_bins, range=plot_2_bin_range, density=True)
 
     # Midpoints of bins for plotting
     bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
@@ -137,11 +122,7 @@ def plot_pertubated_comparison(id_dataset: str = "imagenet", ood_dataset: str = 
     iou, intersection, _ = compute_iou(id_1_hist, ood_hist)
 
     axs[0].fill_between(bin_centers, 0, intersection, color='darkgray', alpha=0.5, label=f"IoU = {iou:.4f}")
-
-    if ood_dataset:
-        axs[0].set_title(f"ID Normal vs OOD {ood_dataset} Normal")
-    else:
-        axs[0].set_title("ID Normal vs OOD Normal (All)")
+    axs[0].set_title("ID Normal vs OOD Normal (All)")
 
     axs[0].set_xlabel(score_function_name)
     axs[0].set_ylabel("Frequency")
@@ -160,33 +141,28 @@ def plot_pertubated_comparison(id_dataset: str = "imagenet", ood_dataset: str = 
 
     axs[1].set_title("ID Normal vs ID Pertubated")
     axs[1].set_xlabel(score_function_name)
+
     # scale y axis to the same as the first plot
     axs[1].set_ylim(axs[0].get_ylim())
     axs[1].set_ylabel("Frequency")
     axs[1].legend()
 
     if show_title:
-        fig.suptitle(f"{score_function_name} comparison for ID dataset {id_dataset_name}", fontsize=16)
+        fig.suptitle(f"{method_name_b}: {score_function_name} comparison for ID dataset {id_dataset_name}", fontsize=16)
         fig.subplots_adjust(top=0.85)
 
     # Save plot as pdf to results directory
     result_dir = get_top_level_path() + "/results/plots"
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
-    plt.savefig(os.path.join(result_dir, f"{id_dataset}_{method_name}_{score_function}_comparison.pdf"))
+    plt.savefig(os.path.join(result_dir, f"{id_dataset}_perturbed_{method_name}_{score_function}_comparison.png"))
         
     plt.show()
 
 def plot_baseline_comparison(id_dataset: str = "imagenet", ood_dataset: str = "", method_name: str = "", score_function: str = "energy_score", num_bins: int = 1000, show_title: bool = True) -> None:
-    if "_" in method_name:
-        rectification_method, prune_method = method_name.split("_")
-    else:
-        rectification_method = method_name
-        prune_method = ""
 
     # Load the results
     baseline_result_dir = get_method_result_path(id_dataset)
-
     id_baseline_scores = np.load(os.path.join(baseline_result_dir, f"id_{id_dataset}.npy"), allow_pickle=True).item()[score_function]
 
     if ood_dataset:
@@ -198,7 +174,7 @@ def plot_baseline_comparison(id_dataset: str = "imagenet", ood_dataset: str = ""
             ood_dataset_scores = np.load(os.path.join(baseline_result_dir, f"ood_{ood_dataset_}.npy"), allow_pickle=True).item()[score_function]
             ood_baseline_scores.extend(ood_dataset_scores)
 
-    method_result_dir = get_method_result_path(id_dataset, rectification_method=rectification_method, prune_method=prune_method)
+    method_result_dir = get_method_result_path(id_dataset, method_name)
 
     id_method_scores = np.load(os.path.join(method_result_dir, f"id_{id_dataset}.npy"), allow_pickle=True).item()[score_function]
 
@@ -212,7 +188,7 @@ def plot_baseline_comparison(id_dataset: str = "imagenet", ood_dataset: str = ""
             ood_method_scores.extend(ood_dataset_scores)
 
     # Beautify names
-    id_dataset_name, ood_dataset_name, score_function_name = _beautify_names(id_dataset, ood_dataset, score_function)  
+    id_dataset_name, ood_dataset_name, score_function_name, method_name_b = _beautify_names(id_dataset, ood_dataset, score_function, method_name)  
 
     # Make
     # Determine range of the histograms
@@ -263,8 +239,8 @@ def plot_baseline_comparison(id_dataset: str = "imagenet", ood_dataset: str = ""
     axs[0].legend()
 
     # Plot 2
-    axs[1].fill_between(bin_centers_method, 0, id_method_hist, color='blue', alpha=0.3, label="React ID")
-    axs[1].fill_between(bin_centers_method, 0, ood_method_hist, color='red', alpha=0.3, label="React OOD")
+    axs[1].fill_between(bin_centers_method, 0, id_method_hist, color='blue', alpha=0.3, label=f"{method_name_b} ID")
+    axs[1].fill_between(bin_centers_method, 0, ood_method_hist, color='red', alpha=0.3, label=f"{method_name_b} OOD")
     axs[1].plot(bin_centers_method, id_method_hist, color='blue', alpha=0.6, linewidth=0.2)
     axs[1].plot(bin_centers_method, ood_method_hist, color='red', alpha=0.6, linewidth=0.2)
 
@@ -273,7 +249,7 @@ def plot_baseline_comparison(id_dataset: str = "imagenet", ood_dataset: str = ""
 
     axs[1].fill_between(bin_centers_method, 0, intersection, color='darkgray', alpha=0.5, label=f"IoU = {iou:.4f}")
 
-    axs[1].set_title("React ID vs OOD")
+    axs[1].set_title(f"{method_name_b} ID vs OOD")
     axs[1].set_xlabel(score_function_name)
     # scale y axis to the same as the first plot
     #axs[1].set_ylim(axs[0].get_ylim())
@@ -281,7 +257,7 @@ def plot_baseline_comparison(id_dataset: str = "imagenet", ood_dataset: str = ""
     axs[1].legend()
 
     if show_title:
-        fig.suptitle(f"{score_function_name} comparison for ID dataset {id_dataset_name}", fontsize=16)
+        fig.suptitle(f"{method_name_b}: {score_function_name} comparison for ID dataset {id_dataset_name}", fontsize=16)
         fig.subplots_adjust(top=0.85)
 
     # Save plot as pdf to results directory
@@ -292,7 +268,7 @@ def plot_baseline_comparison(id_dataset: str = "imagenet", ood_dataset: str = ""
 
     plt.show()
 
-def _beautify_names(id_dataset_name: str = "imagenet", ood_dataset_name: str = "", score_function: str = "energy_score"):
+def _beautify_names(id_dataset_name: str = "imagenet", ood_dataset_name: str = "", score_function: str = "energy_score", method_name: str = "") -> tuple[str, str, str, str]:
     if id_dataset_name == "imagenet":
         id_dataset_name = "ImageNet"
 
@@ -315,7 +291,34 @@ def _beautify_names(id_dataset_name: str = "imagenet", ood_dataset_name: str = "
     else:
         score_function = "Confidence"
 
-    return id_dataset_name, ood_dataset_name, score_function
+    if method_name == "baseline":
+        method_name = "Baseline"
+    elif method_name == "react":
+        method_name = "ReAct"
+    elif method_name == "bats":
+        method_name = "BATS"
+    elif method_name == "ashs":
+        method_name = "AshS"
+    elif method_name == "ashb":
+        method_name = "AshB"
+    elif method_name == "ashp":
+        method_name = "AshP"
+    elif method_name == "dice":
+        method_name = "Dice"
+    elif method_name == "line":
+        method_name = "Line"
+    elif method_name == "react_ashs":
+        method_name = "ReAct + AshS"
+    elif method_name == "react_ashb":
+        method_name = "ReAct + AshB"
+    elif method_name == "react_ashp":
+        method_name = "ReAct + AshP"
+    elif method_name == "react_dice":
+        method_name = "ReAct + Dice"
+    elif method_name == "react_line":
+        method_name = "ReAct + Line"
+
+    return id_dataset_name, ood_dataset_name, score_function, method_name
 
 def compute_iou_for_array(data_1: np.array, data_2: np.array, num_bins: int = 1000) -> tuple[float, np.array, np.array]:
     """
