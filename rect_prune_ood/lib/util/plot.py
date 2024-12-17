@@ -2,6 +2,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from rect_prune_ood.lib.util.paths import get_method_result_path , get_top_level_path
+from rect_prune_ood.lib.eval.metrics import cal_metric, compute_average_results
 
 def plot_score_distributions(data_1: np.array, data_2: np.array, title: str, x_label: str, y_label: str, data_1_label: str, data_2_label: str, bin_range=None, num_bins: int = 1000, plot_iou: bool = False) -> None:
     """
@@ -76,14 +77,19 @@ def plot_perturbed_comparison(id_dataset: str = "imagenet", method_name: str = "
 
     id_scores_perturbed = np.load(os.path.join(result_dir, f"id_{id_dataset}_perturbed.npy"), allow_pickle=True).item()[score_function]
 
+    id_vs_id_pertubated_metrics = cal_metric(id_scores, id_scores_perturbed)
+
     ood_scores = []
+    id_vs_ood_metrics = []
 
     for ood_dataset_ in ['inat', 'dtd', 'sun', 'places']:
         ood_dataset_scores = np.load(os.path.join(result_dir, f"ood_{ood_dataset_}.npy"), allow_pickle=True).item()[score_function]
         ood_scores.append(ood_dataset_scores)
 
+        id_vs_ood_metrics.append(cal_metric(id_scores, ood_dataset_scores))
+
     ood_scores = np.concatenate(ood_scores)
-        
+    avg_id_vs_ood_metrics = compute_average_results(id_vs_ood_metrics)
 
     # Beautify names
     id_dataset_name, _, score_function_name, method_name_b = _beautify_names(id_dataset, "", score_function, method_name)
@@ -121,7 +127,11 @@ def plot_perturbed_comparison(id_dataset: str = "imagenet", method_name: str = "
     # Plot IoU  
     iou, intersection, _ = compute_iou(id_1_hist, ood_hist)
 
-    axs[0].fill_between(bin_centers, 0, intersection, color='darkgray', alpha=0.5, label=f"IoU = {iou:.4f}")
+    axs[0].fill_between(bin_centers, 0, intersection, color='darkgray', alpha=0.5, label=f"IoU (↓) = {iou:.4f}")
+
+    # Plot AUROC
+    axs[0].plot(min(plot_1_bin_range), 0, color='none', label='AUROC (↑) = {val:6.2f}'.format(val=100.*avg_id_vs_ood_metrics['AUROC']))
+
     axs[0].set_title("ID Normal vs OOD Normal (All)")
 
     axs[0].set_xlabel(score_function_name)
@@ -130,16 +140,19 @@ def plot_perturbed_comparison(id_dataset: str = "imagenet", method_name: str = "
 
     # Plot 2
     axs[1].fill_between(bin_centers, 0, id_2_hist, color='blue', alpha=0.3, label="ID Normal")
-    axs[1].fill_between(bin_centers, 0, id_pertubated_hist, color='red', alpha=0.3, label="ID Pertubated")
+    axs[1].fill_between(bin_centers, 0, id_pertubated_hist, color='red', alpha=0.3, label="ID Perturbed")
     axs[1].plot(bin_centers, id_2_hist, color='blue', alpha=0.6, linewidth=0.2)
     axs[1].plot(bin_centers, id_pertubated_hist, color='red', alpha=0.6, linewidth=0.2)
 
     # Plot IoU
     iou, intersection, _ = compute_iou(id_2_hist, id_pertubated_hist)
 
-    axs[1].fill_between(bin_centers, 0, intersection, color='darkgray', alpha=0.5, label=f"IoU = {iou:.4f}")
+    axs[1].fill_between(bin_centers, 0, intersection, color='darkgray', alpha=0.5, label=f"IoU (↓) = {iou:.4f}")
 
-    axs[1].set_title("ID Normal vs ID Pertubated")
+    # Plot AUROC 
+    axs[1].plot(min(plot_2_bin_range), 0, color='none', label='AUROC (↑) = {val:6.2f}'.format(val=100.*id_vs_id_pertubated_metrics['AUROC']))
+
+    axs[1].set_title("ID Normal vs ID Perturbed")
     axs[1].set_xlabel(score_function_name)
 
     # scale y axis to the same as the first plot
@@ -167,12 +180,17 @@ def plot_baseline_comparison(id_dataset: str = "imagenet", ood_dataset: str = ""
 
     if ood_dataset:
         ood_baseline_scores = np.load(os.path.join(baseline_result_dir, f"ood_{ood_dataset}.npy"), allow_pickle=True).item()[score_function]
+
+        baseline_metrics = cal_metric(id_baseline_scores, ood_baseline_scores)
     else:
         # Append all OOD results in one np array
         ood_baseline_scores = []
+        baseline_metrics = []
         for ood_dataset_ in ['inat', 'dtd', 'sun', 'places']:
             ood_dataset_scores = np.load(os.path.join(baseline_result_dir, f"ood_{ood_dataset_}.npy"), allow_pickle=True).item()[score_function]
+            baseline_metrics.append(cal_metric(id_baseline_scores, ood_dataset_scores))
             ood_baseline_scores.extend(ood_dataset_scores)
+        baseline_metrics = compute_average_results(baseline_metrics)
 
     method_result_dir = get_method_result_path(id_dataset, method_name)
 
@@ -180,12 +198,17 @@ def plot_baseline_comparison(id_dataset: str = "imagenet", ood_dataset: str = ""
 
     if ood_dataset:
         ood_method_scores = np.load(os.path.join(method_result_dir, f"ood_{ood_dataset}.npy"), allow_pickle=True).item()[score_function]
+        ood_metrics = cal_metric(id_method_scores, ood_method_scores)
     else:
         # Append all OOD results in one np array
         ood_method_scores = []
+        ood_metrics = []
         for ood_dataset_ in ['inat', 'dtd', 'sun', 'places']:
             ood_dataset_scores = np.load(os.path.join(method_result_dir, f"ood_{ood_dataset_}.npy"), allow_pickle=True).item()[score_function]
+            ood_metrics.append(cal_metric(id_method_scores, ood_dataset_scores))
             ood_method_scores.extend(ood_dataset_scores)
+
+        ood_metrics = compute_average_results(ood_metrics)
 
     # Beautify names
     id_dataset_name, ood_dataset_name, score_function_name, method_name_b = _beautify_names(id_dataset, ood_dataset, score_function, method_name)  
@@ -227,12 +250,15 @@ def plot_baseline_comparison(id_dataset: str = "imagenet", ood_dataset: str = ""
     # Plot IoU
     iou, intersection, _ = compute_iou(id_baseline_hist, ood_baseline_hist)
 
-    axs[0].fill_between(bin_centers_baseline, 0, intersection, color='darkgray', alpha=0.5, label=f"IoU = {iou:.4f}")
+    axs[0].fill_between(bin_centers_baseline, 0, intersection, color='darkgray', alpha=0.5, label=f"IoU (↓) = {iou:.4f}")
+
+    # Plot AUROC
+    axs[0].plot(min(plot_bin_range_baseline), 0, color='none', label='AUROC (↑) = {val:6.2f}'.format(val=100.*baseline_metrics['AUROC']))
 
     if ood_dataset:
-        axs[0].set_title(f"Baseline ID vs OOD {ood_dataset}")
+        axs[0].set_title(f"Baseline: ID vs OOD {ood_dataset}")
     else:
-        axs[0].set_title("Baseline ID vs OOD (All)")
+        axs[0].set_title("Baseline: ID vs OOD (All)")
 
     axs[0].set_xlabel(score_function_name)
     axs[0].set_ylabel("Frequency")
@@ -247,9 +273,16 @@ def plot_baseline_comparison(id_dataset: str = "imagenet", ood_dataset: str = ""
     # Plot IoU
     iou, intersection, _ = compute_iou(id_method_hist, ood_method_hist)
 
-    axs[1].fill_between(bin_centers_method, 0, intersection, color='darkgray', alpha=0.5, label=f"IoU = {iou:.4f}")
+    axs[1].fill_between(bin_centers_method, 0, intersection, color='darkgray', alpha=0.5, label=f"IoU (↓) = {iou:.4f}")
 
-    axs[1].set_title(f"{method_name_b} ID vs OOD")
+    # Plot AUROC
+    axs[1].plot(min(plot_bin_range_method), 0, color='none', label='AUROC (↑) = {val:6.2f}'.format(val=100.*ood_metrics['AUROC']))
+
+    if ood_dataset:
+        axs[1].set_title(f"{method_name_b}: ID vs OOD {ood_dataset}")
+    else:
+        axs[1].set_title(f"{method_name_b} ID vs OOD (All)")
+
     axs[1].set_xlabel(score_function_name)
     # scale y axis to the same as the first plot
     #axs[1].set_ylim(axs[0].get_ylim())
@@ -367,3 +400,6 @@ def compute_iou(hist_1: np.histogram, hist_2: np.histogram) -> tuple[float, np.a
     iou = np.sum(intersection) / np.sum(union)
 
     return iou, intersection, union
+
+def compute_auroc(id_scores: np.array, ref_scores: np.array) -> float:
+    ...
