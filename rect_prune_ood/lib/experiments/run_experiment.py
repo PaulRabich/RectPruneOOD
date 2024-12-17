@@ -54,10 +54,16 @@ def run_experiment(
     pipeline = Pipeline(feature_extractor, rectification, pruning, caputure_activations=capture_activations)
     
     # generate the name/path for the result dir. The name should contain the methods and whether it is pertubated or not
-    result_dir = get_method_result_path(id_dataset, rectification_method, prune_method)
+    if rectification_method and prune_method:
+        folder_name = f"{rectification_method}_{prune_method}"
+    elif rectification_method:
+        folder_name = rectification_method
+    elif prune_method:
+        folder_name = prune_method
+    result_dir = get_method_result_path(id_dataset, folder_name)
 
     print(f'Evaluating id dataset "{id_dataset}"')
-    id_dataloader = get_data_loader(id_dataset, batch_size=16)
+    id_dataloader, _ = get_data_loader(id_dataset, batch_size=16)
 
     # Trainer
     trainer = Trainer(logger=None)
@@ -75,18 +81,18 @@ def run_experiment(
 
     for perturbed_dataset in perturbed_datasets:
         print(f'Evaluating perturbed dataset "{perturbed_dataset}"')
-        perturbation_dataloader = get_data_loader(perturbed_dataset, batch_size=16)
+        perturbation_dataloader, _ = get_data_loader(perturbed_dataset, batch_size=16)
 
         trainer.test(pipeline, perturbation_dataloader)
 
         pertubation_result = pipeline.results
 
-        np.save(os.path.join(result_dir, f"{perturbed_dataset}.npy"), pertubation_result)
+        np.save(os.path.join(result_dir, f"id_{perturbed_dataset}.npy"), pertubation_result)
 
     for ood_dataset in ood_datasets:
         print(f'Evaluating ood dataset "{ood_dataset}"')
 
-        ood_dataloader = get_data_loader(ood_dataset, batch_size=16)
+        ood_dataloader, _ = get_data_loader(ood_dataset, batch_size=16)
 
         trainer.test(pipeline, ood_dataloader)
 
