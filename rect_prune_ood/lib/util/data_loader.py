@@ -17,7 +17,9 @@ ood_datasets = Literal[
     'inat', 
     'dtd', 
     'sun', 
-    'places'
+    'places',
+    'ninco',
+    'ssb_hard'
 ]
 
 perturbed_datasets = Literal[
@@ -54,7 +56,9 @@ paths = {
     'dtd': os.path.join(ood_base_path, 'dtd', 'images'),
     'places': os.path.join(ood_base_path, 'Places'),
     'inat': os.path.join(ood_base_path, 'iNaturalist'),
-    'sun': os.path.join(ood_base_path, 'SUN')
+    'sun': os.path.join(ood_base_path, 'SUN'),
+    'ninco': os.path.join(ood_base_path, 'NINCO', 'NINCO_OOD_classes'),
+    'ssb_hard': os.path.join(ood_base_path, 'ssb_hard'),
 }
 
 def get_data_loader(dataset : str, batch_size : int = 100, shuffle : bool = False):
@@ -77,7 +81,7 @@ def get_data_loader(dataset : str, batch_size : int = 100, shuffle : bool = Fals
     if dataset in ['cifar10', 'imagenet']:
         val_loader, num_classes = _get_id_data_loader(dataset, batch_size, shuffle)
 
-    elif dataset in ['inat', 'dtd', 'sun', 'places']:
+    elif dataset in ['inat', 'dtd', 'sun', 'places', 'ninco', 'ssb_hard']:
         val_loader = _get_ood_data_loader(dataset, batch_size=batch_size, shuffle=shuffle)
 
     elif dataset == 'imagenet_perturbed':
@@ -133,25 +137,8 @@ def _get_ood_data_loader(ood_dataset : str, batch_size : int = 100, shuffle : bo
         - val_loader (DataLoader or None): DataLoader for the specified OOD dataset if available; None otherwise.
     """
 
-    ood_path = paths[ood_dataset]
-
-    val_loader = None
-
-    if ood_dataset == 'dtd':
-        dtd = ImageFolder(root=ood_path, transform=transform_test_largescale)
-        val_loader = DataLoader(dtd, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
-
-    elif ood_dataset == 'places':
-        places = ImageFolder(root=ood_path, transform=transform_test_largescale)
-        val_loader = DataLoader(places, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
-        
-    elif ood_dataset == 'sun':
-        sun = ImageFolder(root=ood_path, transform=transform_test_largescale)
-        val_loader = DataLoader(sun, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
-        
-    elif ood_dataset == 'inat':
-        inat = ImageFolder(root=ood_path, transform=transform_test_largescale)
-        val_loader = DataLoader(inat, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
+    image_folder = ImageFolder(root=paths[ood_dataset], transform=transform_test_largescale)
+    val_loader = DataLoader(image_folder, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
 
     return val_loader
 
@@ -168,10 +155,7 @@ def _get_perturbation_data_loader(perturbed_dataset: str = 'imagenet_perturbed',
         - val_loader (DataLoader or None): DataLoader for the perturbation dataset if available; None otherwise.
     """
 
-    val_loader = None
-
-    if perturbed_dataset == 'imagenet_perturbed':
-        imagenet = ImageFolder(root=paths[perturbed_dataset], transform=transform_test_largescale)
-        val_loader = DataLoader(imagenet, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
-
+    imagenet = ImageFolder(root=paths[perturbed_dataset], transform=transform_test_largescale)
+    val_loader = DataLoader(imagenet, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
+        
     return val_loader
