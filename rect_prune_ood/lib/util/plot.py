@@ -130,7 +130,7 @@ def plot_perturbed_comparison(id_dataset: str = "imagenet", method_name: str = "
     axs[0].fill_between(bin_centers, 0, intersection, color='darkgray', alpha=0.5, label=f"IoU (↓) = {iou:.4f}")
 
     # Plot AUROC
-    axs[0].plot(min(plot_1_bin_range), 0, color='none', label='AUROC (↑) = {val:6.2f}'.format(val=100.*avg_id_vs_ood_metrics['AUROC']))
+    #axs[0].plot(min(plot_1_bin_range), 0, color='none', label='AUROC (↑) = {val:6.2f}'.format(val=100.*avg_id_vs_ood_metrics['AUROC']))
 
     axs[0].set_title("ID Normal vs OOD Normal (All)")
 
@@ -149,8 +149,9 @@ def plot_perturbed_comparison(id_dataset: str = "imagenet", method_name: str = "
 
     axs[1].fill_between(bin_centers, 0, intersection, color='darkgray', alpha=0.5, label=f"IoU (↓) = {iou:.4f}")
 
-    # Plot AUROC 
-    axs[1].plot(min(plot_2_bin_range), 0, color='none', label='AUROC (↑) = {val:6.2f}'.format(val=100.*id_vs_id_pertubated_metrics['AUROC']))
+    # Plot AUROC
+    if score_function == "energy_score": 
+        axs[1].plot(min(plot_2_bin_range), 0, color='none', label='AUROC (↑) = {val:6.2f}'.format(val=100.*id_vs_id_pertubated_metrics['AUROC']))
 
     axs[1].set_title("ID Normal vs ID Perturbed")
     axs[1].set_xlabel(score_function_name)
@@ -300,6 +301,102 @@ def plot_baseline_comparison(id_dataset: str = "imagenet", ood_dataset: str = ""
     plt.savefig(os.path.join(result_dir, f"{id_dataset}_{method_name}_{score_function}_baseline_comparison.pdf"))
 
     plt.show()
+
+def plot_react_vs_ashs():
+    react_result_dir = get_method_result_path("imagenet", "react")
+    ashs_result_dir = get_method_result_path("imagenet", "ashs")
+
+    id_perturbed_react = np.load(os.path.join(react_result_dir, "id_imagenet_perturbed.npy"), allow_pickle=True).item()["energy_score"]
+    id_perturbed_ashs = np.load(os.path.join(ashs_result_dir, "id_imagenet_perturbed.npy"), allow_pickle=True).item()["energy_score"]
+
+    ood_react_scores = []
+    ood_ashs_scores = []
+
+    ood_react_metrics = []
+    ood_ashs_metrics = []
+
+    for ood_dataset in ['inat', 'dtd', 'sun', 'places']:
+        ood_react = np.load(os.path.join(react_result_dir, f"ood_{ood_dataset}.npy"), allow_pickle=True).item()["energy_score"]
+        ood_ashs = np.load(os.path.join(ashs_result_dir, f"ood_{ood_dataset}.npy"), allow_pickle=True).item()["energy_score"]
+
+        ood_react_scores.extend(ood_react)
+        ood_ashs_scores.extend(ood_ashs)
+
+        ood_react_metrics.append(cal_metric(id_perturbed_react, ood_react))
+        ood_ashs_metrics.append(cal_metric(id_perturbed_ashs, ood_ashs))
+
+    ood_react_metrics = compute_average_results(ood_react_metrics)
+    ood_ashs_metrics = compute_average_results(ood_ashs_metrics)
+
+    bin_range_react = (
+        min(min(id_perturbed_react), min(ood_react_scores)),
+        max(max(id_perturbed_react), max(ood_react_scores))
+    )
+
+    bin_range_ashs = (
+        min(min(id_perturbed_ashs), min(ood_ashs_scores)),
+        max(max(id_perturbed_ashs), max(ood_ashs_scores))
+    )
+
+    # Histograms for the first plot
+    id_perturbed_react_hist, bin_edges_react = np.histogram(id_perturbed_react, bins=1000, range=bin_range_react, density=True)
+    ood_react_hist, _ = np.histogram(ood_react_scores, bins=1000, range=bin_range_react, density=True)
+
+    # Histograms for the second plot
+    id_perturbed_ashs_hist, bin_edges_ashs = np.histogram(id_perturbed_ashs, bins=1000, range=bin_range_ashs, density=True)
+    ood_ashs_hist, _ = np.histogram(ood_ashs_scores, bins=1000, range=bin_range_ashs, density=True)
+
+    # Midpoints of bins for plotting
+    bin_centers_react = (bin_edges_react[:-1] + bin_edges_react[1:]) / 2
+    bin_centers_ashs = (bin_edges_ashs[:-1] + bin_edges_ashs[1:]) / 2
+
+    # Two subplots
+    fig, axs = plt.subplots(1, 2, figsize=(12, 4))
+
+    # Plot 1
+    axs[0].fill_between(bin_centers_react, 0, id_perturbed_react_hist, color='blue', alpha=0.3, label="ID perturbed")
+    axs[0].fill_between(bin_centers_react, 0, ood_react_hist, color='red', alpha=0.3, label="OOD (All)")
+    axs[0].plot(bin_centers_react, id_perturbed_react_hist, color='blue', alpha=0.6, linewidth=0.2)
+    axs[0].plot(bin_centers_react, ood_react_hist, color='red', alpha=0.6, linewidth=0.2)
+
+    # Plot IoU
+    iou, intersection, _ = compute_iou(id_perturbed_react_hist, ood_react_hist)
+
+    axs[0].fill_between(bin_centers_react, 0, intersection, color='darkgray', alpha=0.5, label=f"IoU (↓) = {iou:.4f}")
+
+    # Plot AUROC
+    axs[0].plot(min(bin_range_react), 0, color='none', label='AUROC (↑) = {val:6.2f}'.format(val=100.*ood_react_metrics['AUROC']))
+
+    axs[0].set_title("ReAct: ID perturbed vs OOD (All)")
+
+    axs[0].set_xlabel("Energy Score")
+    axs[0].set_ylabel("Frequency")
+    axs[0].legend()
+
+    # Plot 2
+    axs[1].fill_between(bin_centers_ashs, 0, id_perturbed_ashs_hist, color='blue', alpha=0.3, label="ID perturbed")
+    axs[1].fill_between(bin_centers_ashs, 0, ood_ashs_hist, color='red', alpha=0.3, label="OOD (All)")
+    axs[1].plot(bin_centers_ashs, id_perturbed_ashs_hist, color='blue', alpha=0.6, linewidth=0.2)
+    axs[1].plot(bin_centers_ashs, ood_ashs_hist, color='red', alpha=0.6, linewidth=0.2)
+
+    # Plot IoU
+    iou, intersection, _ = compute_iou(id_perturbed_ashs_hist, ood_ashs_hist)
+
+    axs[1].fill_between(bin_centers_ashs, 0, intersection, color='darkgray', alpha=0.5, label=f"IoU (↓) = {iou:.4f}")
+
+    # Plot AUROC
+    axs[1].plot(min(bin_range_ashs), 0, color='none', label='AUROC (↑) = {val:6.2f}'.format(val=100.*ood_ashs_metrics['AUROC']))
+
+    axs[1].set_title("AshS: ID perturbed vs OOD (All)")
+    axs[1].set_xlabel("Energy Score")
+
+    # scale y axis to the same as the first plot
+    #axs[1].set_ylim(axs[0].get_ylim())
+    axs[1].set_ylabel("Frequency")
+    axs[1].legend()
+
+    fig.suptitle("ReAct vs AshS: Energy Score comparison for ID dataset ImageNet", fontsize=16)
+    fig.subplots_adjust(top=0.85)
 
 def _beautify_names(id_dataset_name: str = "imagenet", ood_dataset_name: str = "", score_function: str = "energy_score", method_name: str = "") -> tuple[str, str, str, str]:
     if id_dataset_name == "imagenet":
