@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Union
 import os
 
 import numpy as np
@@ -9,13 +9,13 @@ from rect_prune_ood.lib.experiments.feature_extractor import FeatureExtractor
 from rect_prune_ood.lib.experiments.pipeline import Pipeline
 from rect_prune_ood.lib.experiments.backbones import get_resnet50
 from rect_prune_ood.lib.methods.rect_prune_methods import get_classes
-from rect_prune_ood.lib.util import (
-    get_id_data_loader,
-    get_ood_data_loader,
-    get_top_level_path,
-    get_method_result_path,
+from rect_prune_ood.lib.util.paths import get_method_result_path
+from rect_prune_ood.lib.util.data_loader import (
+    id_datasets, 
+    ood_datasets, 
+    perturbed_datasets, 
+    get_data_loader
 )
-from rect_prune_ood.lib.util.data_loader import id_datasets, ood_datasets
 
 
 prune_types = Literal["", "ashb", "ashp", "ashs", "dice", "line"]
@@ -27,6 +27,175 @@ backbones = Literal["resnet50"]
 def get_backbone(backbone: backbones):
     if backbone == "resnet50":
         return get_resnet50()
+    
+def run_all_experiments(
+    backbone: backbones,
+    layer: str,
+    capture_activations: bool = False,
+    id_dataset: id_datasets = "imagenet",
+):
+    for rectification_method in ["react", ""]:
+        for prune_method in ["ashb", "ashp", "ashs", ""]:
+            run_experiment_for_method(
+                backbone=backbone,
+                layer=layer,
+                rectification_method=rectification_method,
+                prune_method=prune_method,
+                capture_activations=capture_activations,
+                id_dataset=id_dataset,
+            )
+            run_full_spec_experiment(
+                backbone=backbone,
+                layer=layer,
+                rectification_method=rectification_method,
+                prune_method=prune_method,
+                capture_activations=capture_activations,
+                id_dataset=id_dataset,
+            )
+
+def run_experiment_for_method(
+    backbone: backbones,
+    layer: str,
+    rectification_method: rectification_types,
+    prune_method: prune_types,
+    capture_activations: bool = False,
+    id_dataset: id_datasets = "imagenet",
+):
+    for dataset in [
+        'imagenet',
+        'imagenet_perturbed',
+        'inat',
+        'dtd',
+        'sun',
+        'places',
+        'ninco',
+        'ssb_hard'
+    ]:
+        run_single_experiment(
+            backbone=backbone,
+            layer=layer,
+            dataset=dataset,
+            rectification_method=rectification_method,
+            prune_method=prune_method,
+            capture_activations=capture_activations,
+            id_dataset=id_dataset,
+        )
+    
+def run_single_experiment(
+    backbone: backbones,
+    layer: str,
+    dataset: Union[id_datasets, ood_datasets, perturbed_datasets],
+    rectification_method: rectification_types,
+    prune_method: prune_types,
+    capture_activations: bool = False,
+    id_dataset: id_datasets = "imagenet",
+):
+    backbone = get_backbone(backbone)
+    feature_extractor = FeatureExtractor(backbone, layer)
+
+    # return appropriate methods
+    rect_cls, prune_cls = get_classes(
+        rectification=rectification_method, pruning=prune_method
+    )
+
+    rectification = rect_cls()
+    pruning = prune_cls(fc_layer=feature_extractor.get_fc_layer())
+
+    # get the pipeline and the dataloader
+    pipeline = Pipeline(feature_extractor, rectification, pruning, caputure_activations=capture_activations)
+
+    # generate the name/path for the result dir. The name should contain the methods and whether it is pertubated or not
+    if rectification_method and prune_method:
+        folder_name = f"{rectification_method}_{prune_method}"
+    elif rectification_method:
+        folder_name = rectification_method
+    elif prune_method:
+        folder_name = prune_method
+    result_dir = get_method_result_path(id_dataset, folder_name)
+
+    print(f'Evaluating dataset "{dataset}" for rectification "{rectification_method}" and pruning "{prune_method}"')
+    dataloader, _ = get_data_loader(dataset, batch_size=16)
+
+    # Trainer
+    trainer = Trainer(logger=None)
+    trainer.test(pipeline, dataloader)
+
+    np.save(os.path.join(result_dir, f"{dataset}.npy"), pipeline.results)
+
+    if capture_activations:
+        np.save(
+            os.path.join(result_dir, f"{dataset}_activations.npy"),
+            pipeline.activations,
+        )
+
+def run_full_spec_experiment(
+    backbone: backbones,
+    layer: str,
+    rectification_method: rectification_types,
+    prune_method: prune_types,
+    capture_activations: bool = False,
+    id_dataset: id_datasets = "imagenet",
+):
+    backbone = get_backbone(backbone)
+    feature_extractor = FeatureExtractor(backbone, layer)
+
+    # return appropriate methods
+    rect_cls, prune_cls = get_classes(
+        rectification=rectification_method, pruning=prune_method
+    )
+
+    rectification = rect_cls()
+    pruning = prune_cls(fc_layer=feature_extractor.get_fc_layer())
+
+    # get the pipeline and the dataloader
+    pipeline = Pipeline(feature_extractor, rectification, pruning, caputure_activations=capture_activations)
+
+    # generate the name/path for the result dir. The name should contain the methods and whether it is pertubated or not
+    if rectification_method and prune_method:
+        folder_name = f"{rectification_method}_{prune_method}"
+    elif rectification_method:
+        folder_name = rectification_method
+    elif prune_method:
+        folder_name = prune_method
+    result_dir = get_method_result_path(id_dataset, folder_name)
+
+    print(f'Creating full spectrum results for "{id_dataset}"')
+    dataloader, _ = get_data_loader(id_dataset, batch_size=16)
+
+    # Trainer
+    trainer = Trainer(logger=None)
+    trainer.test(pipeline, dataloader)
+
+    results_normal = pipeline.results
+    if capture_activations:
+        activations_normal = pipeline.activations
+
+    pert_dataloader, _ = get_data_loader(f"{id_dataset}_perturbed", batch_size=16)
+    trainer.test(pipeline, pert_dataloader)
+
+    results_pert = pipeline.results
+    if capture_activations:
+        activations_pert = pipeline.activations
+
+    results = {
+        "energy_score": np.concatenate([results_normal["energy_score"], results_pert["energy_score"]], axis=0),
+        "msp_score": np.concatenate([results_normal["msp_score"], results_pert["msp_score"]], axis=0),
+        "entropy_score": np.concatenate([results_normal["entropy_score"], results_pert["entropy_score"]], axis=0),
+        "prediction": np.concatenate([results_normal["prediction"], results_pert["prediction"]], axis=0),
+        "label": np.concatenate([results_normal["label"], results_pert["label"]], axis=0),
+        "confidence": np.concatenate([results_normal["confidence"], results_pert["confidence"]], axis=0),
+    }
+
+    if capture_activations:
+        activations = np.concatenate([activations_normal, activations_pert], axis=0)
+
+    np.save(os.path.join(result_dir, f"{id_dataset}_full_spec.npy"), results)
+
+    if capture_activations:
+        np.save(
+            os.path.join(result_dir, f"{id_dataset}_full_spec_activations.npy"),
+            activations,
+        )
 
 
 def run_experiment(
@@ -34,9 +203,9 @@ def run_experiment(
     layer: str,
     id_dataset: id_datasets,
     ood_datasets: list[ood_datasets],
+    perturbed_datasets: list[perturbed_datasets],
     rectification_method: rectification_types,
     prune_method: prune_types,
-    apply_pertubation: bool,
     capture_activations: bool,
 ):
     backbone = get_backbone(backbone)
@@ -54,14 +223,20 @@ def run_experiment(
     pipeline = Pipeline(feature_extractor, rectification, pruning, caputure_activations=capture_activations)
     
     # generate the name/path for the result dir. The name should contain the methods and whether it is pertubated or not
-    result_dir = get_method_result_path(id_dataset, apply_pertubation, rectification_method, prune_method)
+    if rectification_method and prune_method:
+        folder_name = f"{rectification_method}_{prune_method}"
+    elif rectification_method:
+        folder_name = rectification_method
+    elif prune_method:
+        folder_name = prune_method
+    result_dir = get_method_result_path(id_dataset, folder_name)
 
     print(f'Evaluating id dataset "{id_dataset}"')
-    dataloader, _ = get_id_data_loader(id_dataset, apply_pertubation, batch_size=16)
+    id_dataloader, _ = get_data_loader(id_dataset, batch_size=16)
 
     # Trainer
     trainer = Trainer(logger=None)
-    trainer.test(pipeline, dataloader)
+    trainer.test(pipeline, id_dataloader)
 
     id_result = pipeline.results
 
@@ -73,12 +248,22 @@ def run_experiment(
             pipeline.activations,
         )
 
+    for perturbed_dataset in perturbed_datasets:
+        print(f'Evaluating perturbed dataset "{perturbed_dataset}"')
+        perturbation_dataloader, _ = get_data_loader(perturbed_dataset, batch_size=16)
+
+        trainer.test(pipeline, perturbation_dataloader)
+
+        pertubation_result = pipeline.results
+
+        np.save(os.path.join(result_dir, f"id_{perturbed_dataset}.npy"), pertubation_result)
+
     for ood_dataset in ood_datasets:
         print(f'Evaluating ood dataset "{ood_dataset}"')
 
-        dataloader = get_ood_data_loader(ood_dataset, apply_pertubation, batch_size=16)
+        ood_dataloader, _ = get_data_loader(ood_dataset, batch_size=16)
 
-        trainer.test(pipeline, dataloader)
+        trainer.test(pipeline, ood_dataloader)
 
         ood_result = pipeline.results
 
