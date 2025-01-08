@@ -111,6 +111,9 @@ def run_single_experiment(
         folder_name = rectification_method
     elif prune_method:
         folder_name = prune_method
+    else:
+        folder_name = "baseline"
+
     result_dir = get_method_result_path(id_dataset, folder_name)
 
     print(f'Evaluating dataset "{dataset}" for rectification "{rectification_method}" and pruning "{prune_method}"')
@@ -157,6 +160,9 @@ def run_full_spec_experiment(
         folder_name = rectification_method
     elif prune_method:
         folder_name = prune_method
+    else:
+        folder_name = "baseline"
+        
     result_dir = get_method_result_path(id_dataset, folder_name)
 
     print(f'Creating full spectrum results for "{id_dataset}"')
@@ -197,7 +203,9 @@ def run_full_spec_experiment(
             activations,
         )
 
-
+"""
+This function is DEPRECATED. Use run_single_experiment instead.
+"""
 def run_experiment(
     backbone: backbones,
     layer: str,
@@ -208,6 +216,10 @@ def run_experiment(
     prune_method: prune_types,
     capture_activations: bool,
 ):
+    """
+    DEPRECATED
+    """
+
     backbone = get_backbone(backbone)
     feature_extractor = FeatureExtractor(backbone, layer)
 
