@@ -33,6 +33,7 @@ def run_all_experiments(
     layer: str,
     capture_activations: bool = False,
     id_dataset: id_datasets = "imagenet",
+    mask_args=None,
 ):
     for rectification_method in ["react", ""]:
         for prune_method in ["ashb", "ashp", "ashs", ""]:
@@ -43,6 +44,7 @@ def run_all_experiments(
                 prune_method=prune_method,
                 capture_activations=capture_activations,
                 id_dataset=id_dataset,
+                mask_args=mask_args,
             )
             run_full_spec_experiment(
                 backbone=backbone,
@@ -51,6 +53,7 @@ def run_all_experiments(
                 prune_method=prune_method,
                 capture_activations=capture_activations,
                 id_dataset=id_dataset,
+                mask_args=mask_args,
             )
 
 def run_experiment_for_method(
@@ -60,6 +63,7 @@ def run_experiment_for_method(
     prune_method: prune_types,
     capture_activations: bool = False,
     id_dataset: id_datasets = "imagenet",
+    mask_args=None,
 ):
     for dataset in [
         'imagenet',
@@ -79,6 +83,7 @@ def run_experiment_for_method(
             prune_method=prune_method,
             capture_activations=capture_activations,
             id_dataset=id_dataset,
+            mask_args=mask_args,
         )
     
 def run_single_experiment(
@@ -89,6 +94,7 @@ def run_single_experiment(
     prune_method: prune_types,
     capture_activations: bool = False,
     id_dataset: id_datasets = "imagenet",
+    mask_args=None,
 ):
     backbone = get_backbone(backbone)
     feature_extractor = FeatureExtractor(backbone, layer)
@@ -102,7 +108,7 @@ def run_single_experiment(
     pruning = prune_cls(fc_layer=feature_extractor.get_fc_layer())
 
     # get the pipeline and the dataloader
-    pipeline = Pipeline(feature_extractor, rectification, pruning, caputure_activations=capture_activations)
+    pipeline = Pipeline(feature_extractor, rectification, pruning, caputure_activations=capture_activations, mask_args=mask_args)
 
     # generate the name/path for the result dir. The name should contain the methods and whether it is pertubated or not
     if rectification_method and prune_method:
@@ -138,6 +144,7 @@ def run_full_spec_experiment(
     prune_method: prune_types,
     capture_activations: bool = False,
     id_dataset: id_datasets = "imagenet",
+    mask_args=None,
 ):
     backbone = get_backbone(backbone)
     feature_extractor = FeatureExtractor(backbone, layer)
@@ -151,7 +158,7 @@ def run_full_spec_experiment(
     pruning = prune_cls(fc_layer=feature_extractor.get_fc_layer())
 
     # get the pipeline and the dataloader
-    pipeline = Pipeline(feature_extractor, rectification, pruning, caputure_activations=capture_activations)
+    pipeline = Pipeline(feature_extractor, rectification, pruning, caputure_activations=capture_activations, mask_args=mask_args)
 
     # generate the name/path for the result dir. The name should contain the methods and whether it is pertubated or not
     if rectification_method and prune_method:
@@ -215,6 +222,7 @@ def run_experiment(
     rectification_method: rectification_types,
     prune_method: prune_types,
     capture_activations: bool,
+    mask_args=None,
 ):
     """
     DEPRECATED
@@ -232,7 +240,7 @@ def run_experiment(
     pruning = prune_cls(fc_layer=feature_extractor.get_fc_layer())
 
     # get the pipeline and the dataloader
-    pipeline = Pipeline(feature_extractor, rectification, pruning, caputure_activations=capture_activations)
+    pipeline = Pipeline(feature_extractor, rectification, pruning, caputure_activations=capture_activations, mask_args=mask_args)
     
     # generate the name/path for the result dir. The name should contain the methods and whether it is pertubated or not
     if rectification_method and prune_method:
