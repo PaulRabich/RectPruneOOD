@@ -5,10 +5,10 @@ from torch.nn import Module
 
 mask_types = Literal["none","bool", "scale"]
 
-class LayerScaler(torch.nn.Module):
+class LayerScaler(Module):
     def __init__(self, mask_type:mask_types, indeces:List[int], num_dim:int) -> None:
-        #super(LayerScaler, self).__init__()
-        super().__init__()  
+        super(LayerScaler, self).__init__()
+
         self.construct_mask("bool", indeces, num_dim, {})
         
     def construct_mask(self, type:mask_types, indeces:List[int], num_dim:int, kwargs:dict) -> Tensor:
@@ -18,6 +18,7 @@ class LayerScaler(torch.nn.Module):
         elif type == "bool":
             mask = torch.zeros(num_dim)
             mask[indeces] = 1
+            return mask
         
         elif type == "scale":
             in_scale = kwargs["in_scale"]
@@ -29,12 +30,11 @@ class LayerScaler(torch.nn.Module):
         else:
             raise ValueError("Invalid scaling type")
         
-        self.mask = mask.cuda()
+        self.mask = mask
 
         return mask
     def forward(self, x: Tensor) -> Tensor:
         x = x * self.mask
         return x
-    
 
 
