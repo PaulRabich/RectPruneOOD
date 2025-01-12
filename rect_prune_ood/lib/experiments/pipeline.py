@@ -36,12 +36,12 @@ class Pipeline(LightningModule):
         if self.capture_activations:
             self.activation_list.append(out.squeeze())
 
-        rectified_out = self.rect_method(out)
-        pruned_out = self.prune_method(rectified_out)
-
         if self.layer_scaler != None: #we have a layer scaler
             out = self.layer_scaler(out)
 
+        rectified_out = self.rect_method(out)
+        pruned_out = self.prune_method(rectified_out)
+        
         return pruned_out
     
     def training_step(self, batch, batch_idx):

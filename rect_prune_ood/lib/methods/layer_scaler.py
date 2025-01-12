@@ -29,6 +29,7 @@ class LayerScaler(torch.nn.Module):
         else:
             raise ValueError("Invalid scaling type")
         
+        mask = mask.view(num_dim, 1, 1)
         self.mask = mask.cuda()
 
         return mask
