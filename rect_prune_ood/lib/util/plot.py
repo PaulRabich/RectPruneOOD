@@ -99,6 +99,9 @@ def plot_compare_methods(
     sm_name = _beautify_method_name(second_method)
 
     id_dataset_name = _beautify_dataset_name(id_dataset)
+    if use_full_spec:
+        id_dataset_name += " (full spec)"
+
     score_function_name = _beautify_score_function_name(score_function)
 
     # Plot 1
@@ -117,7 +120,10 @@ def plot_compare_methods(
     if plot_auroc:
         axs[0].plot(min(fm_bin_range), 0, color='none', label=f'AUROC (↑) = {100.*fm_metrics["AUROC"]:6.2f}')
 
-    axs[0].set_title(f"{fm_name}: ID vs OOD ({ood_datasets_str})")
+    if use_full_spec:
+        axs[0].set_title(f"{fm_name}: ID (full spec) vs OOD ({ood_datasets_str})")
+    else:
+        axs[0].set_title(f"{fm_name}: ID vs OOD ({ood_datasets_str})")
 
     axs[0].set_xlabel(score_function_name)
     axs[0].set_ylabel("Frequency")
@@ -139,7 +145,10 @@ def plot_compare_methods(
     if plot_auroc:
         axs[1].plot(min(sm_bin_range), 0, color='none', label=f'AUROC (↑) = {100.*sm_metrics["AUROC"]:6.2f}')
 
-    axs[1].set_title(f"{sm_name}: ID vs OOD ({ood_datasets_str})")
+    if use_full_spec:
+        axs[1].set_title(f"{sm_name}: ID (full spec) vs OOD ({ood_datasets_str})")
+    else:
+        axs[1].set_title(f"{sm_name}: ID vs OOD ({ood_datasets_str})")
     axs[1].set_xlabel(score_function_name)
     axs[1].set_ylabel("Frequency")
     axs[1].legend()
