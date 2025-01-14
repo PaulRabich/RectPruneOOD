@@ -195,7 +195,7 @@ def compute_and_print_results(id_dataset: str, novel_datasets: list[str], method
     print_all_results(all_results, novel_datasets, method)
     return
 
-def compute_traditional_ood(id_dataset, ood_datasets, score_metric:str = "energy_score", pertubated: bool = False, rectification_method: str = "", prune_method: str = "", method: str = "", plot_AUROC=False, args=None):
+def compute_traditional_ood(id_dataset, ood_datasets, score_metric:str = "energy_score", pertubated: bool = False, rectification_method: str = "", prune_method: str = "", method: str = "", plot_AUROC=False,print_results= True, args=None):
     result_dir = get_method_result_path(id_dataset, method)
     
     known = np.load(
@@ -227,8 +227,10 @@ def compute_traditional_ood(id_dataset, ood_datasets, score_metric:str = "energy
         results = cal_metric(known, novel, method)
         all_results.append(results)
 
-    print_all_results(all_results, ood_datasets, method)
-    return
+    if print_results:
+        print_all_results(all_results, ood_datasets, method)
+
+    return all_results
 
 def compute_stat(base_dir, in_dataset, out_datasets, method, name):
     # print('Natural OOD')
