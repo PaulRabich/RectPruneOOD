@@ -1,0 +1,928 @@
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: ashb
+METRIC: energy_score
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                12.34     97.70     5.66      99.52     89.92     
+ssb_hard            81.36     74.37     31.56     75.19     71.61     
+places              31.93     92.71     9.33      98.21     76.83     
+imagenet_perturbed  73.81     72.03     19.92     36.65     90.92     
+ninco               69.12     82.53     9.97      97.46     37.83     
+sun                 20.85     95.52     7.31      98.94     84.52     
+dtd                 17.16     96.52     5.08      99.56     80.44     
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: ashb
+METRIC: msp_score
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                23.99     95.42     7.70      98.99     84.15     
+ssb_hard            82.26     71.91     33.97     72.37     69.78     
+places              45.93     88.60     11.59     97.15     67.92     
+imagenet_perturbed  74.12     70.32     19.96     34.61     90.53     
+ninco               68.05     82.99     9.95      97.56     38.52     
+sun                 36.34     91.42     9.91      97.86     75.48     
+dtd                 28.72     93.06     6.03      99.01     73.25     
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: ashb
+METRIC: entropy_score
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                100.00    2.73      16.67     64.60     8.90      
+ssb_hard            99.46     27.31     49.49     37.38     36.14     
+places              99.89     8.96      16.67     66.12     9.11      
+imagenet_perturbed  98.67     28.30     20.00     13.20     70.04     
+ninco               100.00    15.58     10.52     78.18     5.93      
+sun                 99.95     6.17      16.67     65.39     8.99      
+dtd                 100.00    4.70      10.14     75.11     5.31      
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: ashb
+METRIC: confidence
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                23.99     95.42     7.70      98.99     84.15     
+ssb_hard            82.26     71.91     33.97     72.37     69.78     
+places              45.93     88.60     11.59     97.15     67.92     
+imagenet_perturbed  74.12     70.32     19.96     34.61     90.53     
+ninco               68.05     82.99     9.95      97.56     38.52     
+sun                 36.34     91.42     9.91      97.86     75.48     
+dtd                 28.72     93.06     6.03      99.01     73.25     
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: ashp
+METRIC: energy_score
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                14.07     97.39     5.91      99.45     89.39     
+ssb_hard            83.07     71.67     33.54     71.51     69.54     
+places              32.91     92.18     9.49      98.01     76.48     
+imagenet_perturbed  70.41     73.31     19.94     37.52     91.68     
+ninco               69.67     81.90     9.87      97.39     37.93     
+sun                 22.70     94.91     7.56      98.75     83.77     
+dtd                 26.10     94.83     6.16      99.31     74.15     
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: ashp
+METRIC: msp_score
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                37.90     93.23     10.42     98.54     74.58     
+ssb_hard            85.24     70.74     34.22     70.83     67.66     
+places              58.75     86.14     13.85     96.59     57.87     
+imagenet_perturbed  74.51     71.00     19.97     35.25     90.71     
+ninco               72.66     82.43     10.40     97.50     33.76     
+sun                 52.25     88.52     12.79     97.20     63.81     
+dtd                 46.44     89.63     8.29      98.54     56.93     
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: ashp
+METRIC: entropy_score
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                100.00    3.91      16.67     64.85     8.94      
+ssb_hard            99.16     29.43     49.49     38.38     36.94     
+places              99.84     10.95     16.67     66.76     9.24      
+imagenet_perturbed  98.69     27.48     20.00     13.07     69.65     
+ninco               100.00    16.87     10.52     78.78     6.01      
+sun                 99.91     8.22      16.67     65.94     9.09      
+dtd                 99.93     7.32      10.14     75.84     5.38      
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: ashp
+METRIC: confidence
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                37.90     93.23     10.42     98.54     74.58     
+ssb_hard            85.24     70.74     34.22     70.83     67.66     
+places              58.75     86.14     13.85     96.59     57.87     
+imagenet_perturbed  74.51     71.00     19.97     35.25     90.71     
+ninco               72.66     82.43     10.40     97.50     33.76     
+sun                 52.25     88.52     12.79     97.20     63.81     
+dtd                 46.44     89.63     8.29      98.54     56.93     
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: ashs
+METRIC: energy_score
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                14.71     97.09     5.97      99.36     89.36     
+ssb_hard            81.84     72.97     32.95     73.93     70.52     
+places              40.75     89.81     10.75     97.36     70.52     
+imagenet_perturbed  75.93     69.15     19.98     33.30     89.98     
+ninco               68.51     79.38     9.93      96.64     37.06     
+sun                 28.55     93.35     8.65      98.34     79.50     
+dtd                 15.02     96.89     4.36      99.60     84.66     
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: ashs
+METRIC: msp_score
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                61.83     78.59     14.47     52.10     53.21     
+ssb_hard            87.01     58.84     40.96     31.31     63.28     
+places              75.45     69.43     16.48     50.38     40.25     
+imagenet_perturbed  87.20     58.05     20.00     13.00     86.69     
+ninco               83.24     62.73     10.51     51.95     21.91     
+sun                 71.00     72.95     15.99     51.02     44.97     
+dtd                 63.55     77.18     9.95      53.75     39.43     
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: ashs
+METRIC: entropy_score
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                98.94     11.44     16.67     66.98     9.36      
+ssb_hard            83.23     30.21     49.49     38.62     35.58     
+places              94.99     18.14     16.67     69.72     9.78      
+imagenet_perturbed  74.89     34.69     20.00     14.43     64.62     
+ninco               92.58     22.99     10.52     81.27     6.31      
+sun                 96.04     15.67     16.67     68.62     9.60      
+dtd                 97.80     12.78     10.14     77.74     5.60      
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: ashs
+METRIC: confidence
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                61.83     78.59     14.47     52.10     53.21     
+ssb_hard            87.01     58.84     40.96     31.31     63.28     
+places              75.45     69.43     16.48     50.38     40.25     
+imagenet_perturbed  87.20     58.05     20.00     13.00     86.69     
+ninco               83.24     62.73     10.51     51.95     21.91     
+sun                 71.00     72.95     15.99     51.02     44.97     
+dtd                 63.55     77.18     9.95      53.75     39.43     
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: None
+METRIC: energy_score
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                19.54     96.40     7.11      99.23     85.94     
+ssb_hard            78.93     72.80     33.00     71.53     71.67     
+places              33.48     91.97     9.49      97.90     76.26     
+imagenet_perturbed  72.54     72.40     19.98     36.16     91.29     
+ninco               71.47     80.00     9.99      97.01     35.58     
+sun                 23.93     94.46     7.78      98.60     82.98     
+dtd                 46.38     90.31     8.07      98.64     59.24     
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: None
+METRIC: msp_score
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                45.84     91.88     11.76     98.26     68.79     
+ssb_hard            85.66     70.55     34.27     70.37     67.27     
+places              62.39     85.21     14.46     96.36     54.45     
+imagenet_perturbed  75.51     71.03     20.00     35.02     90.60     
+ninco               75.09     81.62     10.48     97.35     31.30     
+sun                 57.20     87.33     13.63     96.92     59.49     
+dtd                 58.01     86.90     9.33      98.10     46.74     
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: None
+METRIC: entropy_score
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                100.00    5.04      16.67     65.12     8.98      
+ssb_hard            99.00     29.64     49.49     38.35     37.11     
+places              99.83     11.67     16.67     66.99     9.28      
+imagenet_perturbed  98.56     27.70     20.00     13.10     69.80     
+ninco               99.93     18.50     10.52     79.36     6.09      
+sun                 99.93     9.07      16.67     66.18     9.13      
+dtd                 99.79     10.71     10.14     76.95     5.49      
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: None
+METRIC: confidence
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                45.84     91.88     11.76     98.26     68.79     
+ssb_hard            85.66     70.55     34.27     70.37     67.27     
+places              62.39     85.21     14.46     96.36     54.45     
+imagenet_perturbed  75.51     71.03     20.00     35.02     90.60     
+ninco               75.09     81.62     10.48     97.35     31.30     
+sun                 57.20     87.33     13.63     96.92     59.49     
+dtd                 58.01     86.90     9.33      98.10     46.74     
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: ashb
+METRIC: energy_score
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                14.11     97.34     5.99      99.43     88.87     
+ssb_hard            80.97     74.60     31.46     75.33     71.96     
+places              33.48     92.31     9.54      98.10     76.14     
+imagenet_perturbed  72.94     72.00     19.92     36.39     91.03     
+ninco               69.24     82.39     9.95      97.42     37.87     
+sun                 22.11     95.10     7.48      98.82     83.82     
+dtd                 21.01     95.52     5.40      99.40     78.14     
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: ashb
+METRIC: msp_score
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                28.95     94.25     8.69      98.71     80.75     
+ssb_hard            82.45     71.80     34.04     72.41     69.55     
+places              49.47     87.52     12.18     96.87     65.22     
+imagenet_perturbed  74.76     69.94     19.97     34.27     90.37     
+ninco               69.43     82.30     10.05     97.44     37.08     
+sun                 40.22     90.32     10.60     97.57     72.76     
+dtd                 33.49     91.53     6.55      98.74     69.32     
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: ashb
+METRIC: entropy_score
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                100.00    3.48      16.67     64.76     8.91      
+ssb_hard            99.51     27.27     49.49     37.35     36.12     
+places              99.89     9.85      16.67     66.37     9.16      
+imagenet_perturbed  98.62     28.65     20.00     13.25     70.22     
+ninco               100.00    15.92     10.52     78.28     5.94      
+sun                 99.93     7.08      16.67     65.62     9.02      
+dtd                 99.93     6.08      10.14     75.43     5.33      
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: ashb
+METRIC: confidence
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                28.95     94.25     8.69      98.71     80.75     
+ssb_hard            82.45     71.80     34.04     72.41     69.55     
+places              49.47     87.52     12.18     96.87     65.22     
+imagenet_perturbed  74.76     69.94     19.97     34.27     90.37     
+ninco               69.43     82.30     10.05     97.44     37.08     
+sun                 40.22     90.32     10.60     97.57     72.76     
+dtd                 33.49     91.53     6.55      98.74     69.32     
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: ashp
+METRIC: energy_score
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                44.22     92.52     11.44     98.39     69.05     
+ssb_hard            84.85     72.15     33.18     73.18     68.59     
+places              61.61     85.50     14.28     96.45     55.06     
+imagenet_perturbed  69.86     73.42     19.91     37.55     91.79     
+ninco               75.13     80.80     10.48     97.19     30.80     
+sun                 52.90     88.25     12.95     97.12     61.87     
+dtd                 42.96     89.40     7.83      98.32     60.37     
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: ashp
+METRIC: msp_score
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                50.20     88.84     12.39     97.12     64.24     
+ssb_hard            84.67     71.89     33.67     72.96     68.10     
+places              70.25     81.00     15.58     94.96     46.17     
+imagenet_perturbed  76.02     69.42     20.00     33.60     90.10     
+ninco               75.31     79.94     10.50     96.74     29.68     
+sun                 67.02     82.25     15.05     95.13     49.37     
+dtd                 62.91     81.56     9.43      96.70     40.89     
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: ashp
+METRIC: entropy_score
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                100.00    8.26      16.67     66.02     9.12      
+ssb_hard            99.59     27.15     49.49     37.61     35.99     
+places              99.84     16.89     16.67     69.04     9.68      
+imagenet_perturbed  98.57     29.12     20.00     13.33     70.46     
+ninco               99.98     18.01     10.52     79.46     6.06      
+sun                 99.71     15.27     16.67     68.31     9.54      
+dtd                 99.47     15.46     10.14     78.05     5.67      
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: ashp
+METRIC: confidence
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                50.20     88.84     12.39     97.12     64.24     
+ssb_hard            84.67     71.89     33.67     72.96     68.10     
+places              70.25     81.00     15.58     94.96     46.17     
+imagenet_perturbed  76.02     69.42     20.00     33.60     90.10     
+ninco               75.31     79.94     10.50     96.74     29.68     
+sun                 67.02     82.25     15.05     95.13     49.37     
+dtd                 62.91     81.56     9.43      96.70     40.89     
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: ashs
+METRIC: energy_score
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                11.43     97.88     5.33      99.55     91.35     
+ssb_hard            80.67     74.36     31.94     75.63     71.86     
+places              39.72     91.03     10.64     97.80     71.94     
+imagenet_perturbed  70.98     72.50     19.97     36.33     91.40     
+ninco               64.09     83.22     9.76      97.42     41.70     
+sun                 27.95     94.04     8.58      98.56     80.34     
+dtd                 11.88     97.62     3.94      99.70     87.30     
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: ashs
+METRIC: msp_score
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                66.66     79.97     15.16     54.50     50.95     
+ssb_hard            87.94     60.57     39.38     33.24     63.22     
+places              80.35     69.57     16.61     52.43     36.34     
+imagenet_perturbed  88.13     59.30     20.00     13.88     86.57     
+ninco               83.86     65.26     10.51     54.32     21.78     
+sun                 77.10     71.94     16.56     52.89     39.71     
+dtd                 74.89     73.72     9.99      55.49     30.61     
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: ashs
+METRIC: entropy_score
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                99.81     12.39     16.67     67.72     9.44      
+ssb_hard            92.16     29.40     49.49     38.75     36.22     
+places              97.74     19.71     16.67     71.01     9.97      
+imagenet_perturbed  84.75     34.22     20.00     14.50     67.59     
+ninco               96.97     22.90     10.52     81.61     6.36      
+sun                 97.76     18.18     16.67     70.15     9.83      
+dtd                 98.35     17.10     10.14     79.70     5.80      
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: ashs
+METRIC: confidence
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                66.66     79.97     15.16     54.50     50.95     
+ssb_hard            87.94     60.57     39.38     33.24     63.22     
+places              80.35     69.57     16.61     52.43     36.34     
+imagenet_perturbed  88.13     59.30     20.00     13.88     86.57     
+ninco               83.86     65.26     10.51     54.32     21.78     
+sun                 77.10     71.94     16.56     52.89     39.71     
+dtd                 74.89     73.72     9.99      55.49     30.61     
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: None
+METRIC: energy_score
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                53.77     90.62     13.05     97.97     61.64     
+ssb_hard            84.44     72.08     33.31     72.95     68.61     
+places              66.01     83.96     14.99     96.04     50.87     
+imagenet_perturbed  70.97     73.02     19.93     37.09     91.59     
+ninco               77.61     79.69     10.51     97.00     28.48     
+sun                 58.84     86.57     13.92     96.67     56.64     
+dtd                 52.46     86.72     8.69      97.86     52.07     
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: None
+METRIC: msp_score
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                52.80     88.39     12.90     97.15     61.58     
+ssb_hard            85.02     72.08     33.53     73.22     68.09     
+places              72.07     80.53     15.87     94.95     44.42     
+imagenet_perturbed  75.88     69.63     20.00     33.69     90.17     
+ninco               76.39     79.94     10.52     96.85     28.91     
+sun                 69.13     81.64     15.44     95.08     47.12     
+dtd                 66.28     80.43     9.67      96.58     37.38     
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: None
+METRIC: entropy_score
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                100.00    8.97      16.67     66.32     9.18      
+ssb_hard            99.60     27.01     49.49     37.63     35.94     
+places              99.85     17.54     16.67     69.42     9.74      
+imagenet_perturbed  98.56     28.92     20.00     13.29     70.40     
+ninco               99.97     18.24     10.52     79.75     6.07      
+sun                 99.66     16.04     16.67     68.72     9.61      
+dtd                 99.40     16.80     10.14     78.58     5.74      
+
+ID_DATASET: imagenet
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: None
+METRIC: confidence
+
+ood_datasets        FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------------
+inat                52.80     88.39     12.90     97.15     61.58     
+ssb_hard            85.02     72.08     33.53     73.22     68.09     
+places              72.07     80.53     15.87     94.95     44.42     
+imagenet_perturbed  75.88     69.63     20.00     33.69     90.17     
+ninco               76.39     79.94     10.52     96.85     28.91     
+sun                 69.13     81.64     15.44     95.08     47.12     
+dtd                 66.28     80.43     9.67      96.58     37.38     
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: ashb
+METRIC: energy_score
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          50.76     90.68     3.74      99.57     31.14     
+ssb_hard      95.54     54.60     16.35     87.25     17.76     
+places        70.96     81.16     3.85      98.99     16.02     
+ninco         90.39     64.14     2.30      98.77     3.57      
+sun           59.33     86.48     3.79      99.32     25.16     
+dtd           58.60     88.16     2.17      99.68     19.13     
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: ashb
+METRIC: msp_score
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          65.41     85.68     3.82      99.31     20.84     
+ssb_hard      96.50     53.68     16.38     86.75     16.93     
+places        81.80     74.90     3.85      98.60     10.26     
+ninco         93.04     65.62     2.30      98.86     3.40      
+sun           73.79     79.55     3.84      98.89     15.54     
+dtd           67.09     82.64     2.20      99.48     13.57     
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: ashb
+METRIC: entropy_score
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          100.00    11.09     3.85      89.83     2.05      
+ssb_hard      98.25     47.19     16.39     83.69     14.25     
+places        99.72     22.21     3.85      92.13     2.25      
+ninco         99.88     34.43     2.30      96.79     1.57      
+sun           99.83     17.03     3.85      90.89     2.14      
+dtd           99.91     14.33     2.21      94.17     1.19      
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: ashb
+METRIC: confidence
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          65.41     85.68     3.82      99.31     20.84     
+ssb_hard      96.50     53.68     16.38     86.75     16.93     
+places        81.80     74.90     3.85      98.60     10.26     
+ninco         93.04     65.62     2.30      98.86     3.40      
+sun           73.79     79.55     3.84      98.89     15.54     
+dtd           67.09     82.64     2.20      99.48     13.57     
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: ashp
+METRIC: energy_score
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          66.56     87.64     3.85      99.43     19.95     
+ssb_hard      96.71     50.45     16.37     85.49     15.81     
+places        81.97     78.11     3.85      98.81     10.91     
+ninco         93.08     61.47     2.30      98.67     3.00      
+sun           72.78     83.23     3.85      99.14     16.38     
+dtd           77.09     82.06     2.20      99.49     10.33     
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: ashp
+METRIC: msp_score
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          82.05     80.23     3.85      99.04     11.64     
+ssb_hard      97.72     51.61     16.39     85.91     15.69     
+places        90.75     69.89     3.85      98.31     6.70      
+ninco         96.24     63.85     2.30      98.80     3.00      
+sun           87.79     73.37     3.85      98.55     8.23      
+dtd           85.34     75.40     2.21      99.24     5.77      
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: ashp
+METRIC: entropy_score
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          100.00    15.52     3.85      91.24     2.14      
+ssb_hard      97.64     50.26     16.39     85.24     15.14     
+places        99.67     27.19     3.85      93.48     2.39      
+ninco         99.85     37.21     2.30      97.16     1.64      
+sun           99.79     22.60     3.85      92.47     2.27      
+dtd           99.79     21.47     2.21      95.45     1.28      
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: ashp
+METRIC: confidence
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          82.05     80.23     3.85      99.04     11.64     
+ssb_hard      97.72     51.61     16.39     85.91     15.69     
+places        90.75     69.89     3.85      98.31     6.70      
+ninco         96.24     63.85     2.30      98.80     3.00      
+sun           87.79     73.37     3.85      98.55     8.23      
+dtd           85.34     75.40     2.21      99.24     5.77      
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: ashs
+METRIC: energy_score
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          49.78     90.34     3.78      99.55     30.61     
+ssb_hard      95.79     55.86     16.37     87.68     17.92     
+places        79.04     77.91     3.85      98.77     11.53     
+ninco         90.86     63.90     2.30      98.67     3.49      
+sun           69.12     83.54     3.85      99.14     17.63     
+dtd           48.07     90.30     2.14      99.74     25.49     
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: ashs
+METRIC: msp_score
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          80.68     72.67     3.84      61.51     11.12     
+ssb_hard      94.32     52.34     16.39     52.94     17.93     
+places        88.57     63.06     3.85      61.03     6.87      
+ninco         93.02     56.23     2.30      61.55     3.03      
+sun           86.43     66.68     3.85      61.21     8.15      
+dtd           81.47     71.25     2.21      62.03     6.45      
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: ashs
+METRIC: entropy_score
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          98.94     20.47     3.85      92.12     2.23      
+ssb_hard      83.23     43.04     16.39     81.46     12.77     
+places        94.99     29.30     3.85      93.77     2.44      
+ninco         92.58     35.61     2.30      96.87     1.58      
+sun           96.04     26.00     3.85      93.19     2.35      
+dtd           97.80     22.06     2.21      95.46     1.29      
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: ashs
+METRIC: confidence
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          80.68     72.67     3.84      61.51     11.12     
+ssb_hard      94.32     52.34     16.39     52.94     17.93     
+places        88.57     63.06     3.85      61.03     6.87      
+ninco         93.02     56.23     2.30      61.55     3.03      
+sun           86.43     66.68     3.85      61.21     8.15      
+dtd           81.47     71.25     2.21      62.03     6.45      
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: None
+METRIC: energy_score
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          70.97     85.94     3.85      99.34     17.21     
+ssb_hard      96.43     53.22     16.38     86.11     16.89     
+places        80.78     78.89     3.85      98.84     11.31     
+ninco         93.59     60.58     2.30      98.60     2.92      
+sun           72.07     83.45     3.85      99.13     16.30     
+dtd           82.68     75.07     2.21      99.24     7.10      
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: None
+METRIC: msp_score
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          85.46     77.91     3.85      98.91     9.85      
+ssb_hard      97.68     51.48     16.39     85.77     15.67     
+places        91.55     68.70     3.85      98.23     6.34      
+ninco         96.43     62.96     2.30      98.75     2.91      
+sun           89.02     71.72     3.85      98.44     7.47      
+dtd           89.15     71.25     2.21      99.08     4.45      
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: None
+METRIC: entropy_score
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          99.99     17.58     3.85      91.73     2.18      
+ssb_hard      97.54     49.91     16.39     84.97     15.14     
+places        99.57     27.68     3.85      93.56     2.40      
+ninco         99.71     38.64     2.30      97.25     1.67      
+sun           99.74     23.43     3.85      92.64     2.29      
+dtd           99.65     26.96     2.21      96.08     1.36      
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: react
+PRUNE_METHOD: None
+METRIC: confidence
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          85.46     77.91     3.85      98.91     9.85      
+ssb_hard      97.68     51.48     16.39     85.77     15.67     
+places        91.55     68.70     3.85      98.23     6.34      
+ninco         96.43     62.96     2.30      98.75     2.91      
+sun           89.02     71.72     3.85      98.44     7.47      
+dtd           89.15     71.25     2.21      99.08     4.45      
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: ashb
+METRIC: energy_score
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          57.57     89.22     3.82      99.50     25.90     
+ssb_hard      95.90     54.74     16.36     87.34     17.56     
+places        74.45     80.02     3.85      98.93     14.14     
+ninco         91.58     63.75     2.30      98.76     3.38      
+sun           63.19     85.29     3.83      99.25     22.19     
+dtd           62.89     85.96     2.18      99.60     16.49     
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: ashb
+METRIC: msp_score
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          71.05     83.63     3.84      99.19     17.11     
+ssb_hard      96.79     53.93     16.38     86.86     16.86     
+places        83.78     73.58     3.85      98.52     9.23      
+ninco         93.82     65.17     2.30      98.84     3.29      
+sun           76.41     78.06     3.84      98.80     13.58     
+dtd           71.03     80.53     2.20      99.39     11.67     
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: ashb
+METRIC: entropy_score
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          100.00    13.02     3.85      90.39     2.08      
+ssb_hard      98.36     46.88     16.39     83.74     14.16     
+places        99.67     23.67     3.85      92.50     2.29      
+ninco         99.88     34.66     2.30      96.87     1.58      
+sun           99.81     18.64     3.85      91.29     2.17      
+dtd           99.75     16.66     2.21      94.48     1.22      
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: ashb
+METRIC: confidence
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          71.05     83.63     3.84      99.19     17.11     
+ssb_hard      96.79     53.93     16.38     86.86     16.86     
+places        83.78     73.58     3.85      98.52     9.23      
+ninco         93.82     65.17     2.30      98.84     3.29      
+sun           76.41     78.06     3.84      98.80     13.58     
+dtd           71.03     80.53     2.20      99.39     11.67     
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: ashp
+METRIC: energy_score
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          95.23     74.82     3.85      98.76     7.02      
+ssb_hard      98.82     50.04     16.39     85.85     14.89     
+places        96.78     65.63     3.85      98.05     5.28      
+ninco         98.66     58.88     2.30      98.57     2.54      
+sun           95.17     69.60     3.85      98.33     6.07      
+dtd           86.33     73.29     2.21      99.12     5.26      
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: ashp
+METRIC: msp_score
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          88.29     74.92     3.85      98.55     8.14      
+ssb_hard      98.30     54.15     16.39     87.07     16.31     
+places        95.16     64.49     3.85      97.80     5.23      
+ninco         97.36     62.63     2.30      98.59     2.87      
+sun           94.52     66.26     3.85      97.89     5.62      
+dtd           91.24     66.45     2.21      98.67     3.65      
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: ashp
+METRIC: entropy_score
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          99.99     23.42     3.85      93.47     2.31      
+ssb_hard      98.72     46.96     16.39     85.09     14.06     
+places        99.45     35.13     3.85      95.10     2.66      
+ninco         99.71     37.53     2.30      97.38     1.65      
+sun           99.18     32.77     3.85      94.74     2.57      
+dtd           98.81     31.39     2.21      96.53     1.45      
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: ashp
+METRIC: confidence
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          88.29     74.92     3.85      98.55     8.14      
+ssb_hard      98.30     54.15     16.39     87.07     16.31     
+places        95.16     64.49     3.85      97.80     5.23      
+ninco         97.36     62.63     2.30      98.59     2.87      
+sun           94.52     66.26     3.85      97.89     5.62      
+dtd           91.24     66.45     2.21      98.67     3.65      
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: ashs
+METRIC: energy_score
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          55.95     89.78     3.85      99.53     25.18     
+ssb_hard      96.46     53.66     16.39     87.19     16.70     
+places        84.34     76.08     3.85      98.71     9.36      
+ninco         92.80     64.45     2.30      98.76     3.28      
+sun           75.91     81.54     3.85      99.05     13.58     
+dtd           51.83     89.89     2.16      99.73     22.00     
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: ashs
+METRIC: msp_score
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          82.27     73.29     3.85      64.65     10.47     
+ssb_hard      94.08     53.04     16.39     55.76     18.09     
+places        90.69     62.15     3.85      64.07     6.10      
+ninco         92.60     57.75     2.30      64.70     3.10      
+sun           88.50     64.68     3.85      64.20     6.90      
+dtd           87.23     66.58     2.21      65.02     4.72      
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: ashs
+METRIC: entropy_score
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          99.81     21.65     3.85      92.35     2.25      
+ssb_hard      92.16     42.65     16.39     81.39     13.03     
+places        97.74     31.55     3.85      94.21     2.52      
+ninco         96.97     35.68     2.30      96.88     1.59      
+sun           97.76     29.38     3.85      93.79     2.45      
+dtd           98.35     27.91     2.21      96.14     1.37      
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: ashs
+METRIC: confidence
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          82.27     73.29     3.85      64.65     10.47     
+ssb_hard      94.08     53.04     16.39     55.76     18.09     
+places        90.69     62.15     3.85      64.07     6.10      
+ninco         92.60     57.75     2.30      64.70     3.10      
+sun           88.50     64.68     3.85      64.20     6.90      
+dtd           87.23     66.58     2.21      65.02     4.72      
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: None
+METRIC: energy_score
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          96.66     71.96     3.85      98.59     6.25      
+ssb_hard      98.84     50.54     16.39     85.94     15.07     
+places        97.30     64.05     3.85      97.93     5.02      
+ninco         98.84     58.05     2.30      98.53     2.49      
+sun           96.39     67.60     3.85      98.18     5.63      
+dtd           89.13     69.63     2.21      98.96     4.23      
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: None
+METRIC: msp_score
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          90.41     73.82     3.85      98.54     7.50      
+ssb_hard      98.38     54.05     16.39     87.11     16.24     
+places        95.77     63.58     3.85      97.79     5.04      
+ninco         97.91     62.28     2.30      98.63     2.83      
+sun           95.48     65.13     3.85      97.86     5.35      
+dtd           92.68     64.73     2.21      98.64     3.31      
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: None
+METRIC: entropy_score
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          99.99     25.08     3.85      93.87     2.36      
+ssb_hard      98.72     47.08     16.39     85.18     14.09     
+places        99.42     36.26     3.85      95.28     2.71      
+ninco         99.69     38.14     2.30      97.43     1.66      
+sun           99.05     34.12     3.85      94.98     2.63      
+dtd           98.63     33.52     2.21      96.78     1.50      
+
+ID_DATASET: imagenet_full_spec
+RECTIFICATION_METHOD: None
+PRUNE_METHOD: None
+METRIC: confidence
+
+ood_datasets  FPR       AUROC     DTERR     AUIN      AUOUT     
+----------------------------------------------------------------
+inat          90.41     73.82     3.85      98.54     7.50      
+ssb_hard      98.38     54.05     16.39     87.11     16.24     
+places        95.77     63.58     3.85      97.79     5.04      
+ninco         97.91     62.28     2.30      98.63     2.83      
+sun           95.48     65.13     3.85      97.86     5.35      
+dtd           92.68     64.73     2.21      98.64     3.31      
+
