@@ -196,7 +196,19 @@ def compute_and_print_results(id_dataset: str, novel_datasets: list[str], method
     return
 
 def compute_traditional_ood(id_dataset, ood_datasets, score_metric:str = "energy_score", pertubated: bool = False, rectification_method: str = "", prune_method: str = "", method: str = "", plot_AUROC=False,print_results= True, args=None):
-    result_dir = get_method_result_path(id_dataset, method)
+    if rectification_method and prune_method:
+        folder_name = f"{rectification_method}_{prune_method}"
+    elif rectification_method:
+        folder_name = rectification_method
+    elif prune_method:
+        folder_name = prune_method
+    else:
+        folder_name = "baseline"
+        
+    
+    # Chante this back, for other backbones
+    backbone = id_dataset.split("_")[0]
+    result_dir = get_method_result_path(backbone, folder_name)
     
     known = np.load(
         os.path.join(result_dir, f"{id_dataset}.npy"),
@@ -229,8 +241,8 @@ def compute_traditional_ood(id_dataset, ood_datasets, score_metric:str = "energy
 
     if print_results:
         print_all_results(all_results, ood_datasets, method)
-
-    return all_results
+    else:
+        return all_results
 
 def compute_stat(base_dir, in_dataset, out_datasets, method, name):
     # print('Natural OOD')
