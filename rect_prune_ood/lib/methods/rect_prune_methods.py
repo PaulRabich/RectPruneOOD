@@ -1,45 +1,21 @@
 from collections import defaultdict
 import torch
 import numpy as np
-import torch.nn as nn
+from torch.nn import Module
 import os
 from rect_prune_ood.lib.methods.route_classes import RouteDICE, RouteLUNCH
 from rect_prune_ood.lib.methods.route_classes import Bottleneck as BN
 
 
 
-# methods to use from run experiment:
-
-# method if nothing is chosen, modifies nothing
-
-class BasePruningModule(torch.nn.Module):
-    def __init__(self, fc_layer):
-        super(BasePruningModule, self).__init__()
-        # Enforcing that all subclasses must set `self.fc_layer`
-        self.fc_layer = fc_layer
-
-    def forward(self, x):
-        return self.fc_layer(x)
-
-
-class NeutralPruningModule(BasePruningModule):
-    def __init__(self, fc_layer):
-        super(NeutralPruningModule, self).__init__(fc_layer)
-
-    def forward(self, x):
-        x = torch.flatten(x, 1)
-        return self.fc_layer(x)
-
-
-class AshBPruningModule(BasePruningModule):
-    def __init__(self, fc_layer, percentage=65):
-        super(AshBPruningModule, self).__init__(fc_layer)
+class AshBPruningModule(Module):
+    def __init__(self, percentage=65):
+        super(AshBPruningModule, self).__init__()
         self.percentage = percentage
 
     def forward(self, x):
         x = self.ash_b(x, self.percentage)
-        x = torch.flatten(x, 1)
-        return self.fc_layer(x)
+        return x
 
     def ash_b(self, x, percentile=65):
         assert x.dim() == 4
@@ -58,16 +34,17 @@ class AshBPruningModule(BasePruningModule):
         t.zero_().scatter_(dim=1, index=i, src=fill)
         return x
 
+    def __str__(self):
+        return super().__str__() + f" with percentage {self.percentage}"
 
-class AshSPruningModule(BasePruningModule):
+class AshSPruningModule(Module):
     def __init__(self, fc_layer, percentage=90):
-        super(AshSPruningModule, self).__init__(fc_layer)
+        super(AshSPruningModule, self).__init__()
         self.percentage = percentage
 
     def forward(self, x):
         x = self.ash_s(x, self.percentage)
-        x = torch.flatten(x, 1)
-        return self.fc_layer(x)
+        return x
 
     def ash_s(self, x, percentile=65):
         assert x.dim() == 4
@@ -91,16 +68,17 @@ class AshSPruningModule(BasePruningModule):
 
         return x
 
+    def __str__(self):
+        return super().__str__() + f" with percentage {self.percentage}"
 
-class AshPPruningModule(BasePruningModule):
+class AshPPruningModule(Module):
     def __init__(self, fc_layer, percentage=50):
-        super(AshPPruningModule, self).__init__(fc_layer)
+        super(AshPPruningModule, self).__init__()
         self.percentage = percentage
 
     def forward(self, x):
         x = self.ash_p(x, self.percentage)
-        x = torch.flatten(x, 1)
-        return self.fc_layer(x)
+        return x
 
     def ash_p(self, x, percentile=50):
         assert x.dim() == 4
@@ -115,9 +93,12 @@ class AshPPruningModule(BasePruningModule):
         t.zero_().scatter_(dim=1, index=i, src=v)
 
         return x
+    
+    def __str__(self):
+        return super().__str__() + f" with percentage {self.percentage}"
 
 
-class DicePruningModule(BasePruningModule):
+class DicePruningModule(Module):
     def __init__(self, fc_layer, p=90, num_classes=1000, info_path=os.path.join(os.path.dirname(os.path.abspath(__file__)), "imagenet_resnet50_feat_stat.npy"), clip_threshold=1e5):
         self.p = p
         self.info_path = info_path
@@ -132,31 +113,27 @@ class DicePruningModule(BasePruningModule):
         super(DicePruningModule, self).__init__(last_layer)
 
     def forward(self, x):
+        raise NotImplementedError("This method should not be called. Problem with the fully connected layer at the end.")
         #x = x.clip(max=self.clip_threshold)
         x = x.view(x.size(0), -1)
         return self.fc_layer(x)
 
 
-class NeutralRectModule(torch.nn.Module):
-    def __init__(self):
-        super(NeutralRectModule, self).__init__()
 
-    def forward(self, x):
-        return x
-
-
-class ReactRectModule(torch.nn.Module):
+class ReactRectModule(Module):
     def __init__(self, threshold=1.0):
         super(ReactRectModule, self).__init__()
         self.threshold = threshold
 
     def forward(self, x):
         return x.clip(max=self.threshold)
-
+    
+    def __str__(self):
+        return super().__str__() + f" with threshold {self.threshold}"
 
 class BatsRectModule(torch.nn.Module):
     def __init__(self, dataset: str = "ImageNet", mean_path: str = os.path.join("RectPruneOOD", "cache", "vit_features_std.pt"), std_path: str = os.path.join("RectPruneOOD", "cache", "vit_features_mean.pt")):
-        super(BatsRectModule, self).__init__()
+        super().__init__()
         self.mean_path = mean_path
         self.std_path = std_path
         self.dataset = dataset
@@ -180,16 +157,3 @@ class BatsRectModule(torch.nn.Module):
         return x
 
 
-
-
-pruning_classes = defaultdict(lambda: NeutralPruningModule, {
-                              "ashp": AshPPruningModule, "ashb": AshBPruningModule, "ashs": AshSPruningModule, "dice": DicePruningModule})
-rectification_classes = defaultdict(lambda: NeutralRectModule, {
-                                    "react": ReactRectModule, "bats": BatsRectModule})
-
-
-def get_classes(rectification, pruning):
-    rectification_class = rectification_classes[rectification]
-    pruning_class = pruning_classes[pruning]
-
-    return rectification_class, pruning_class

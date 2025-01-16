@@ -1,48 +1,46 @@
 import torch
 import torch.nn.functional as F
+from torch.nn import Module
 from lightning import LightningModule
 from torchmetrics import MetricCollection
 import numpy as np
 
 from rect_prune_ood.lib.methods.layer_scaler import LayerScaler
 from rect_prune_ood.lib.eval.scores import EnergyScore, MSPScore, EntropyScore
+from rect_prune_ood.lib.util.names import get_module_list
 
 
 class Pipeline(LightningModule):
-    def __init__(self, featureExtractor, rect_method, prune_method, caputure_activations=False, mask_args:dict =None) -> None:
+    def __init__(self, featureExtractor, method_name:str,fc_layer:Module, caputure_activations=False) -> None:
         super().__init__()                                                                      #mask_args -> {mask_indices:[int], type:str, num_dim:int}
         self.featureExtractor = featureExtractor
-        self.rect_method = rect_method
-        self.prune_method = prune_method
+        self.method_name = method_name
+        self.method_list = get_module_list(method_name)
         self.metrics = MetricCollection({"energy_score": EnergyScore(), 
                                          "msp_score": MSPScore(),
                                          "entropy_score": EntropyScore()})
         self.prediction_list = [] 
         self.results = {}
         
-        self.layer_scaler = None
-        if mask_args != None: # a mask was given
-            self.layer_scaler = LayerScaler(mask_args["mask_type"], mask_args["mask_indices"], mask_args["num_dim"])
-
-
+        self.fc_layer = fc_layer
         self.capture_activations = caputure_activations
         if self.capture_activations:
             self.activation_list = []
             self.activations: np.ndarray = None
 
     def forward(self, x) -> torch.Tensor:
-        out = self.featureExtractor(x)
+        x = self.featureExtractor(x)
 
         if self.capture_activations:
-            self.activation_list.append(out.squeeze())
+            self.activation_list.append(x.squeeze())
 
-        if self.layer_scaler != None: #we have a layer scaler
-            out = self.layer_scaler(out)
-
-        rectified_out = self.rect_method(out)
-        pruned_out = self.prune_method(rectified_out)
+        for method in self.method_list:
+            x = method(x)
         
-        return pruned_out
+        x = torch.flatten(x, 1)
+        x = self.fc_layer(x)
+
+        return x
     
     def training_step(self, batch, batch_idx):
         raise NotImplementedError("The aim of this class is only to evaluate the performance of the model")

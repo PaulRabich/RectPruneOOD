@@ -195,20 +195,12 @@ def compute_and_print_results(id_dataset: str, novel_datasets: list[str], method
     print_all_results(all_results, novel_datasets, method)
     return
 
-def compute_traditional_ood(id_dataset, ood_datasets, score_metric:str = "energy_score", pertubated: bool = False, rectification_method: str = "", prune_method: str = "", method: str = "", plot_AUROC=False,print_results= True, args=None):
-    if rectification_method and prune_method:
-        folder_name = f"{rectification_method}_{prune_method}"
-    elif rectification_method:
-        folder_name = rectification_method
-    elif prune_method:
-        folder_name = prune_method
-    else:
-        folder_name = "baseline"
+def compute_traditional_ood(id_dataset, ood_datasets, score_metric:str = "energy_score", method_name="baseline",  method: str = "", plot_AUROC=False,print_results= True, args=None):
+
         
-    
     # Chante this back, for other backbones
     backbone = id_dataset.split("_")[0]
-    result_dir = get_method_result_path(backbone, folder_name)
+    result_dir = get_method_result_path(backbone, method_name)
     
     known = np.load(
         os.path.join(result_dir, f"{id_dataset}.npy"),
@@ -237,6 +229,7 @@ def compute_traditional_ood(id_dataset, ood_datasets, score_metric:str = "energy
         total += novel.shape[0]
 
         results = cal_metric(known, novel, method)
+        results["ood_dataset"] = ood_dataset
         all_results.append(results)
 
     if print_results:
