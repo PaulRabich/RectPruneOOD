@@ -8,7 +8,7 @@ run_all_experiments(
     backbone="resnet50",
     layer="avgpool",
     capture_activations=False,
-    id_dataset="imagenet",
+    base_dataset="imagenet",
 )
 
 get_results_df()

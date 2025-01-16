@@ -70,7 +70,7 @@ for percentile in [i * 5 for i in range(20)]:
         layer="avgpool",
         method_name=method_name,
         capture_activations=False,
-        id_dataset="imagenet",
+        base_dataset="imagenet",
     )
 
     metrics = compute_traditional_ood(
