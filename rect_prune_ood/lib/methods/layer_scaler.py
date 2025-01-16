@@ -7,7 +7,7 @@ import numpy as np
 
 from rect_prune_ood.lib.util.paths import get_top_level_path
 
-mask_types = Literal["none","bool", "scale"]
+mask_types = Literal["none", "bool", "scale"]
 
 def construct_mask(type:mask_types, percentile:int, kwargs:dict) -> Tensor:
 
@@ -16,6 +16,7 @@ def construct_mask(type:mask_types, percentile:int, kwargs:dict) -> Tensor:
         num_dim = variances.shape[0]
 
         k_percentile = np.percentile(variances, percentile)
+        # > or <= ????
         top_k_percentile_indeces = np.where(variances > k_percentile)[0]
 
         if type == "none":
