@@ -17,7 +17,7 @@ def construct_mask(type:mask_types, percentile:int, kwargs:dict) -> Tensor:
 
         k_percentile = np.percentile(variances, percentile)
         # > or <= ????
-        top_k_percentile_indeces = np.where(variances > k_percentile)[0]
+        top_k_percentile_indeces = np.where(variances <= k_percentile)[0]
 
         if type == "none":
             mask = torch.ones(num_dim)
