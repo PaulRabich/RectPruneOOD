@@ -38,7 +38,7 @@ class AshBPruningModule(Module):
         return super().__str__() + f" with percentage {self.percentage}"
 
 class AshSPruningModule(Module):
-    def __init__(self, fc_layer, percentage=90):
+    def __init__(self, percentage=90):
         super(AshSPruningModule, self).__init__()
         self.percentage = percentage
 
@@ -72,7 +72,7 @@ class AshSPruningModule(Module):
         return super().__str__() + f" with percentage {self.percentage}"
 
 class AshPPruningModule(Module):
-    def __init__(self, fc_layer, percentage=50):
+    def __init__(self, percentage=50):
         super(AshPPruningModule, self).__init__()
         self.percentage = percentage
 
