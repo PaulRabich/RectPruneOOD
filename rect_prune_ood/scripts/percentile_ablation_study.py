@@ -2,7 +2,7 @@ import sys
 
 sys.path.append("./")
 
-from rect_prune_ood.lib.experiments.run_experiment import run_experiment_for_method
+from rect_prune_ood.lib.experiments.run_experiment import run_experiment_for_method, run_full_spec_experiment
 from rect_prune_ood.lib.eval.metrics import compute_traditional_ood
 from pandas import DataFrame
 
@@ -63,19 +63,22 @@ def build_table(
 
 
 
-for ash_methode in ["ashs"]:
+for ash_methode in ["", "ashb","ashs"]:
     for percentile in [i * 5 for i in range(20)]:
-        method_name = f"{ash_methode}_apes@{percentile}"
-        run_experiment_for_method(
+        if ash_methode == "":
+            method_name = f"apes@{percentile}"
+        else:
+            method_name = f"{ash_methode}_apes@{percentile}"
+
+        run_full_spec_experiment(
             backbone="resnet50",
             layer="avgpool",
             method_name=method_name,
-            capture_activations=False,
-            id_dataset="imagenet",
+            capture_activations=False
         )
 
         metrics = compute_traditional_ood(
-            id_dataset="imagenet",
+            id_dataset="imagenet_full_spec",
             ood_datasets=["inat", "sun", "places", "dtd", "ssb_hard", "ninco"],
             method_name=method_name,
             print_results=False
@@ -88,7 +91,7 @@ for ash_methode in ["ashs"]:
         result_str += table
         result_str += "\n\n"
 
-        with open("ashs_percentile_ablation_study.txt", "a") as f:
+        with open("full_spec_ashs_percentile_ablation_study.txt", "a") as f:
             f.write(result_str)
 
 
