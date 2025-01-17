@@ -63,31 +63,32 @@ def build_table(
 
 
 
-for percentile in [i * 5 for i in range(20)]:
-    method_name = f"layer-scaler@{percentile}"
-    run_experiment_for_method(
-        backbone="resnet50",
-        layer="avgpool",
-        method_name=method_name,
-        capture_activations=False,
-        id_dataset="imagenet",
-    )
+for ash_methode in ["ashs"]:
+    for percentile in [i * 5 for i in range(20)]:
+        method_name = f"{ash_methode}_layer-scaler@{percentile}"
+        run_experiment_for_method(
+            backbone="resnet50",
+            layer="avgpool",
+            method_name=method_name,
+            capture_activations=False,
+            id_dataset="imagenet",
+        )
 
-    metrics = compute_traditional_ood(
-        id_dataset="imagenet",
-        ood_datasets=["inat", "sun", "places", "dtd", "ssb_hard", "ninco"],
-        method_name=method_name,
-        print_results=False
-    )
-    result_df = DataFrame(metrics)
-    
-    table = build_table(result_df)
-    
-    result_str = f"Results for {method_name}:\n \n"
-    result_str += table
-    result_str += "\n\n"
+        metrics = compute_traditional_ood(
+            id_dataset="imagenet",
+            ood_datasets=["inat", "sun", "places", "dtd", "ssb_hard", "ninco"],
+            method_name=method_name,
+            print_results=False
+        )
+        result_df = DataFrame(metrics)
+        
+        table = build_table(result_df)
+        
+        result_str = f"Results for {method_name}:\n \n"
+        result_str += table
+        result_str += "\n\n"
 
-    with open("percentile_ablation_study.txt", "a") as f:
-        f.write(result_str)
+        with open("ashs_percentile_ablation_study.txt", "a") as f:
+            f.write(result_str)
 
 
