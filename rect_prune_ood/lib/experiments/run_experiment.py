@@ -129,7 +129,6 @@ def run_full_spec_experiment(
     layer: str,
     method_name:str,
     capture_activations: bool = False,
-    mask_args=None,
 ):
     """
     Runs the experiment for both datasets, imagenet and imagenet_perturbed and concatenates the results. The results are saved in the corresponding directory.
@@ -151,7 +150,7 @@ def run_full_spec_experiment(
     fc_layer=feature_extractor.get_fc_layer()
 
     # get the pipeline and the dataloader
-    pipeline = Pipeline(feature_extractor, method_name, fc_layer, caputure_activations=capture_activations, mask_args=mask_args)
+    pipeline = Pipeline(feature_extractor, method_name, fc_layer, caputure_activations=capture_activations)
         
     result_dir = get_method_result_path(base_dataset, method_name)
 

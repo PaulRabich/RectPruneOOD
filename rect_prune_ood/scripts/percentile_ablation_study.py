@@ -91,7 +91,7 @@ for ash_methode in ["", "ashb","ashs"]:
         result_str += table
         result_str += "\n\n"
 
-        with open("full_spec_ashs_percentile_ablation_study.txt", "a") as f:
+        with open("full_spec_study.txt", "a") as f:
             f.write(result_str)
 
 
