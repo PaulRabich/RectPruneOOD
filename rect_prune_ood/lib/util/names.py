@@ -1,7 +1,7 @@
 from typing import List
 from torch.nn import Module
 
-from rect_prune_ood.lib.methods.layer_scaler import LayerScaler
+from rect_prune_ood.lib.methods.apes import APES, APESB
 from rect_prune_ood.lib.methods.rect_prune_methods import AshBPruningModule, AshPPruningModule, AshSPruningModule, DicePruningModule, ReactRectModule, BatsRectModule
 
 module_dict = {
@@ -11,7 +11,9 @@ module_dict = {
     "dice": DicePruningModule,
     "react": ReactRectModule,
     "bats": BatsRectModule,
-    "layer-scaler": LayerScaler
+    "apes": APES, 
+    "apesb": APESB
+
 }
 def get_module_list(method_name:str) -> List[Module]:
     if method_name == "baseline":

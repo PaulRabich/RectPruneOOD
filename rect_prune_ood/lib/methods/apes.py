@@ -41,7 +41,7 @@ def construct_mask(type:mask_types, percentile:int, kwargs:dict) -> Tensor:
 
         return mask
 
-class LayerScaler(Module):
+class APES(Module):
     def __init__(self, percentile) -> None:
         #super(LayerScaler, self).__init__()
         super().__init__()
@@ -53,7 +53,7 @@ class LayerScaler(Module):
         x = x * self.mask
         return x
     
-class LayerScalerB(Module):
+class APESB(Module):
     def __init__(self, percentile, in_scale, out_scale) -> None:
         #super(LayerScaler, self).__init__()
         super().__init__()

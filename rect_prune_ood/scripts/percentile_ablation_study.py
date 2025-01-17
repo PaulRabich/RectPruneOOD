@@ -65,7 +65,7 @@ def build_table(
 
 for ash_methode in ["ashs"]:
     for percentile in [i * 5 for i in range(20)]:
-        method_name = f"{ash_methode}_layer-scaler@{percentile}"
+        method_name = f"{ash_methode}_apes@{percentile}"
         run_experiment_for_method(
             backbone="resnet50",
             layer="avgpool",

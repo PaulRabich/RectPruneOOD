@@ -5,7 +5,6 @@ from lightning import LightningModule
 from torchmetrics import MetricCollection
 import numpy as np
 
-from rect_prune_ood.lib.methods.layer_scaler import LayerScaler
 from rect_prune_ood.lib.eval.scores import EnergyScore, MSPScore, EntropyScore
 from rect_prune_ood.lib.util.names import get_module_list
 
