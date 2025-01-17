@@ -1,16 +1,16 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from typing import Union
-from rect_prune_ood.lib.util.paths import get_method_result_path
+from rect_prune_ood.lib.util.results_loader import load_scores_for_method
 from rect_prune_ood.lib.eval.metrics import cal_metric, compute_average_results
 
 def plot_compare_methods(
-        ood_datasets: Union[str, list[str]], 
+        ood_datasets: list[str], 
         id_dataset: str = "imagenet",
         first_method: str = "baseline",
         second_method: str = "react",
         score_function: str = "energy_score",
+        base_dataset: str = "imagenet",
         plot_iou: bool = False,
         plot_auroc: bool = False,
         use_full_spec: bool = True,
@@ -24,18 +24,19 @@ def plot_compare_methods(
     plot_compare_methods(["inat", "dtd", "sun", "places"], "imagenet", "baseline", "react", "energy_score", plot_iou=True, plot_auroc=True, use_full_spec=True, scale_y=False)
 
     Args:
-    ood_datasets (Union[str, list[str]]): Name of the OOD datasets. Can either be a single entry (string) or multiple (list of strings).
+    ood_datasets (list[str]): Names of the OOD datasets. 
     id_dataset (str): Name of the ID dataset.
     first_method (str): Name of the first method.
     second_method (str): Name of the second method.
     score_function (str): Name of the score function.
+    base_dataset (str): Name of the base dataset. Mainly used for the path. Defaults to "imagenet".
     plot_iou (bool): Whether to plot the IoU.
     plot_auroc (bool): Whether to plot the AUROC.
     use_full_spec (bool): Whether to use the full spectrum of the ID dataset (ImageNet + ImageNet perturbed).
     scale_y (bool): Whether to match the scale of the y-axis for both methods.
     """
-    fm_scores = load_scores_for_method(first_method, id_dataset, score_function)
-    sm_scores = load_scores_for_method(second_method, id_dataset, score_function)
+    fm_scores = load_scores_for_method(first_method, score_function, base_dataset)
+    sm_scores = load_scores_for_method(second_method, score_function, base_dataset)
 
     if use_full_spec:
         fm_id_scores = fm_scores[f"{id_dataset}_full_spec"]
@@ -159,30 +160,6 @@ def plot_compare_methods(
 
     fig.suptitle(f"{fm_name} vs {sm_name}: {score_function_name} comparison for ID dataset {id_dataset_name}", fontsize=16)
     fig.subplots_adjust(top=0.85)
-
-def load_scores_for_method(method_name: str = "baseline", id_dataset: str = "imagenet", score_function: str = "energy_score") -> dict:
-    """
-    Loads all scores for a specified method and ID dataset.
-
-    Args:
-    method_name (str): Name of the method.
-    id_dataset (str): Name of the ID dataset. Only used for folder structure.
-    score_function (str): Name of the score function.
-
-    Returns:
-    dict: Dictionary containing the scores for the specified method for all datasets.
-    """
-    method_result_path = get_method_result_path(id_dataset, method_name)
-    
-    scores = {}
-
-    # Loop over all files in the method result directory
-    for file_name in os.listdir(method_result_path):
-        if "activations" in file_name:
-            continue
-        scores[file_name[:-4]] = np.load(os.path.join(method_result_path, file_name), allow_pickle=True).item()[score_function]
-
-    return scores
 
 def _beautify_method_name(method_name: str = "") -> str:
     if method_name == "baseline":

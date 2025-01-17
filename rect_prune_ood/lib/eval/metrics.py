@@ -1,6 +1,7 @@
 from __future__ import print_function
 import argparse
 from rect_prune_ood.lib.util.paths import get_top_level_path, get_method_result_path
+from rect_prune_ood.lib.util.results_loader import load_scores_for_method
 import numpy as np
 import os
 import matplotlib.pyplot as plt
@@ -168,8 +169,8 @@ def compute_average_results(all_results):
 
     return avg_results
 
-def compute_and_print_results(id_dataset: str, novel_datasets: list[str], method: str, score_function: str = "energy_score"):
-    result_dir = get_method_result_path(id_dataset, method)
+def compute_and_print_results(id_dataset: str, novel_datasets: list[str], method_name: str, score_function: str = "energy_score"):
+    result_dir = get_method_result_path(id_dataset, method_name)
 
     id_data = np.load(
         os.path.join(result_dir, f"id_{id_dataset}.npy"),
@@ -189,13 +190,37 @@ def compute_and_print_results(id_dataset: str, novel_datasets: list[str], method
             allow_pickle=True
         ).item()[score_function]
 
-        results = cal_metric(id_data, novel_data, method)
+        results = cal_metric(id_data, novel_data, method_name)
         all_results.append(results)
 
-    print_all_results(all_results, novel_datasets, method)
+    print_all_results(all_results, novel_datasets, method_name)
     return
 
-def compute_traditional_ood(id_dataset, ood_datasets, score_metric:str = "energy_score", method_name="baseline",  method: str = "", plot_AUROC=False,print_results= True, args=None):
+def compute_traditional_ood(
+    id_dataset: str,
+    ood_datasets: list[str],
+    method_name: str = "baseline",
+    score_function: str = "energy_score",
+    base_dataset: str = "imagenet",
+):
+    all_scores = load_scores_for_method(method_name, score_function, base_dataset)
+
+    id_scores = all_scores[id_dataset]
+
+    all_results = []
+
+    for ood_dataset in ood_datasets:
+        ood_scores = all_scores[ood_dataset]
+
+        results = cal_metric(id_scores, ood_scores, method_name)
+        all_results.append(results)
+
+    print(f" ID dataset: {id_dataset}")
+    print_all_results(all_results, ood_datasets, method_name)
+
+    return all_results
+
+def compute_traditional_ood_legacy(id_dataset, ood_datasets, score_metric:str = "energy_score", method_name="baseline",  method: str = "", plot_AUROC=False,print_results= True, args=None):
 
         
     # Chante this back, for other backbones

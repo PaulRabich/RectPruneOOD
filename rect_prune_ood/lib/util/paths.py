@@ -9,15 +9,10 @@ def get_top_level_path():
 
     return top_level_path
 
-def get_method_result_path(id_dataset: str = "imagenet", method_name: str = ""):
-    if method_name == "":
-        result_dir_name = "baseline"
-    else:
-        result_dir_name = method_name
-        
+def get_method_result_path(base_dataset: str = "imagenet", method_name: str = "baseline"):        
     result_dir = os.path.join(
         get_top_level_path(),
-        f"results/{id_dataset}/{result_dir_name}",
+        f"results/{base_dataset}/{method_name}",
     )
     os.makedirs(result_dir, exist_ok=True)
 

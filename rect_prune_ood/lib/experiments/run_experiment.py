@@ -31,7 +31,7 @@ def run_all_experiments(
     backbone: backbones,
     layer: str,
     capture_activations: bool = False,
-    id_dataset: id_datasets = "imagenet",
+    base_dataset: id_datasets = "imagenet",
     mask_args=None,
 ):
     for rectification_method in ["react", ""]:
@@ -42,7 +42,7 @@ def run_all_experiments(
                 rectification_method=rectification_method,
                 prune_method=prune_method,
                 capture_activations=capture_activations,
-                id_dataset=id_dataset,
+                base_dataset=base_dataset,
                 mask_args=mask_args,
             )
             run_full_spec_experiment(
@@ -51,7 +51,6 @@ def run_all_experiments(
                 rectification_method=rectification_method,
                 prune_method=prune_method,
                 capture_activations=capture_activations,
-                id_dataset=id_dataset,
                 mask_args=mask_args,
             )
 
@@ -60,7 +59,7 @@ def run_experiment_for_method(
     layer: str,
     method_name:str,
     capture_activations: bool = False,
-    id_dataset: id_datasets = "imagenet",
+    base_dataset: id_datasets = "imagenet",
 ):
     for dataset in [
         'imagenet',
@@ -78,7 +77,7 @@ def run_experiment_for_method(
             dataset=dataset,
             method_name=method_name,
             capture_activations=capture_activations,
-            id_dataset=id_dataset,
+            base_dataset=base_dataset,
         )
     
 def run_single_experiment(
@@ -87,19 +86,28 @@ def run_single_experiment(
     dataset: Union[id_datasets, ood_datasets, perturbed_datasets],
     method_name:str,
     capture_activations: bool = False,
-    id_dataset: id_datasets = "imagenet",
+    base_dataset: id_datasets = "imagenet",
 ):
+    """
+    Runs a single experiment for a specified dataset and method. Saves the results in the corresponding directory.
+
+    Args:
+    backbone (backbones): Backbone to use.
+    layer (str): Layer to use.
+    dataset (Union[id_datasets, ood_datasets, perturbed_datasets]): Dataset for which to run the experiment.
+    method_name (str): Name of the method.
+    capture_activations (bool): Whether to capture the activations.
+    base_dataset (id_datasets): Base dataset. Mainly used for paths. Defaults to "imagenet".
+    """
     backbone = get_backbone(backbone)
     feature_extractor = FeatureExtractor(backbone, layer)
-
     
     fc_layer = fc_layer=feature_extractor.get_fc_layer()
 
     # get the pipeline and the dataloader
     pipeline = Pipeline(feature_extractor, method_name, fc_layer, caputure_activations=capture_activations)
 
-
-    result_dir = get_method_result_path(id_dataset, method_name)
+    result_dir = get_method_result_path(base_dataset, method_name)
 
     # print(f'Evaluating dataset "{dataset}" for rectification "{rectification_method}" and pruning "{prune_method}"')
     dataloader, _ = get_data_loader(dataset, batch_size=16)
@@ -121,9 +129,22 @@ def run_full_spec_experiment(
     layer: str,
     method_name:str,
     capture_activations: bool = False,
-    id_dataset: id_datasets = "imagenet",
     mask_args=None,
 ):
+    """
+    Runs the experiment for both datasets, imagenet and imagenet_perturbed and concatenates the results. The results are saved in the corresponding directory.
+
+    Args:
+    backbone (backbones): Backbone to use.
+    layer (str): Layer to use.
+    method_name (str): Name of the method.
+    capture_activations (bool): Whether to capture the activations.
+    mask_args (dict): Arguments for the mask.
+
+    Returns:
+    None
+    """
+    base_dataset = "imagenet"
     backbone = get_backbone(backbone)
     feature_extractor = FeatureExtractor(backbone, layer)
 
@@ -131,13 +152,12 @@ def run_full_spec_experiment(
 
     # get the pipeline and the dataloader
     pipeline = Pipeline(feature_extractor, method_name, fc_layer, caputure_activations=capture_activations, mask_args=mask_args)
-
         
-    result_dir = get_method_result_path(id_dataset, method_name)
+    result_dir = get_method_result_path(base_dataset, method_name)
 
-    print(f'Creating full spectrum results for "{id_dataset}" with method "{method_name}"')
+    print(f'Creating full spectrum results for "{base_dataset}" with method "{method_name}"')
     
-    dataloader, _ = get_data_loader(id_dataset, batch_size=16)
+    dataloader, _ = get_data_loader(base_dataset, batch_size=16)
 
     # Trainer
     trainer = Trainer(logger=None)
@@ -147,7 +167,7 @@ def run_full_spec_experiment(
     if capture_activations:
         activations_normal = pipeline.activations
 
-    pert_dataloader, _ = get_data_loader(f"{id_dataset}_perturbed", batch_size=16)
+    pert_dataloader, _ = get_data_loader(f"{base_dataset}_perturbed", batch_size=16)
     trainer.test(pipeline, pert_dataloader)
 
     results_pert = pipeline.results
@@ -166,11 +186,11 @@ def run_full_spec_experiment(
     if capture_activations:
         activations = np.concatenate([activations_normal, activations_pert], axis=0)
 
-    np.save(os.path.join(result_dir, f"{id_dataset}_full_spec.npy"), results)
+    np.save(os.path.join(result_dir, f"{base_dataset}_full_spec.npy"), results)
 
     if capture_activations:
         np.save(
-            os.path.join(result_dir, f"{id_dataset}_full_spec_activations.npy"),
+            os.path.join(result_dir, f"{base_dataset}_full_spec_activations.npy"),
             activations,
         )
 
