@@ -9,6 +9,29 @@ from rect_prune_ood.lib.util.paths import get_top_level_path
 
 mask_types = Literal["none", "bool", "scale"]
 
+def imagewise_variance(normal_activations, perturbed_activations, p=90, num_augments=4):
+    assert perturbed_activations.shape[0] % num_augments == 0
+    #group perturbed activations by image
+    grouped_perturbed = perturbed_activations.reshape(normal_activations.shape[0], num_augments, normal_activations.shape[1])
+    #take mean of imagewise activations to get rough activation level on perturbed images in general
+    #maybe this step can be skipped for experimentiation
+    mean_imagewise_perturbed = grouped_perturbed.mean(axis=1)
+
+    #concatenate perturbed and normal acticvations
+    all_activations = np.stack((normal_activations, mean_imagewise_perturbed), axis=1)
+
+    iamgewise_variance = np.var(all_activations, axis=1)
+
+    max_indices = np.argmax(iamgewise_variance, axis=1)
+
+    index_counts = np.bincount(max_indices, minlength=2048)
+    ranked_indices = np.argsort(index_counts)[::-1]
+
+    top_10th_count = int(len(ranked_indices) * 0.1)
+    ranked_indices = ranked_indices[top_10th_count:]
+
+    return ranked_indices
+
 def construct_mask(type:mask_types, percentile:int, kwargs:dict) -> Tensor:
 
         cache_path = os.path.join(get_top_level_path(), "cache")
