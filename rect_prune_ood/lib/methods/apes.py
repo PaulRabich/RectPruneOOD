@@ -77,14 +77,90 @@ class APES(Module):
         return x
     
 class APESB(Module):
-    def __init__(self, percentile, in_scale, out_scale) -> None:
+    def __init__(self, percentile) -> None:
         #super(LayerScaler, self).__init__()
         super().__init__()
         self.percentile = percentile
-        construct_mask("bool", {})
+        self.mask = construct_mask("bool", percentile, {})
         
     
     def forward(self, x: Tensor) -> Tensor:
-        x = x * self.mask
+        x = self.apes_b(x)
         return x
     
+
+    def ash_b(self, x):
+        assert x.dim() == 4
+        b, c, h, w = x.shape
+        assert self.mask.shape[0] == c 
+
+        # calculate the sum of the input per sample
+        s1 = x.sum(dim=[1, 2, 3])
+
+        #x = x * self.mask
+
+        mask_sum = self.mask.sum() * h * w
+        active_elements = mask_sum.item()
+        fill = s1 / active_elements
+        fill = fill.view(b, 1, 1, 1).expand(b, c, h, w)
+        
+        x_out = self.mask * fill
+
+        assert x_out.shape == (b, c, h, w) #in case i didnt think correctly
+        return x_out
+    
+    
+class APESP(Module):
+    def __init__(self, percentile) -> None:
+        #super(LayerScaler, self).__init__()
+        super().__init__()
+        self.percentile = percentile
+        self.mask = construct_mask("bool", percentile, {})
+        
+    
+    def forward(self, x: Tensor) -> Tensor:
+        x = self.apes_p(x)
+        return x
+    
+    def apes_p(self, x):
+        assert x.dim() == 4
+        b, c, h, w = x.shape
+        assert self.mask.shape[0] == c 
+
+        x = x * self.mask
+
+        return x
+
+
+class APESS(Module):
+    def __init__(self, percentile) -> None:
+        #super(LayerScaler, self).__init__()
+        super().__init__()
+        self.percentile = percentile
+        self.mask = construct_mask("bool", percentile, {})
+        
+    
+    def forward(self, x: Tensor) -> Tensor:
+        x = self.apes_s(x)
+        #x = x * self.mask
+        return x
+
+    def apes_s(self, x):
+        assert x.dim() == 4
+        b, c, h, w = x.shape
+        assert self.mask.shape[0] == c
+
+        # calculate the sum of the input per sample
+        s1 = x.sum(dim=[1, 2, 3])
+      
+        x = x * self.mask
+        # calculate new sum of the input per sample after pruning
+        s2 = x.sum(dim=[1, 2, 3])
+
+        # apply sharpening
+        scale = s1 / s2
+        x = x * torch.exp(scale[:, None, None, None])
+
+        return x
+
+
