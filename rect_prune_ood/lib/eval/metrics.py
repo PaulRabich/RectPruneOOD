@@ -202,6 +202,7 @@ def compute_traditional_ood(
     method_name: str = "baseline",
     score_function: str = "energy_score",
     base_dataset: str = "imagenet",
+    print_results: bool = True,
 ):
     all_scores = load_scores_for_method(method_name, score_function, base_dataset)
 
@@ -215,8 +216,9 @@ def compute_traditional_ood(
         results = cal_metric(id_scores, ood_scores, method_name)
         all_results.append(results)
 
-    print(f" ID dataset: {id_dataset}")
-    print_all_results(all_results, ood_datasets, method_name)
+    if print_results:
+        print(f" ID dataset: {id_dataset}")
+        print_all_results(all_results, ood_datasets, method_name)
 
     return all_results
 
