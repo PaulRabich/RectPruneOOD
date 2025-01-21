@@ -1,5 +1,7 @@
 import sys
 
+from tqdm import tqdm
+
 sys.path.append("./")
 
 from rect_prune_ood.lib.experiments.run_experiment import run_experiment_for_method, run_full_spec_experiment
@@ -62,15 +64,18 @@ def build_table(
     return string_table
 
 
-
-for ash_methode in ["", "ashb","ashs"]:
+for apes_methode in tqdm(["apesb","apess", "apesp"]):
     for percentile in [i * 5 for i in range(20)]:
-        if ash_methode == "":
-            method_name = f"apes@{percentile}"
-        else:
-            method_name = f"{ash_methode}_apes@{percentile}"
+        
+        method_name = f"{apes_methode}@{percentile}"
 
-        run_full_spec_experiment(
+        #run_full_spec_experiment(
+        #    backbone="resnet50",
+        #    layer="avgpool",
+        #    method_name=method_name,
+        #    capture_activations=False
+        #)
+        run_experiment_for_method(
             backbone="resnet50",
             layer="avgpool",
             method_name=method_name,
@@ -78,7 +83,7 @@ for ash_methode in ["", "ashb","ashs"]:
         )
 
         metrics = compute_traditional_ood(
-            id_dataset="imagenet_full_spec",
+            id_dataset="imagenet",
             ood_datasets=["inat", "sun", "places", "dtd", "ssb_hard", "ninco"],
             method_name=method_name,
             print_results=False
@@ -91,7 +96,40 @@ for ash_methode in ["", "ashb","ashs"]:
         result_str += table
         result_str += "\n\n"
 
-        with open("full_spec_study.txt", "a") as f:
+        with open("apesbps_study.txt", "a") as f:
             f.write(result_str)
+
+
+
+#for ash_methode in ["", "ashb","ashs"]:
+#    for percentile in [i * 5 for i in range(20)]:
+#        if ash_methode == "":
+#            method_name = f"apes@{percentile}"
+#        else:
+#            method_name = f"{ash_methode}_apes@{percentile}"
+#
+#        run_full_spec_experiment(
+#            backbone="resnet50",
+#            layer="avgpool",
+#            method_name=method_name,
+#            capture_activations=False
+#        )
+#
+ #       metrics = compute_traditional_ood(
+ #           id_dataset="imagenet_full_spec",
+ #           ood_datasets=["inat", "sun", "places", "dtd", "ssb_hard", "ninco"],
+ #           method_name=method_name,
+ #           print_results=False
+ #       )
+ #       result_df = DataFrame(metrics)
+ #       
+ #       table = build_table(result_df)
+#        
+#        result_str = f"Results for {method_name}:\n \n"
+#        result_str += table
+#        result_str += "\n\n"#
+#
+#        with open("full_spec_study.txt", "a") as f:
+#            f.write(result_str)
 
 

@@ -89,7 +89,7 @@ class APESB(Module):
         return x
     
 
-    def ash_b(self, x):
+    def apes_b(self, x):
         assert x.dim() == 4
         b, c, h, w = x.shape
         assert self.mask.shape[0] == c 
