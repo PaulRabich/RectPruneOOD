@@ -79,7 +79,7 @@ class APES(Module):
 class APESB(Module):
     def __init__(self, percentile) -> None:
         #super(LayerScaler, self).__init__()
-        super().__init__()
+        super(APESB, self).__init__()
         self.percentile = percentile
         self.mask = construct_mask("bool", percentile, {})
         
@@ -109,11 +109,13 @@ class APESB(Module):
         assert x_out.shape == (b, c, h, w) #in case i didnt think correctly
         return x_out
     
+    def __str__(self):
+        return super().__str__() + f" with percentile {self.percentile}"
     
 class APESP(Module):
     def __init__(self, percentile) -> None:
         #super(LayerScaler, self).__init__()
-        super().__init__()
+        super(APESP, self).__init__()
         self.percentile = percentile
         self.mask = construct_mask("bool", percentile, {})
         
@@ -131,11 +133,13 @@ class APESP(Module):
 
         return x
 
+    def __str__(self):
+        return super().__str__() + f" with percentile {self.percentile}"
 
 class APESS(Module):
     def __init__(self, percentile) -> None:
         #super(LayerScaler, self).__init__()
-        super().__init__()
+        super(APESS, self).__init__()
         self.percentile = percentile
         self.mask = construct_mask("bool", percentile, {})
         
@@ -163,4 +167,5 @@ class APESS(Module):
 
         return x
 
-
+    def __str__(self):
+        return super().__str__() + f" with percentile {self.percentile}"
