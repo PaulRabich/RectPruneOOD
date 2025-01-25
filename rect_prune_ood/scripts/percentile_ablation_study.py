@@ -63,73 +63,34 @@ def build_table(
     
     return string_table
 
+for ash_methode in tqdm(["ashp", "ashb","ashs"]):
+    for apes_methode in tqdm(["apess", "apesp", "apesb"]):
+        for percentile in [i * 5 for i in reversed(range(20))]:
+            
+            method_name = f"{ash_methode}_{apes_methode}@{percentile}"
+            run_experiment_for_method(
+                backbone="resnet50",
+                layer="avgpool",
+                method_name=method_name,
+            )
 
-for apes_methode in tqdm(["apesb","apess", "apesp"]):
-    for percentile in [i * 5 for i in range(20)]:
-        
-        method_name = f"{apes_methode}@{percentile}"
+            metrics = compute_traditional_ood(
+                id_dataset="imagenet",
+                ood_datasets=["inat", "sun", "places", "dtd", "ssb_hard", "ninco"],
+                method_name=method_name,
+                print_results=False
+            )
+            result_df = DataFrame(metrics)
+            
+            table = build_table(result_df)
+            
+            result_str = f"Results for {method_name}:\n \n"
+            result_str += table
+            result_str += "\n\n"
 
-        #run_full_spec_experiment(
-        #    backbone="resnet50",
-        #    layer="avgpool",
-        #    method_name=method_name,
-        #    capture_activations=False
-        #)
-        run_experiment_for_method(
-            backbone="resnet50",
-            layer="avgpool",
-            method_name=method_name,
-            capture_activations=False
-        )
-
-        metrics = compute_traditional_ood(
-            id_dataset="imagenet",
-            ood_datasets=["inat", "sun", "places", "dtd", "ssb_hard", "ninco"],
-            method_name=method_name,
-            print_results=False
-        )
-        result_df = DataFrame(metrics)
-        
-        table = build_table(result_df)
-        
-        result_str = f"Results for {method_name}:\n \n"
-        result_str += table
-        result_str += "\n\n"
-
-        with open("apesbps_study.txt", "a") as f:
-            f.write(result_str)
+            with open("ash_apes_study.txt", "a") as f:
+                f.write(result_str)
 
 
-
-#for ash_methode in ["", "ashb","ashs"]:
-#    for percentile in [i * 5 for i in range(20)]:
-#        if ash_methode == "":
-#            method_name = f"apes@{percentile}"
-#        else:
-#            method_name = f"{ash_methode}_apes@{percentile}"
-#
-#        run_full_spec_experiment(
-#            backbone="resnet50",
-#            layer="avgpool",
-#            method_name=method_name,
-#            capture_activations=False
-#        )
-#
- #       metrics = compute_traditional_ood(
- #           id_dataset="imagenet_full_spec",
- #           ood_datasets=["inat", "sun", "places", "dtd", "ssb_hard", "ninco"],
- #           method_name=method_name,
- #           print_results=False
- #       )
- #       result_df = DataFrame(metrics)
- #       
- #       table = build_table(result_df)
-#        
-#        result_str = f"Results for {method_name}:\n \n"
-#        result_str += table
-#        result_str += "\n\n"#
-#
-#        with open("full_spec_study.txt", "a") as f:
-#            f.write(result_str)
 
 

@@ -97,15 +97,13 @@ class APESB(Module):
         # calculate the sum of the input per sample
         s1 = x.sum(dim=[1, 2, 3])
 
-        #x = x * self.mask
-
         mask_sum = self.mask.sum() * h * w
         active_elements = mask_sum.item()
         fill = s1 / active_elements
-        fill = fill.view(b, 1, 1, 1).expand(b, c, h, w)
-        
-        x_out = self.mask * fill
-
+        expanded_fill = fill.view(b, 1, 1, 1)
+        expanded_mask = self.mask.expand((b, *self.mask.shape))
+        x_out = expanded_fill * expanded_mask
+       
         assert x_out.shape == (b, c, h, w) #in case i didnt think correctly
         return x_out
     

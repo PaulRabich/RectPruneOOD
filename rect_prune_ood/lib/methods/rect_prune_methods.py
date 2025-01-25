@@ -37,6 +37,43 @@ class AshBPruningModule(Module):
     def __str__(self):
         return super().__str__() + f" with percentage {self.percentage}"
 
+
+
+class AshScalingModule(Module):
+    def __init__(self, percentage=65):
+        super(AshScalingModule, self).__init__()
+        self.percentage = percentage
+
+    def forward(self, x):
+        x = self.scale(x, self.percentage)
+        return x
+
+    def scale(self, x, percentile=65):
+        input = x.clone()
+        assert x.dim() == 4
+        assert 0 <= percentile <= 100
+        b, c, h, w = x.shape
+
+        # calculate the sum of the input per sample
+        s1 = x.sum(dim=[1, 2, 3])
+        n = x.shape[1:].numel()
+        k = n - int(np.round(n * percentile / 100.0))
+        t = x.view((b, c * h * w))
+        v, i = torch.topk(t, k, dim=1)
+        t.zero_().scatter_(dim=1, index=i, src=v)
+
+        # calculate new sum of the input per sample after pruning
+        s2 = x.sum(dim=[1, 2, 3])
+
+        # apply sharpening
+        scale = s1 / s2
+    
+        return input * torch.exp(scale[:, None, None, None])
+
+    def __str__(self):
+        return super().__str__() + f" with percentage {self.percentage}"
+
+
 class AshSPruningModule(Module):
     def __init__(self, percentage=90):
         super(AshSPruningModule, self).__init__()

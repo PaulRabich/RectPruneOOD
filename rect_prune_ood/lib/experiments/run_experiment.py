@@ -63,7 +63,7 @@ def run_experiment_for_method(
 ):
     for dataset in [
         'imagenet',
-        'imagenet_perturbed',
+        #'imagenet_perturbed',
         'inat',
         'dtd',
         'sun',
