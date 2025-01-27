@@ -9,16 +9,16 @@ from rect_prune_ood.lib.util.paths import get_top_level_path
 
 mask_types = Literal["none", "bool", "scale"]
 
-def imagewise_variance(normal_activations, perturbed_activations, p=90, num_augments=4):
+def imagewise_variance(perturbed_activations, p=90, num_augments=4):
     assert perturbed_activations.shape[0] % num_augments == 0
     #group perturbed activations by image
-    grouped_perturbed = perturbed_activations.reshape(normal_activations.shape[0], num_augments, normal_activations.shape[1])
+    all_activations = perturbed_activations.reshape(int(perturbed_activations.shape[0]/num_augments), num_augments, perturbed_activations.shape[1])
     #take mean of imagewise activations to get rough activation level on perturbed images in general
     #maybe this step can be skipped for experimentiation
-    mean_imagewise_perturbed = grouped_perturbed.mean(axis=1)
+    #mean_imagewise_perturbed = grouped_perturbed.mean(axis=1)
 
     #concatenate perturbed and normal acticvations
-    all_activations = np.stack((normal_activations, mean_imagewise_perturbed), axis=1)
+    #all_activations = np.stack((normal_activations, grouped_perturbed), axis=1)
 
     iamgewise_variance = np.var(all_activations, axis=1)
 
@@ -27,34 +27,44 @@ def imagewise_variance(normal_activations, perturbed_activations, p=90, num_augm
     index_counts = np.bincount(max_indices, minlength=2048)
     ranked_indices = np.argsort(index_counts)[::-1]
 
-    top_10th_count = int(len(ranked_indices) * 0.1)
+    top_10th_count = int(len(ranked_indices) * (1-p/100))
     ranked_indices = ranked_indices[top_10th_count:]
 
     return ranked_indices
 
 def construct_mask(type:mask_types, percentile:int, kwargs:dict) -> Tensor:
+        imagewise = False
+        if imagewise:
+            cache_path = os.path.join(get_top_level_path(), "results", "imagenet", "baseline_no_pruning", "imagenet_perturbed_activations.npy")
+        else:
+             cache_path = os.path.join(get_top_level_path(), "cache", "imagenet_variance.npy")
+        
+        variances = np.load(cache_path, allow_pickle="True")
+        
+        if imagewise:
+            num_dim = variances.shape[1]
+        else:
+            num_dim = variances.shape[0]
 
-        cache_path = os.path.join(get_top_level_path(), "cache")
-        variances = np.load(os.path.join(cache_path, "imagenet_variance.npy"))
-        num_dim = variances.shape[0]
-
-        k_percentile = np.percentile(variances, percentile)
-        # > or <= ????
-        top_k_percentile_indeces = np.where(variances <= k_percentile)[0]
-
+        if imagewise:
+            top_k_percentile_indeces = imagewise_variance(variances, percentile)
+        else:
+            k_percentile = np.percentile(variances, percentile)
+            top_k_percentile_indeces = np.where(variances <= k_percentile)[0]
+        
         if type == "none":
             mask = torch.ones(num_dim)
             
         elif type == "bool":
             mask = torch.zeros(num_dim)
-            mask[top_k_percentile_indeces] = 1
+            mask[top_k_percentile_indeces.copy()] = 1
         
         elif type == "scale":
             in_scale = kwargs["in_scale"]
             out_scale = kwargs["out_scale"]
 
             mask = torch.ones(num_dim) * in_scale
-            mask[top_k_percentile_indeces] = out_scale
+            mask[top_k_percentile_indeces.copy()] = out_scale
 
         else:
             raise ValueError("Invalid scaling type")
