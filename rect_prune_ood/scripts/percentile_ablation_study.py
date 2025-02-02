@@ -1,8 +1,10 @@
 import sys
 
+from tqdm import tqdm
+
 sys.path.append("./")
 
-from rect_prune_ood.lib.experiments.run_experiment import run_experiment_for_method
+from rect_prune_ood.lib.experiments.run_experiment import run_experiment_for_method, run_full_spec_experiment
 from rect_prune_ood.lib.eval.metrics import compute_traditional_ood
 from pandas import DataFrame
 
@@ -61,17 +63,15 @@ def build_table(
     
     return string_table
 
-
-
-for ash_methode in ["ashs"]:
-    for percentile in [i * 5 for i in range(20)]:
-        method_name = f"{ash_methode}_apes@{percentile}"
+#for ash_methode in tqdm(["ashp", "ashb","ashs"]): {ash_methode}_
+for apes_methode in tqdm(["apess", "apesp", "apesb"]):
+    for percentile in [i * 5 for i in reversed(range(20))]:
+        
+        method_name = f"{apes_methode}@{percentile}"
         run_experiment_for_method(
             backbone="resnet50",
             layer="avgpool",
             method_name=method_name,
-            capture_activations=False,
-            id_dataset="imagenet",
         )
 
         metrics = compute_traditional_ood(
@@ -88,7 +88,9 @@ for ash_methode in ["ashs"]:
         result_str += table
         result_str += "\n\n"
 
-        with open("ashs_percentile_ablation_study.txt", "a") as f:
+        with open("imagewise_apes_study.txt", "a") as f:
             f.write(result_str)
+
+
 
 

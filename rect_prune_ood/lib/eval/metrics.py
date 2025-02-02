@@ -202,6 +202,7 @@ def compute_traditional_ood(
     method_name: str = "baseline",
     score_function: str = "energy_score",
     base_dataset: str = "imagenet",
+    print_results: bool = True,
 ):
     all_scores = load_scores_for_method(method_name, score_function, base_dataset)
 
@@ -213,16 +214,17 @@ def compute_traditional_ood(
         ood_scores = all_scores[ood_dataset]
 
         results = cal_metric(id_scores, ood_scores, method_name)
+        results["ood_dataset"] = ood_dataset
         all_results.append(results)
 
-    print(f" ID dataset: {id_dataset}")
-    print_all_results(all_results, ood_datasets, method_name)
+    if print_results:
+        print(f" ID dataset: {id_dataset}")
+        print_all_results(all_results, ood_datasets, method_name)
 
     return all_results
 
 def compute_traditional_ood_legacy(id_dataset, ood_datasets, score_metric:str = "energy_score", method_name="baseline",  method: str = "", plot_AUROC=False,print_results= True, args=None):
 
-        
     # Chante this back, for other backbones
     backbone = id_dataset.split("_")[0]
     result_dir = get_method_result_path(backbone, method_name)
