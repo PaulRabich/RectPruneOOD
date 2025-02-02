@@ -23,7 +23,8 @@ ood_datasets = Literal[
 ]
 
 perturbed_datasets = Literal[
-    'imagenet_perturbed'
+    'imagenet_perturbed',
+    'imagenet_c'
 ]
 
 imagesize = 32
@@ -46,13 +47,13 @@ transform_test_largescale = transforms.Compose([
 ])
 
 ood_base_path = os.path.abspath('/fastdata/vilab17/out_distribution')
-imagenet_base_path = os.path.abspath('/data/vimb06/imagenet')
+imagenet_base_path = os.path.abspath('/fastdata/vilab17/imagenet')
 
 paths = {
-    'cifar10': os.path.join('TODO'), # TODO
     'imagenet_val': os.path.join(imagenet_base_path, 'val'),
     'imagenet_train': os.path.join(imagenet_base_path, 'train'),
     'imagenet_perturbed': os.path.abspath('/fastdata/vilab17/imagenet_perturbed'),
+    'imagenet_c': os.path.abspath('/fastdata/vilab17/imagenet_c'),
     'dtd': os.path.join(ood_base_path, 'dtd', 'images'),
     'places': os.path.join(ood_base_path, 'Places'),
     'inat': os.path.join(ood_base_path, 'iNaturalist'),
@@ -84,7 +85,7 @@ def get_data_loader(dataset : str, batch_size : int = 100, shuffle : bool = Fals
     elif dataset in ['inat', 'dtd', 'sun', 'places', 'ninco', 'ssb_hard']:
         val_loader = _get_ood_data_loader(dataset, batch_size=batch_size, shuffle=shuffle)
 
-    elif dataset == 'imagenet_perturbed':
+    elif dataset in ['imagenet_perturbed', 'imagenet_c']:
         val_loader = _get_perturbation_data_loader(dataset, batch_size=batch_size, shuffle=shuffle)
 
     return val_loader, num_classes
@@ -155,7 +156,7 @@ def _get_perturbation_data_loader(perturbed_dataset: str = 'imagenet_perturbed',
         - val_loader (DataLoader or None): DataLoader for the perturbation dataset if available; None otherwise.
     """
 
-    imagenet = ImageFolder(root=paths[perturbed_dataset], transform=transform_test_largescale)
-    val_loader = DataLoader(imagenet, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
+    dataset = ImageFolder(root=paths[perturbed_dataset], transform=transform_test_largescale)
+    val_loader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
         
     return val_loader
