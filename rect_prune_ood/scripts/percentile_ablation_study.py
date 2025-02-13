@@ -63,34 +63,36 @@ def build_table(
     
     return string_table
 
-#for ash_methode in tqdm(["ashp", "ashb","ashs"]): {ash_methode}_
-for apes_methode in tqdm(["apess", "apesp", "apesb"]):
-    for percentile in [i * 5 for i in reversed(range(20))]:
-        
-        method_name = f"{apes_methode}@{percentile}"
-        run_experiment_for_method(
-            backbone="resnet50",
-            layer="avgpool",
-            method_name=method_name,
-        )
+for ash_methode in tqdm(["", "ashs", "ashb", "ashp", "scale"]):
+    for apes_methode in tqdm(["apesscale", "apesp", "apess"]):
+        for percentile in [i * 5 for i in reversed(range(20))]:
+            if ash_methode == "":
+                method_name = f"{apes_methode}@{percentile}"
+            else:
+                method_name = f"{ash_methode}_{apes_methode}@{percentile}"
+            run_experiment_for_method(
+                backbone="resnet50",
+                layer="avgpool",
+                method_name=method_name,
+            )
 
-        metrics = compute_traditional_ood(
-            id_dataset="imagenet",
-            ood_datasets=["inat", "sun", "places", "dtd", "ssb_hard", "ninco"],
-            method_name=method_name,
-            print_results=False
-        )
-        result_df = DataFrame(metrics)
-        
-        table = build_table(result_df)
-        
-        result_str = f"Results for {method_name}:\n \n"
-        result_str += table
-        result_str += "\n\n"
+            metrics = compute_traditional_ood(
+                id_dataset="imagenet",
+                ood_datasets=["inat", "sun", "places", "dtd", "ssb_hard", "ninco"],
+                method_name=method_name,
+                print_results=False
+            )
+            result_df = DataFrame(metrics)
+            
+            table = build_table(result_df)  
+            
+            result_str = f"Results for {method_name}:\n \n"
+            result_str += table
+            result_str += "\n\n"
 
-        with open("imagewise_apes_study.txt", "a") as f:
-            f.write(result_str)
-
+            with open("imagewise_scale_ash_apes_mega_study.txt", "a") as f:
+                f.write(result_str)
+            
 
 
 

@@ -39,16 +39,16 @@ class AshBPruningModule(Module):
 
 
 
-class AshScalingModule(Module):
-    def __init__(self, percentage=65):
-        super(AshScalingModule, self).__init__()
+class SCALEModule(Module):
+    def __init__(self, percentage=90):
+        super(SCALEModule, self).__init__()
         self.percentage = percentage
 
     def forward(self, x):
         x = self.scale(x, self.percentage)
         return x
 
-    def scale(self, x, percentile=65):
+    def scale(self, x, percentile=85):
         input = x.clone()
         assert x.dim() == 4
         assert 0 <= percentile <= 100

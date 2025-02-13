@@ -6,8 +6,9 @@ from lightning import Trainer
 from lightning.pytorch.loggers import CSVLogger
 
 from rect_prune_ood.lib.experiments.feature_extractor import FeatureExtractor
+from rect_prune_ood.lib.experiments.mobilenet_feature_extractor import MobileNetFeatureExtractor
 from rect_prune_ood.lib.experiments.pipeline import Pipeline
-from rect_prune_ood.lib.experiments.backbones import get_resnet50
+from rect_prune_ood.lib.experiments.backbones import get_resnet50, get_mobilenetV2
 from rect_prune_ood.lib.util.paths import get_method_result_path
 from rect_prune_ood.lib.util.data_loader import (
     id_datasets, 
@@ -20,8 +21,14 @@ from rect_prune_ood.lib.util.data_loader import (
 prune_types = Literal["", "ashb", "ashp", "ashs", "dice", "line"]
 # weight_pruning_types= Literal["Methoden", "hier", "einfügen"]
 rectification_types = Literal["", "react", "bats"]
-backbones = Literal["resnet50"]
+backbones = Literal["resnet50", "mobilenetV2"]
 
+
+def get_feature_extractor(backbone: backbones, layer: str):
+    if backbone == "mobilenetV2":
+        return MobileNetFeatureExtractor(get_mobilenetV2())
+    else:
+        return FeatureExtractor(get_resnet50(), layer)
 
 def get_backbone(backbone: backbones):
     if backbone == "resnet50":
@@ -99,8 +106,8 @@ def run_single_experiment(
     capture_activations (bool): Whether to capture the activations.
     base_dataset (id_datasets): Base dataset. Mainly used for paths. Defaults to "imagenet".
     """
-    backbone = get_backbone(backbone)
-    feature_extractor = FeatureExtractor(backbone, layer)
+    #backbone = get_backbone(backbone)
+    feature_extractor = get_feature_extractor(backbone, layer)
     
     fc_layer = fc_layer=feature_extractor.get_fc_layer()
 
