@@ -1,21 +1,22 @@
 from typing import List
 from torch.nn import Module
 
-from rect_prune_ood.lib.methods.apes import APES, APESB, APESP, APESS
-from rect_prune_ood.lib.methods.rect_prune_methods import AshBPruningModule, AshPPruningModule, AshSPruningModule, DicePruningModule, ReactRectModule, BatsRectModule, AshScalingModule
+from rect_prune_ood.lib.methods.apes import APES, APESB, APESP, APESS, APESSCALE
+from rect_prune_ood.lib.methods.rect_prune_methods import AshBPruningModule, AshPPruningModule, AshSPruningModule, DicePruningModule, ReactRectModule, BatsRectModule, SCALEModule
 
 module_dict = {
     "ashp": AshPPruningModule,
     "ashb": AshBPruningModule,
     "ashs": AshSPruningModule,
-    "ashscale":AshScalingModule,
+    "scale":SCALEModule,
     "dice": DicePruningModule,
     "react": ReactRectModule,
     "bats": BatsRectModule,
     "apes": APES, 
     "apesb": APESB,
     "apess": APESS,
-    "apesp": APESP
+    "apesp": APESP,
+    "apesscale": APESSCALE,
 }
 
 def get_module_list(method_name:str) -> List[Module]:

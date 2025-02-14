@@ -32,8 +32,7 @@ def imagewise_variance(perturbed_activations, p=90, num_augments=4):
 
     return ranked_indices
 
-def construct_mask(type:mask_types, percentile:int, kwargs:dict) -> Tensor:
-        imagewise = False
+def construct_mask(type:mask_types, percentile:int, kwargs:dict, imagewise=False) -> Tensor:
         if imagewise:
             cache_path = os.path.join(get_top_level_path(), "results", "imagenet", "baseline_no_pruning", "imagenet_perturbed_activations.npy")
         else:
@@ -174,6 +173,43 @@ class APESS(Module):
         x = x * torch.exp(scale[:, None, None, None])
 
         return x
+
+    def __str__(self):
+        return super().__str__() + f" with percentile {self.percentile}"
+    
+
+
+class APESSCALE(Module):
+    def __init__(self, percentile) -> None:
+        #super(LayerScaler, self).__init__()
+        super(APESSCALE, self).__init__()
+        self.percentile = percentile
+        self.mask = construct_mask("bool", percentile, {})
+        
+    
+    def forward(self, x: Tensor) -> Tensor:
+        x = self.apes_scale(x)
+        #x = x * self.mask
+        return x
+
+    def apes_scale(self, x):
+        input = x.clone()
+        assert x.dim() == 4
+        
+        b, c, h, w = x.shape
+
+        # calculate the sum of the input per sample
+        s1 = x.sum(dim=[1, 2, 3])
+        
+        x = x * self.mask
+
+        # calculate new sum of the input per sample after pruning
+        s2 = x.sum(dim=[1, 2, 3])
+
+        # apply sharpening
+        scale = s1 / s2
+        #apply scaling to unchanged input
+        return input * torch.exp(scale[:, None, None, None])
 
     def __str__(self):
         return super().__str__() + f" with percentile {self.percentile}"

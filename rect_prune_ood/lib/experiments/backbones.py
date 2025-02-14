@@ -1,5 +1,6 @@
 from torchvision.models import resnet50, ResNet50_Weights
 import torch.utils.model_zoo as model_zoo
+import torchvision.models as models
 from rect_prune_ood.lib.models.resnet_cifar_react import resnet50_cifar
 
 model_urls = {
@@ -19,3 +20,9 @@ def get_resnet50(pretrained=True):
         resnet.load_state_dict(model_zoo.load_url(model_urls['resnet50']))
     
     return resnet
+
+def get_mobilenetV2(pretrained=True):
+    mobilenet = models.mobilenet_v2(weights="IMAGENET1K_V1")
+
+    return mobilenet
+
