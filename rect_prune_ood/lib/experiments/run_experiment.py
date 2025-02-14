@@ -76,7 +76,8 @@ def run_experiment_for_method(
         'sun',
         'places',
         'ninco',
-        'ssb_hard'
+        'ssb_hard',
+        'openimage-o'
     ]:
         run_single_experiment(
             backbone=backbone,

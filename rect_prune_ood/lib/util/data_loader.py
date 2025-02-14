@@ -19,7 +19,8 @@ ood_datasets = Literal[
     'sun', 
     'places',
     'ninco',
-    'ssb_hard'
+    'ssb_hard',
+    'openimage-o'
 ]
 
 perturbed_datasets = Literal[
@@ -60,6 +61,7 @@ paths = {
     'sun': os.path.join(ood_base_path, 'SUN'),
     'ninco': os.path.join(ood_base_path, 'NINCO', 'NINCO_OOD_classes'),
     'ssb_hard': os.path.join(ood_base_path, 'ssb_hard'),
+    'openimage-o': os.path.join(ood_base_path, 'openimage-o')
 }
 
 def get_data_loader(dataset : str, batch_size : int = 100, shuffle : bool = False):
@@ -82,7 +84,7 @@ def get_data_loader(dataset : str, batch_size : int = 100, shuffle : bool = Fals
     if dataset in ['cifar10', 'imagenet']:
         val_loader, num_classes = _get_id_data_loader(dataset, batch_size, shuffle)
 
-    elif dataset in ['inat', 'dtd', 'sun', 'places', 'ninco', 'ssb_hard']:
+    elif dataset in ['inat', 'dtd', 'sun', 'places', 'ninco', 'ssb_hard', 'openimage-o']:
         val_loader = _get_ood_data_loader(dataset, batch_size=batch_size, shuffle=shuffle)
 
     elif dataset in ['imagenet_perturbed', 'imagenet_c']:
