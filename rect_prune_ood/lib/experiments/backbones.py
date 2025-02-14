@@ -22,6 +22,7 @@ def get_resnet50(pretrained=True):
     return resnet
 
 def get_mobilenetV2(pretrained=True):
-    mobilenet = models.mobilenet_v2(pretrained=pretrained)
+    mobilenet = models.mobilenet_v2(weights="IMAGENET1K_V1")
+
     return mobilenet
 
