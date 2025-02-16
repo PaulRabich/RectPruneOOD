@@ -4,7 +4,7 @@ from tqdm import tqdm
 
 sys.path.append("./")
 
-from rect_prune_ood.lib.experiments.run_experiment import run_experiment_for_method, run_full_spec_experiment
+from rect_prune_ood.lib.experiments.run_experiment import run_experiment_for_method, run_full_spec_experiment, run_single_experiment
 from rect_prune_ood.lib.eval.metrics import compute_traditional_ood
 from pandas import DataFrame
 
@@ -63,22 +63,34 @@ def build_table(
     
     return string_table
 
-for ash_methode in tqdm(["", "ashs", "ashb", "ashp", "scale"]):
-    for apes_methode in tqdm(["apesscale", "apesp", "apess"]):
-        for percentile in [i * 5 for i in reversed(range(20))]:
+ash_methods = ["ashs"] # ["", "ashs", "ashb", "ashp", "scale"]
+
+apes_methodds = ["apesp"] #["apesscale", "apesp", "apess"]
+
+for ash_methode in tqdm(ash_methods):
+    for apes_methode in tqdm(apes_methodds):
+        for percentile in [35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]:
             if ash_methode == "":
                 method_name = f"{apes_methode}@{percentile}"
             else:
                 method_name = f"{ash_methode}_{apes_methode}@{percentile}"
-            run_experiment_for_method(
+            run_single_experiment(
                 backbone="resnet50",
                 layer="avgpool",
+                dataset="imagenet",
+                method_name=method_name,
+            )
+            run_single_experiment(
+                backbone="resnet50",
+                layer="avgpool",
+                dataset="openimage-o",
                 method_name=method_name,
             )
 
+
             metrics = compute_traditional_ood(
                 id_dataset="imagenet",
-                ood_datasets=["inat", "sun", "places", "dtd", "ssb_hard", "ninco"],
+                ood_datasets=["openimage-o"],
                 method_name=method_name,
                 print_results=False
             )
@@ -90,7 +102,7 @@ for ash_methode in tqdm(["", "ashs", "ashb", "ashp", "scale"]):
             result_str += table
             result_str += "\n\n"
 
-            with open("imagewise_scale_ash_apes_mega_study.txt", "a") as f:
+            with open(f"results/ablation_studies/{method_name}.txt", "a") as f:
                 f.write(result_str)
             
 
