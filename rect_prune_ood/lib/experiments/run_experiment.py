@@ -14,7 +14,8 @@ from rect_prune_ood.lib.util.data_loader import (
     id_datasets, 
     ood_datasets, 
     perturbed_datasets, 
-    get_data_loader
+    get_data_loader,
+    get_imagenet_c_subset_loader
 )
 
 
@@ -107,6 +108,15 @@ def run_single_experiment(
     capture_activations (bool): Whether to capture the activations.
     base_dataset (id_datasets): Base dataset. Mainly used for paths. Defaults to "imagenet".
     """
+    if dataset == "imagenet_c":
+        _run_imagenet_c_experiment(
+            backbone=backbone,
+            layer=layer,
+            method_name=method_name,
+            capture_activations=capture_activations,
+        )
+        return
+
     #backbone = get_backbone(backbone)
     feature_extractor = get_feature_extractor(backbone, layer)
     
@@ -131,6 +141,57 @@ def run_single_experiment(
             os.path.join(result_dir, f"{dataset}_activations.npy"),
             pipeline.activations,
         )
+
+def _run_imagenet_c_experiment(
+    backbone: backbones,
+    layer: str,
+    method_name:str,
+    capture_activations: bool = False,
+):
+    imagenet_c_pertubations = [
+        "brightness",
+        "defocus_blur",
+        "fog",
+        "gaussian_blur",
+        "glass_blur",
+        "jpeg_compression",
+        "pixelate",
+        "shot_noise",
+        "spatter",
+        "zoom_blur",
+        "contrast",
+        "elastic_transform",
+        "frost",
+        "gaussian_noise", 
+        "impulse_noise",
+        "motion_blur",
+        "saturate",
+        "snow",
+        "speckle_noise"
+    ]
+
+    feature_extractor = get_feature_extractor(backbone, layer)
+
+    fc_layer=feature_extractor.get_fc_layer()
+
+    pipeline = Pipeline(feature_extractor, method_name, fc_layer, caputure_activations=capture_activations)
+
+    result_dir = get_method_result_path("imagenet", method_name + "/imagenet_c")
+
+    for pertubation in imagenet_c_pertubations:
+        dataloader = get_imagenet_c_subset_loader(pertubation, batch_size=16)
+
+        # Trainer
+        trainer = Trainer(logger=None)
+        trainer.test(pipeline, dataloader)
+
+        np.save(os.path.join(result_dir, f"imagenet_c_{pertubation}.npy"), pipeline.results)
+
+        if capture_activations:
+            np.save(
+                os.path.join(result_dir, f"imagenet_c_{pertubation}_activations.npy"),
+                pipeline.activations,
+            )
 
 def run_full_spec_experiment(
     backbone: backbones,
