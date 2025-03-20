@@ -161,6 +161,66 @@ def plot_compare_methods(
     fig.suptitle(f"{fm_name} vs {sm_name}: {score_function_name} comparison for ID dataset {id_dataset_name}", fontsize=16)
     fig.subplots_adjust(top=0.85)
 
+
+def plot_triple_distribution_plot(id_scores, perturbed_scores, ood_scores):
+ 
+    bin_range = (
+        min(min(id_scores), min(ood_scores)),
+        max(max(ood_scores), max(ood_scores))
+    )
+
+    # Histograms for the first plot
+    num_bins = 1000 #1000
+    id_hist, id_bin_edges = np.histogram(id_scores, bins=num_bins, range=bin_range, density=True)
+    pert_id_hist, pert_id_bin_edges = np.histogram(perturbed_scores, bins=num_bins, range=bin_range, density=True)
+    ood_hist, ood_bin_edges = np.histogram(ood_scores, bins=num_bins, range=bin_range, density=True)
+    
+
+    id_hist = gaussian_filter1d(id_hist, sigma=18)
+    pert_id_hist = gaussian_filter1d(pert_id_hist, sigma=18)
+    ood_hist = gaussian_filter1d(ood_hist, sigma=18)
+    
+    """for i in range(1, len(id_hist) -1):
+        id_hist[i] = (id_hist[i - 1] + id_hist[i] + id_hist[i + 1]) / 3
+    
+
+    for i in range(1, len(pert_id_hist) -1):
+        pert_id_hist[i] = (pert_id_hist[i - 1] + pert_id_hist[i] + pert_id_hist[i + 1]) / 3
+
+    for i in range(1, len(ood_hist) -1):
+        ood_hist[i] = (ood_hist[i - 1] + ood_hist[i] + ood_hist[i + 1]) / 3"""
+    
+
+    # Midpoints of bins for plotting
+    #id_bin_centers = (ood_bin_edges[:-1] + id_bin_edges[1:]) / 2
+    
+
+    # Beautify names
+    name = "Distribution Shift Visualization"
+    #sm_name = _beautify_method_name(second_method)
+
+    dataset_name = "ImageNet"
+
+    score_function_name = "Energy Score"
+
+    # Plot 1
+    plt.fill_between(ood_bin_edges[:-1], 0, ood_hist, color='orangered', alpha=0.2, label=f"OOD")
+    plt.fill_between(pert_id_bin_edges[:-1], 0, pert_id_hist, color='green', alpha=0.3, label=f"ID Perturbed")
+    plt.fill_between(id_bin_edges[:-1], 0, id_hist, color='blue', alpha=0.4, label=f"ID")
+
+    plt.plot(id_bin_edges[:-1], id_hist, color='black', alpha=0.9, linewidth=0.5)
+    plt.plot(pert_id_bin_edges[:-1], pert_id_hist, color='black', alpha=0.9, linewidth=0.5)
+    plt.plot(ood_bin_edges[:-1], ood_hist, color='black', alpha=0.9, linewidth=0.5)
+
+    plt.title(name)
+
+    plt.xlabel(score_function_name)
+    plt.ylabel("Frequency")
+    plt.legend()
+
+    plt.savefig("plot.png")
+        
+
 def _beautify_method_name(method_name: str = "") -> str:
     if method_name == "baseline":
         return "Baseline"
