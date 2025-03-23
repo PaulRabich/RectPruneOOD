@@ -27,7 +27,7 @@ if not os.path.exists(metrics_path):
         .set_index("index") \
         .to_csv(metrics_path)
 
-for method_name in ["apes@95", "react", "ashs", "ashp", "scale", "ashp_apes@95"]:
+for method_name in ["ashs_apes@95"]:#"apes@95", "react", "ashs", "ashp", "scale", "ashp_apes@95"]:
     run_single_experiment(
         backbone="resnet50",
         layer="avgpool",
@@ -45,7 +45,7 @@ for method_name in ["apes@95", "react", "ashs", "ashp", "scale", "ashp_apes@95"]
         )
 
         # Load energy scores
-        full_spec_id = np.load(
+        id_scores = np.load(
             os.path.join(
                 get_top_level_path(),
                 f"results/imagenet/{method_name}/imagenet.npy",
@@ -63,7 +63,7 @@ for method_name in ["apes@95", "react", "ashs", "ashp", "scale", "ashp_apes@95"]
         ).item()["energy_score"]
 
         # Calculate metrics
-        metrics = cal_metric(full_spec_id, ood_scores)
+        metrics = cal_metric(id_scores, ood_scores)
 
         # Load existing DataFrame to determine next index
         existing_df = pd.read_csv(metrics_path, index_col="index")
