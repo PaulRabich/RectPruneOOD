@@ -34,9 +34,9 @@ def imagewise_variance(perturbed_activations, p=90, num_augments=4):
 
 def construct_mask(type:mask_types, percentile:int, kwargs:dict, imagewise=False) -> Tensor:
         if imagewise:
-            cache_path = os.path.join(get_top_level_path(), "results", "imagenet", "baseline_no_pruning", "imagenet_perturbed_activations.npy")
+            cache_path = os.path.join(get_top_level_path(), "results", "imagenet", "baseline_mobilenet", "imagenet_perturbed_activations.npy")
         else:
-             cache_path = os.path.join(get_top_level_path(), "cache", "imagenet_variance.npy")
+            cache_path = os.path.join(get_top_level_path(), "cache", "imagenet_perturbed_variance_mobilenet.npy")
         
         variances = np.load(cache_path, allow_pickle="True")
         

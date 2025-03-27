@@ -41,25 +41,24 @@ def run_all_experiments(
     base_dataset: id_datasets = "imagenet",
     mask_args=None,
 ):
-    for rectification_method in ["react", ""]:
-        for prune_method in ["ashb", "ashp", "ashs", ""]:
-            run_experiment_for_method(
-                backbone=backbone,
-                layer=layer,
-                rectification_method=rectification_method,
-                prune_method=prune_method,
-                capture_activations=capture_activations,
-                base_dataset=base_dataset,
-                mask_args=mask_args,
-            )
-            run_full_spec_experiment(
-                backbone=backbone,
-                layer=layer,
-                rectification_method=rectification_method,
-                prune_method=prune_method,
-                capture_activations=capture_activations,
-                mask_args=mask_args,
-            )
+    
+    for prune_method in ["ashs@85_apesp@95", "ashp@65_apesp@95", "ashp@65_apess@95"]:
+        method_name = prune_method
+        run_experiment_for_method(
+            backbone=backbone,
+            layer=layer,
+            method_name=method_name,
+            capture_activations=capture_activations,
+            base_dataset=base_dataset
+        )
+            #run_full_spec_experiment(
+            #    backbone=backbone,
+            #    layer=layer,
+            #    rectification_method=rectification_method,
+            #    prune_method=prune_method,
+            #    capture_activations=capture_activations,
+            #    mask_args=mask_args,
+            #)
 
 def run_experiment_for_method(
     backbone: backbones,
@@ -70,7 +69,7 @@ def run_experiment_for_method(
 ):
     for dataset in [
         'imagenet',
-        #'imagenet_perturbed',
+        'imagenet_perturbed',
         'inat',
         'dtd',
         'sun',
