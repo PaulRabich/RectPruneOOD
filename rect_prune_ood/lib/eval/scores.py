@@ -6,6 +6,9 @@ import numpy as np
 
 from torchmetrics import Metric
 
+
+
+#implementations of different scoring methods
 class EnergyScore(Metric):
     def __init__(self):
         super().__init__()

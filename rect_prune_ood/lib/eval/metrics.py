@@ -7,9 +7,10 @@ import os
 import matplotlib.pyplot as plt
 
 """
-in_labels.txt: labels, predictions, confidences
-in_scores.txt: scores
+Code in here is taken straight from: https://github.com/deeplearning-wisc/react/blob/master/util/metrics.py 
+-> for reproducability purposes
 """
+
 
 def cal_metric(known, novel, method=None, plot_AUROC=False, AUROC_save_path="no_path_specified_auroc.png"):
     tp, fp, fpr_at_tpr95 = get_curve(known, novel, method)
@@ -196,6 +197,8 @@ def compute_and_print_results(id_dataset: str, novel_datasets: list[str], method
     print_all_results(all_results, novel_datasets, method_name)
     return
 
+
+#changed this method slightly regarding the inputs
 def compute_traditional_ood(
     id_dataset: str,
     ood_datasets: list[str],
@@ -204,12 +207,30 @@ def compute_traditional_ood(
     base_dataset: str = "imagenet",
     print_results: bool = True,
 ):
+    """Computes metrics that are traditionally used for OOD detection
+
+    Args:
+        id_dataset (str): name of the ID dataset
+        ood_datasets (list[str]): names of the OOD datasets to compare against
+        method_name (str, optional): String encoding of the methods used for this calculations. 
+                                     Is important because it corresponds to the file names. Defaults to "baseline".
+        score_function (str, optional): Score function for score calculation. Defaults to "energy_score".
+        base_dataset (str, optional): Dataset on which experiments and ID dataset is based on. 
+                                      Corresponds to folder name. Defaults to "imagenet".
+        print_results (bool, optional): Argument for printing results in a table. Defaults to True.
+
+    Returns:
+        list[dict(str: float)]: the calculated metrics
+    """
+
+    #load scores from files in results path, given by naming conventions
     all_scores = load_scores_for_method(method_name, score_function, base_dataset)
 
     id_scores = all_scores[id_dataset]
 
     all_results = []
 
+    #calculate results for all datasets
     for ood_dataset in ood_datasets:
         ood_scores = all_scores[ood_dataset]
 
@@ -223,7 +244,8 @@ def compute_traditional_ood(
 
     return all_results
 
-def compute_traditional_ood_legacy(id_dataset, ood_datasets, score_metric:str = "energy_score", method_name="baseline",  method: str = "", plot_AUROC=False,print_results= True, args=None):
+#kann weg?
+def compute_traditional_ood_legacy_depricated(id_dataset, ood_datasets, score_metric:str = "energy_score", method_name="baseline",  method: str = "", plot_AUROC=False,print_results= True, args=None):
 
     # Chante this back, for other backbones
     backbone = id_dataset.split("_")[0]

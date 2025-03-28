@@ -15,6 +15,7 @@ from rect_prune_ood.lib.experiments.run_experiment import (
 from rect_prune_ood.lib.util.paths import get_top_level_path
 from rect_prune_ood.lib.eval.metrics import cal_metric
 
+#init paths
 results_dir = os.path.join(get_top_level_path(), "results")
 metrics_path = os.path.join(results_dir, "full_spectrum_scores.csv")
 

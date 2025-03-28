@@ -3,6 +3,9 @@ import torch.utils.model_zoo as model_zoo
 import torchvision.models as models
 from rect_prune_ood.lib.models.resnet_cifar_react import resnet50_cifar
 
+#file that provides methods to obtain backbones for our post hoc method
+
+#pretrained networks weights
 model_urls = {
     'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
     'resnet34': 'https://download.pytorch.org/models/resnet34-333f7ec4.pth',
@@ -12,9 +15,7 @@ model_urls = {
 }
 
 def get_resnet50(pretrained=True):
-    
-    # resnet = resnet50_cifar(num_classes=10, method="energy")
-    # Load pretrained resnet50 model
+    # Load and return pretrained resnet50 model
     resnet = resnet50(weights="IMAGENET1K_V1")
     if pretrained:
         resnet.load_state_dict(model_zoo.load_url(model_urls['resnet50']))
@@ -22,6 +23,7 @@ def get_resnet50(pretrained=True):
     return resnet
 
 def get_mobilenetV2(pretrained=True):
+    # Load and return pretrained mobilenetV2 model
     mobilenet = models.mobilenet_v2(weights="IMAGENET1K_V1")
 
     return mobilenet

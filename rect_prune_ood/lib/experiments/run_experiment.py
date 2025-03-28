@@ -18,22 +18,28 @@ from rect_prune_ood.lib.util.data_loader import (
 )
 
 
-prune_types = Literal["", "ashb", "ashp", "ashs", "dice", "line"]
-# weight_pruning_types= Literal["Methoden", "hier", "einfügen"]
-rectification_types = Literal["", "react", "bats"]
+#this file contains methods that are used to run full experiments for OOD detection
+
+#different activation shaping methods
+prune_types = Literal["", "ashb", "ashp", "ashs", "apesp"]
+rectification_types = Literal["", "react"]
+#possible backbones
 backbones = Literal["resnet50", "mobilenetV2"]
 
-
+#get feature extractof matching to backbone
 def get_feature_extractor(backbone: backbones, layer: str):
     if backbone == "mobilenetV2":
         return MobileNetFeatureExtractor(get_mobilenetV2())
     else:
         return FeatureExtractor(get_resnet50(), layer)
 
+#get desired pretrained model
 def get_backbone(backbone: backbones):
     if backbone == "resnet50":
         return get_resnet50()
-    
+
+
+
 def run_all_experiments(
     backbone: backbones,
     layer: str,
@@ -41,6 +47,15 @@ def run_all_experiments(
     base_dataset: id_datasets = "imagenet",
     mask_args=None,
 ):
+    """_summary_
+
+    Args:
+        backbone (backbones): _description_
+        layer (str): _description_
+        capture_activations (bool, optional): _description_. Defaults to False.
+        base_dataset (id_datasets, optional): _description_. Defaults to "imagenet".
+        mask_args (_type_, optional): _description_. Defaults to None.
+    """
     for rectification_method in ["react", ""]:
         for prune_method in ["ashb", "ashp", "ashs", ""]:
             run_experiment_for_method(
@@ -61,6 +76,7 @@ def run_all_experiments(
                 mask_args=mask_args,
             )
 
+
 def run_experiment_for_method(
     backbone: backbones,
     layer: str,
@@ -68,6 +84,15 @@ def run_experiment_for_method(
     capture_activations: bool = False,
     base_dataset: id_datasets = "imagenet",
 ):
+    """_summary_
+
+    Args:
+        backbone (backbones): _description_
+        layer (str): _description_
+        method_name (str): _description_
+        capture_activations (bool, optional): _description_. Defaults to False.
+        base_dataset (id_datasets, optional): _description_. Defaults to "imagenet".
+    """
     for dataset in [
         'imagenet',
         #'imagenet_perturbed',
