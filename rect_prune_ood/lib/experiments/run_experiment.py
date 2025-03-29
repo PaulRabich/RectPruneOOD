@@ -21,7 +21,6 @@ from rect_prune_ood.lib.util.data_loader import (
 from rect_prune_ood.lib.util.paths import get_method_result_path
 
 prune_types = Literal["", "ashb", "ashp", "ashs", "dice", "line"]
-# weight_pruning_types= Literal["Methoden", "hier", "einfügen"]
 rectification_types = Literal["", "react", "bats"]
 backbones = Literal["resnet50", "mobilenetV2"]
 
@@ -32,50 +31,6 @@ def get_feature_extractor(backbone: backbones, layer: str):
 		return MobileNetFeatureExtractor(get_mobilenetV2())
 	else:
 		return FeatureExtractor(get_resnet50(), layer)
-
-
-# get desired pretrained model
-def get_backbone(backbone: backbones):
-	if backbone == 'resnet50':
-		return get_resnet50()
-
-
-def run_all_experiments(
-	backbone: backbones,
-	layer: str,
-	capture_activations: bool = False,
-	base_dataset: id_datasets = 'imagenet',
-	mask_args=None,
-):
-	"""_summary_
-
-	Args:
-		backbone (backbones): _description_
-		layer (str): _description_
-		capture_activations (bool, optional): _description_. Defaults to False.
-		base_dataset (id_datasets, optional): _description_. Defaults to "imagenet".
-		mask_args (_type_, optional): _description_. Defaults to None.
-	"""
-	for rectification_method in ['react', '']:
-		for prune_method in ['ashb', 'ashp', 'ashs', '']:
-			run_experiment_for_method(
-				backbone=backbone,
-				layer=layer,
-				rectification_method=rectification_method,
-				prune_method=prune_method,
-				capture_activations=capture_activations,
-				base_dataset=base_dataset,
-				mask_args=mask_args,
-			)
-			run_full_spec_experiment(
-				backbone=backbone,
-				layer=layer,
-				rectification_method=rectification_method,
-				prune_method=prune_method,
-				capture_activations=capture_activations,
-				mask_args=mask_args,
-			)
-
 
 def run_experiment_for_method(
 	backbone: backbones,
@@ -95,13 +50,13 @@ def run_experiment_for_method(
 	"""
 	for dataset in [
 		'imagenet',
-		#'imagenet_perturbed',
+		'imagenet-c',
 		'inat',
 		'dtd',
 		'sun',
 		'places',
 		'ninco',
-		'ssb_hard',
+		'ssb-hard',
 		'openimage-o',
 	]:
 		run_single_experiment(
@@ -133,8 +88,9 @@ def run_single_experiment(
     method_name (str): Name of the method.
     capture_activations (bool): Whether to capture the activations.
     base_dataset (id_datasets): Base dataset. Mainly used for paths. Defaults to "imagenet".
+	severity (int): Severity level for the experiment. Defaults to 1.
     """
-	if dataset == "imagenet_c":
+	if dataset == "imagenet-c":
 		_run_imagenet_c_experiment(
             backbone=backbone,
             layer=layer,
@@ -144,7 +100,6 @@ def run_single_experiment(
         )
 		return
 
-    #backbone = get_backbone(backbone)
 	feature_extractor = get_feature_extractor(backbone, layer)
     
 	fc_layer = fc_layer=feature_extractor.get_fc_layer()
@@ -157,20 +112,24 @@ def run_single_experiment(
 		caputure_activations=capture_activations,
 	)
 
-	result_dir = get_method_result_path(base_dataset, method_name)
+	result_dir = get_method_result_path(base_dataset, backbone, method_name)
 
-	# print(f'Evaluating dataset "{dataset}" for rectification "{rectification_method}" and pruning "{prune_method}"')
 	dataloader, _ = get_data_loader(dataset, batch_size=16)
 
-	# Trainer
 	trainer = Trainer(logger=None)
 	trainer.test(pipeline, dataloader)
 
-	np.save(os.path.join(result_dir, f'{dataset}.npy'), pipeline.results)
+	scores_dir = os.path.join(result_dir, 'scores')
+	os.makedirs(scores_dir, exist_ok=True)
+
+	np.save(os.path.join(scores_dir, f'{dataset}.npy'), pipeline.results)
 	
 	if capture_activations:
+		activations_dir = os.path.join(result_dir, 'activations')
+		os.makedirs(activations_dir, exist_ok=True)
+
 		np.save(
-            os.path.join(result_dir, f"{dataset}_activations.npy"),
+            os.path.join(activations_dir, f"{dataset}.npy"),
             pipeline.activations,
         )
 
@@ -181,133 +140,54 @@ def _run_imagenet_c_experiment(
     capture_activations: bool = False,
 	severity: int = 1,
 ):
-    imagenet_c_pertubations = [
-        "brightness",
-        "defocus_blur",
-        "fog",
-        "gaussian_blur",
-        "glass_blur",
-        "jpeg_compression",
-        "pixelate",
-        "shot_noise",
-        "spatter",
-        "zoom_blur",
-        "contrast",
-        "elastic_transform",
-        "frost",
-        "gaussian_noise", 
-        "impulse_noise",
-        "motion_blur",
-        "saturate",
-        "snow",
-        "speckle_noise"
-    ]
+	imagenet_c_pertubations = [
+		"brightness",
+		"defocus_blur",
+		"fog",
+		"gaussian_blur",
+		"glass_blur",
+		"jpeg_compression",
+		"pixelate",
+		"shot_noise",
+		"spatter",
+		"zoom_blur",
+		"contrast",
+		"elastic_transform",
+		"frost",
+		"gaussian_noise", 
+		"impulse_noise",
+		"motion_blur",
+		"saturate",
+		"snow",
+		"speckle_noise"
+	]
 
-    feature_extractor = get_feature_extractor(backbone, layer)
+	feature_extractor = get_feature_extractor(backbone, layer)
 
-    fc_layer=feature_extractor.get_fc_layer()
+	fc_layer=feature_extractor.get_fc_layer()
 
-    pipeline = Pipeline(feature_extractor, method_name, fc_layer, caputure_activations=capture_activations)
+	pipeline = Pipeline(feature_extractor, method_name, fc_layer, caputure_activations=capture_activations)
 
-    result_dir = get_method_result_path("imagenet", method_name + "/imagenet_c")
+	result_dir = get_method_result_path("imagenet", backbone, method_name)
+	os.makedirs(result_dir, exist_ok=True)
 
-    for pertubation in imagenet_c_pertubations:
-        dataloader = get_imagenet_c_subset_loader(pertubation, severity, batch_size=16)
+	for perturbation in imagenet_c_pertubations:
+		dataloader = get_imagenet_c_subset_loader(perturbation, severity, batch_size=16)
 
-        # Trainer
-        trainer = Trainer(logger=None)
-        trainer.test(pipeline, dataloader)
+		# Trainer
+		trainer = Trainer(logger=None)
+		trainer.test(pipeline, dataloader)
 
-        np.save(os.path.join(result_dir, f"imagenet_c_sev{severity}_{pertubation}.npy"), pipeline.results)
+		scores_dir = os.path.join(result_dir, 'scores')
+		os.makedirs(scores_dir, exist_ok=True)
 
-        if capture_activations:
-            np.save(
-                os.path.join(result_dir, f"imagenet_c_sev{severity}_{pertubation}_activations.npy"),
-                pipeline.activations,
-            )
+		np.save(os.path.join(scores_dir, f"imagenet-c_sev{severity}_{perturbation}.npy"), pipeline.results)
 
+		if capture_activations:
+			activations_dir = os.path.join(result_dir, 'activations')
+			os.makedirs(activations_dir, exist_ok=True)
 
-def run_full_spec_experiment(
-	backbone: backbones, layer: str, method_name: str, capture_activations: bool = False
-):
-	"""
-	Runs the experiment for both datasets, imagenet and imagenet_perturbed and concatenates the results. The results are saved in the corresponding directory.
-
-	Args:
-	backbone (backbones): Backbone to use.
-	layer (str): Layer to use.
-	method_name (str): Name of the method.
-	capture_activations (bool): Whether to capture the activations.
-	mask_args (dict): Arguments for the mask.
-
-	Returns:
-	None
-	"""
-	base_dataset = 'imagenet'
-	backbone = get_backbone(backbone)
-	feature_extractor = FeatureExtractor(backbone, layer)
-
-	fc_layer = feature_extractor.get_fc_layer()
-
-	# get the pipeline and the dataloader
-	pipeline = Pipeline(
-		feature_extractor,
-		method_name,
-		fc_layer,
-		caputure_activations=capture_activations,
-	)
-
-	result_dir = get_method_result_path(base_dataset, method_name)
-
-	print(
-		f'Creating full spectrum results for "{base_dataset}" with method "{method_name}"'
-	)
-
-	dataloader, _ = get_data_loader(base_dataset, batch_size=16)
-
-	# Trainer
-	trainer = Trainer(logger=None)
-	trainer.test(pipeline, dataloader)
-
-	results_normal = pipeline.results
-	if capture_activations:
-		activations_normal = pipeline.activations
-
-	pert_dataloader, _ = get_data_loader(f'{base_dataset}_perturbed', batch_size=16)
-	trainer.test(pipeline, pert_dataloader)
-
-	results_pert = pipeline.results
-	if capture_activations:
-		activations_pert = pipeline.activations
-
-	results = {
-		'energy_score': np.concatenate(
-			[results_normal['energy_score'], results_pert['energy_score']], axis=0
-		),
-		'msp_score': np.concatenate(
-			[results_normal['msp_score'], results_pert['msp_score']], axis=0
-		),
-		'entropy_score': np.concatenate(
-			[results_normal['entropy_score'], results_pert['entropy_score']], axis=0
-		),
-		'prediction': np.concatenate(
-			[results_normal['prediction'], results_pert['prediction']], axis=0
-		),
-		'label': np.concatenate(
-			[results_normal['label'], results_pert['label']], axis=0
-		),
-		'confidence': np.concatenate(
-			[results_normal['confidence'], results_pert['confidence']], axis=0
-		),
-	}
-
-	if capture_activations:
-		activations = np.concatenate([activations_normal, activations_pert], axis=0)
-
-	np.save(os.path.join(result_dir, f'{base_dataset}_full_spec.npy'), results)
-
-	if capture_activations:
-		np.save(
-			os.path.join(result_dir, f'{base_dataset}_full_spec_activations.npy'),
-			activations,
-		)
+			np.save(
+				os.path.join(activations_dir, f"imagenet-c_sev{severity}_{perturbation}.npy"),
+				pipeline.activations,
+			)

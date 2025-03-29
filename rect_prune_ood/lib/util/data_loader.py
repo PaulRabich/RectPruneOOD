@@ -6,14 +6,13 @@ from torchvision import transforms
 from torchvision.datasets import CIFAR10, ImageFolder
 
 id_datasets = Literal[
-	#'cifar10', TODO
 	'imagenet'
 ]
 ood_datasets = Literal[
-	'inat', 'dtd', 'sun', 'places', 'ninco', 'ssb_hard', 'openimage-o'
+	'inat', 'dtd', 'sun', 'places', 'ninco', 'ssb-hard', 'openimage-o'
 ]
 
-perturbed_datasets = Literal['imagenet_perturbed', 'imagenet_c']
+perturbed_datasets = Literal['imagenet-c']
 
 imagesize = 32
 
@@ -41,16 +40,14 @@ ood_base_path = os.path.abspath('/fastdata/vilab17/out_distribution')
 imagenet_base_path = os.path.abspath('/fastdata/vilab17/imagenet')
 
 paths = {
-	'imagenet_val': os.path.join(imagenet_base_path, 'val'),
-	'imagenet_train': os.path.join(imagenet_base_path, 'train'),
-	'imagenet_perturbed': os.path.abspath('/fastdata/vilab17/imagenet_perturbed'),
-	'imagenet_c': os.path.abspath('/fastdata/vilab17/imagenet_c'),
+	'imagenet': os.path.join(imagenet_base_path, 'val'),
+	'imagenet-c': os.path.abspath('/fastdata/vilab17/imagenet_c'),
 	'dtd': os.path.join(ood_base_path, 'dtd', 'images'),
 	'places': os.path.join(ood_base_path, 'Places'),
 	'inat': os.path.join(ood_base_path, 'iNaturalist'),
 	'sun': os.path.join(ood_base_path, 'SUN'),
 	'ninco': os.path.join(ood_base_path, 'NINCO', 'NINCO_OOD_classes'),
-	'ssb_hard': os.path.join(ood_base_path, 'ssb_hard'),
+	'ssb-hard': os.path.join(ood_base_path, 'ssb_hard'),
 	'openimage-o': os.path.join(ood_base_path, 'openimage-o'),
 }
 
@@ -75,7 +72,6 @@ imagenet_c_perturbations = Literal[
 	'snow',
 	'speckle_noise',
 ]
-
 
 def get_data_loader(dataset: str, batch_size: int = 100, shuffle: bool = False):
 	"""
@@ -103,20 +99,14 @@ def get_data_loader(dataset: str, batch_size: int = 100, shuffle: bool = False):
 		'sun',
 		'places',
 		'ninco',
-		'ssb_hard',
+		'ssb-hard',
 		'openimage-o',
 	]:
 		val_loader = _get_ood_data_loader(
 			dataset, batch_size=batch_size, shuffle=shuffle
 		)
 
-	elif dataset in ['imagenet_perturbed', 'imagenet_c']:
-		val_loader = _get_perturbation_data_loader(
-			dataset, batch_size=batch_size, shuffle=shuffle
-		)
-
 	return val_loader, num_classes
-
 
 def _get_id_data_loader(
 	id_dataset: id_datasets, batch_size: int = 100, shuffle: bool = False
@@ -150,7 +140,7 @@ def _get_id_data_loader(
 
 	elif id_dataset == 'imagenet':
 		imagenet = ImageFolder(
-			root=paths['imagenet_val'], transform=transform_test_largescale
+			root=paths[id_dataset], transform=transform_test_largescale
 		)
 
 		val_loader = DataLoader(
@@ -160,7 +150,6 @@ def _get_id_data_loader(
 		num_classes = 1000
 
 	return val_loader, num_classes
-
 
 def _get_ood_data_loader(
 	ood_dataset: str, batch_size: int = 100, shuffle: bool = False
@@ -186,29 +175,6 @@ def _get_ood_data_loader(
 
 	return val_loader
 
-
-def _get_perturbation_data_loader(
-	perturbed_dataset: str = 'imagenet_perturbed',
-	batch_size: int = 100,
-	shuffle: bool = False,
-):
-	"""
-	Loads a perturbation dataset and returns a DataLoader for testing.
-
-	Parameters:
-	- perturbed_dataset (str): Name of the dataset ('imagenet_perturbed' only).
-	- batch_size (int, optional): Number of samples per batch. Default is 100.
-	- shuffle (bool, optional): Whether to shuffle the dataset. Default is True.
-
-	Returns:
-	- val_loader (DataLoader or None): DataLoader for the perturbation dataset if available; None otherwise.
-	"""
-
-	dataset = ImageFolder(root=paths[perturbed_dataset], transform=transform_test_largescale)
-	val_loader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
-        
-	return val_loader
-
 def get_imagenet_c_subset_loader(subset: imagenet_c_perturbations, severity: int=1, batch_size: int = 100, shuffle: bool = False):
     """
         Loads a subset of the ImageNet-C dataset and returns a DataLoader for testing.
@@ -217,12 +183,13 @@ def get_imagenet_c_subset_loader(subset: imagenet_c_perturbations, severity: int
         - subset (str): Name of the ImageNet-C subset ('gaussian_noise', 'shot_noise', 'impulse_noise', 'defocus_blur', 'glass_blur', 'motion_blur', 'zoom_blur', 'snow', 'frost', 'fog', 'brightness', 'contrast', 'elastic_transform', 'pixelate', 'jpeg_compression', 'speckle_noise', 'gaussian_blur', 'spatter', 'saturate').
         - batch_size (int, optional): Number of samples per batch. Default is 100.
         - shuffle (bool, optional): Whether to shuffle the dataset. Default is True.
+		- severity (int, optional): Severity level of the perturbation. Default is 1.
 
         Returns:
         - val_loader (DataLoader or None): DataLoader for the specified ImageNet-C subset if available; None otherwise.
     """
 
-    dataset = ImageFolder(root=os.path.join(paths['imagenet_c'], subset, f'{severity}'), transform=transform_test_largescale)
+    dataset = ImageFolder(root=os.path.join(paths['imagenet-c'], subset, f'{severity}'), transform=transform_test_largescale)
     val_loader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
 
     return val_loader
