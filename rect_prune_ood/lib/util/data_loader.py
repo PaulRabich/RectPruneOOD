@@ -182,11 +182,25 @@ def _get_perturbation_data_loader(
 	- val_loader (DataLoader or None): DataLoader for the perturbation dataset if available; None otherwise.
 	"""
 
-	dataset = ImageFolder(
-		root=paths[perturbed_dataset], transform=transform_test_largescale
-	)
-	val_loader = DataLoader(
-		dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers
-	)
+    dataset = ImageFolder(root=paths[perturbed_dataset], transform=transform_test_largescale)
+    val_loader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
+        
+    return val_loader
 
-	return val_loader
+def get_imagenet_c_subset_loader(subset: str, batch_size: int = 100, shuffle: bool = False):
+    """
+        Loads a subset of the ImageNet-C dataset and returns a DataLoader for testing.
+
+        Parameters:
+        - subset (str): Name of the ImageNet-C subset ('gaussian_noise', 'shot_noise', 'impulse_noise', 'defocus_blur', 'glass_blur', 'motion_blur', 'zoom_blur', 'snow', 'frost', 'fog', 'brightness', 'contrast', 'elastic_transform', 'pixelate', 'jpeg_compression', 'speckle_noise', 'gaussian_blur', 'spatter', 'saturate').
+        - batch_size (int, optional): Number of samples per batch. Default is 100.
+        - shuffle (bool, optional): Whether to shuffle the dataset. Default is True.
+
+        Returns:
+        - val_loader (DataLoader or None): DataLoader for the specified ImageNet-C subset if available; None otherwise.
+    """
+
+    dataset = ImageFolder(root=os.path.join(paths['imagenet_c'], subset), transform=transform_test_largescale)
+    val_loader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
+
+    return val_loader

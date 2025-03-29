@@ -11,20 +11,18 @@ from rect_prune_ood.lib.experiments.mobilenet_feature_extractor import (
 )
 from rect_prune_ood.lib.experiments.pipeline import Pipeline
 from rect_prune_ood.lib.util.data_loader import (
-	get_data_loader,
-	id_datasets,
-	ood_datasets,
-	perturbed_datasets,
+    id_datasets, 
+    ood_datasets, 
+    perturbed_datasets, 
+    get_data_loader,
+    get_imagenet_c_subset_loader
 )
-from rect_prune_ood.lib.util.paths import get_method_result_path
 
-# this file contains methods that are used to run full experiments for OOD detection
 
-# different activation shaping methods
-prune_types = Literal['', 'ashb', 'ashp', 'ashs', 'apesp']
-rectification_types = Literal['', 'react']
-# possible backbones
-backbones = Literal['resnet50', 'mobilenetV2']
+prune_types = Literal["", "ashb", "ashp", "ashs", "dice", "line"]
+# weight_pruning_types= Literal["Methoden", "hier", "einfügen"]
+rectification_types = Literal["", "react", "bats"]
+backbones = Literal["resnet50", "mobilenetV2"]
 
 
 # get feature extractof matching to backbone
@@ -126,18 +124,27 @@ def run_single_experiment(
 	"""
 	Runs a single experiment for a specified dataset and method. Saves the results in the corresponding directory.
 
-	Args:
-	backbone (backbones): Backbone to use.
-	layer (str): Layer to use.
-	dataset (Union[id_datasets, ood_datasets, perturbed_datasets]): Dataset for which to run the experiment.
-	method_name (str): Name of the method.
-	capture_activations (bool): Whether to capture the activations.
-	base_dataset (id_datasets): Base dataset. Mainly used for paths. Defaults to "imagenet".
-	"""
-	# backbone = get_backbone(backbone)
-	feature_extractor = get_feature_extractor(backbone, layer)
+    Args:
+    backbone (backbones): Backbone to use.
+    layer (str): Layer to use.
+    dataset (Union[id_datasets, ood_datasets, perturbed_datasets]): Dataset for which to run the experiment.
+    method_name (str): Name of the method.
+    capture_activations (bool): Whether to capture the activations.
+    base_dataset (id_datasets): Base dataset. Mainly used for paths. Defaults to "imagenet".
+    """
+    if dataset == "imagenet_c":
+        _run_imagenet_c_experiment(
+            backbone=backbone,
+            layer=layer,
+            method_name=method_name,
+            capture_activations=capture_activations,
+        )
+        return
 
-	fc_layer = fc_layer = feature_extractor.get_fc_layer()
+    #backbone = get_backbone(backbone)
+    feature_extractor = get_feature_extractor(backbone, layer)
+    
+    fc_layer = fc_layer=feature_extractor.get_fc_layer()
 
 	# get the pipeline and the dataloader
 	pipeline = Pipeline(
@@ -158,10 +165,62 @@ def run_single_experiment(
 
 	np.save(os.path.join(result_dir, f'{dataset}.npy'), pipeline.results)
 
-	if capture_activations:
-		np.save(
-			os.path.join(result_dir, f'{dataset}_activations.npy'), pipeline.activations
-		)
+    if capture_activations:
+        np.save(
+            os.path.join(result_dir, f"{dataset}_activations.npy"),
+            pipeline.activations,
+        )
+
+def _run_imagenet_c_experiment(
+    backbone: backbones,
+    layer: str,
+    method_name:str,
+    capture_activations: bool = False,
+):
+    imagenet_c_pertubations = [
+        "brightness",
+        "defocus_blur",
+        "fog",
+        "gaussian_blur",
+        "glass_blur",
+        "jpeg_compression",
+        "pixelate",
+        "shot_noise",
+        "spatter",
+        "zoom_blur",
+        "contrast",
+        "elastic_transform",
+        "frost",
+        "gaussian_noise", 
+        "impulse_noise",
+        "motion_blur",
+        "saturate",
+        "snow",
+        "speckle_noise"
+    ]
+
+    feature_extractor = get_feature_extractor(backbone, layer)
+
+    fc_layer=feature_extractor.get_fc_layer()
+
+    pipeline = Pipeline(feature_extractor, method_name, fc_layer, caputure_activations=capture_activations)
+
+    result_dir = get_method_result_path("imagenet", method_name + "/imagenet_c")
+
+    for pertubation in imagenet_c_pertubations:
+        dataloader = get_imagenet_c_subset_loader(pertubation, batch_size=16)
+
+        # Trainer
+        trainer = Trainer(logger=None)
+        trainer.test(pipeline, dataloader)
+
+        np.save(os.path.join(result_dir, f"imagenet_c_{pertubation}.npy"), pipeline.results)
+
+        if capture_activations:
+            np.save(
+                os.path.join(result_dir, f"imagenet_c_{pertubation}_activations.npy"),
+                pipeline.activations,
+            )
 
 
 def run_full_spec_experiment(
