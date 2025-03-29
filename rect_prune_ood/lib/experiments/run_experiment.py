@@ -22,12 +22,12 @@ from rect_prune_ood.lib.util.paths import get_method_result_path
 
 prune_types = Literal["", "ashb", "ashp", "ashs", "dice", "line"]
 rectification_types = Literal["", "react", "bats"]
-backbones = Literal["resnet50", "mobilenetV2"]
+backbones = Literal["resnet50", "mobilenetv2"]
 
 
 # get feature extractof matching to backbone
 def get_feature_extractor(backbone: backbones, layer: str):
-	if backbone == 'mobilenetV2':
+	if backbone == 'mobilenetv2':
 		return MobileNetFeatureExtractor(get_mobilenetV2())
 	else:
 		return FeatureExtractor(get_resnet50(), layer)
@@ -99,6 +99,31 @@ def run_single_experiment(
 			severity=severity,
         )
 		return
+	
+	# Check whether result file already exists
+	result_dir = get_method_result_path(base_dataset, backbone, method_name)
+
+	scores_dir = os.path.join(result_dir, 'scores')
+	os.makedirs(scores_dir, exist_ok=True)
+
+	if capture_activations:
+		activations_dir = os.path.join(result_dir, 'activations')
+		os.makedirs(activations_dir, exist_ok=True)
+
+		activations_exist = os.path.isfile(
+			os.path.join(activations_dir, f'{dataset}.npy')
+		)
+
+	scores_exist = os.path.isfile(os.path.join(scores_dir, f'{dataset}.npy'))
+
+	if scores_exist and not capture_activations:
+		print(f"Score results for {dataset} already exist. Skipping...")
+		return
+	elif scores_exist and capture_activations and activations_exist:
+		print(f"Score and activation results for {dataset} already exist. Skipping...")
+		return
+	
+	print(f"Running experiment for {dataset}...")
 
 	feature_extractor = get_feature_extractor(backbone, layer)
     
@@ -112,15 +137,10 @@ def run_single_experiment(
 		caputure_activations=capture_activations,
 	)
 
-	result_dir = get_method_result_path(base_dataset, backbone, method_name)
-
 	dataloader, _ = get_data_loader(dataset, batch_size=16)
 
 	trainer = Trainer(logger=None)
 	trainer.test(pipeline, dataloader)
-
-	scores_dir = os.path.join(result_dir, 'scores')
-	os.makedirs(scores_dir, exist_ok=True)
 
 	np.save(os.path.join(scores_dir, f'{dataset}.npy'), pipeline.results)
 	
@@ -191,3 +211,13 @@ def _run_imagenet_c_experiment(
 				os.path.join(activations_dir, f"imagenet-c_sev{severity}_{perturbation}.npy"),
 				pipeline.activations,
 			)
+
+if __name__ == "__main__":
+	# Example usage
+	run_experiment_for_method(
+		backbone='resnet50',
+		layer='avgpool',
+		method_name='baseline',
+		capture_activations=True,
+		base_dataset='imagenet',
+	)

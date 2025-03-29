@@ -1,5 +1,7 @@
 import os
-from rect_prune_ood.lib.experiments.run_experiment import backbones
+from typing import Literal
+
+backbones = Literal["resnet50", "mobilenetV2"]
 
 def get_top_level_path():
 	# get the absolute path of this file

@@ -1,9 +1,10 @@
 import argparse
 import os
+import csv
 from typing import List
+from tqdm import tqdm
 
 import numpy as np
-import pandas as pd
 
 from rect_prune_ood.lib.eval.metrics import cal_metric
 from rect_prune_ood.lib.experiments.run_experiment import run_single_experiment
@@ -25,10 +26,18 @@ def parse_args():
 
 	parser.add_argument(
 		'--datasets',
-		type=int,
+		type=str,
 		nargs='+',
 		required=True,
-		help="A List of dataset names to be used. Examples are 'imagenet', 'inat', 'dtd', 'sun', 'places', 'ninco', 'ssb_hard'.",
+		help="A List of dataset names to be used. Examples are 'imagenet', 'inat', 'dtd', 'sun', 'places', 'ninco', 'ssb-hard'.",
+	)
+
+	parser.add_argument(
+		'--backbone',
+		type=str,
+		choices=['resnet50', 'mobilenetv2'],
+		default='resnet50',
+		help='The backbone model to be used. Choose between "resnet50" and "mobilenetv2".',
 	)
 
 	args = parser.parse_args()
@@ -36,24 +45,30 @@ def parse_args():
 	return args
 
 
-def calculate_score(method_names: List[str], datasets: List[str]):
+def calculate_score(method_names: List[str], datasets: List[str], backbone:str):
 	results_dir = os.path.join(get_top_level_path(), 'results')
-	metrics_path = os.path.join(results_dir, 'ood_scores.csv')
+	metrics_path = os.path.join(results_dir, 'final_metrics.csv')
+
+	# if file does not exist, create it with headers
+	if not os.path.isfile(metrics_path):
+		with open(metrics_path, 'w', newline='') as f:
+			writer = csv.writer(f)
+			writer.writerow(['backbone', 'method', 'id_dataset', 'ood_dataset', 'FPR', 'AUROC'])
 
 	# Create results dir if needed
 	os.makedirs(results_dir, exist_ok=True)
 
-	for method_name in method_names:
+	for method_name in tqdm(method_names):
 		run_single_experiment(
-			backbone='resnet50',
+			backbone=backbone,
 			layer='avgpool',
 			method_name=method_name,
 			capture_activations=False,
 			dataset='imagenet',
 		)
-		for dataset in datasets:
+		for dataset in tqdm(datasets):
 			run_single_experiment(
-				backbone='resnet50',
+				backbone=backbone,
 				layer='avgpool',
 				method_name=method_name,
 				capture_activations=False,
@@ -61,13 +76,13 @@ def calculate_score(method_names: List[str], datasets: List[str]):
 			)
 			# Load scores
 			id_scores = np.load(
-				get_method_result_path(backbone="resnet50", method_name=method_name) + f"/scores/imagenet.npy", 
+				get_method_result_path(backbone=backbone, method_name=method_name) + f"/scores/imagenet.npy", 
 				allow_pickle=True,
 			).item()['energy_score']
 
 			ood_scores = np.load(
 				os.path.join(
-					get_method_result_path(backbone="resnet50", method_name=method_name), f"scores/{dataset}.npy"
+					get_method_result_path(backbone=backbone, method_name=method_name), f"scores/{dataset}.npy"
 				),
 				allow_pickle=True,
 			).item()['energy_score']
@@ -75,28 +90,31 @@ def calculate_score(method_names: List[str], datasets: List[str]):
 			# Calculate metrics
 			metrics = cal_metric(id_scores, ood_scores)
 
-			# Load existing DataFrame to determine next index
-			existing_df = pd.read_csv(metrics_path, index_col='index')
-			next_index = len(existing_df)
-
-			result_dict = {
-				'index': next_index,
-				'method': method_name,
-				'ood_dataset': dataset,
-				'FPR': metrics['FPR'],
-				'AUROC': metrics['AUROC'],
-			}
-
-			# Append result and save
-			result_df = pd.DataFrame([result_dict]).set_index('index')
-			result_df.to_csv(metrics_path, mode='a', header=False)
+			print(
+				f"Method: {method_name}, Dataset: {dataset}, FPR: {metrics['FPR']}, AUROC: {metrics['AUROC']}"
+			)
+			
+			# Save metrics to CSV
+			with open(metrics_path, 'a', newline='') as f:
+				writer = csv.writer(f)
+				writer.writerow(
+					[
+						backbone,
+						method_name,
+						'imagenet',
+						dataset,
+						metrics['FPR'],
+						metrics['AUROC'],
+					]
+				)
 
 
 def main():
 	args = parse_args()
 	method_names = args.method_names
 	datasets = args.datasets
-	calculate_score(method_names, datasets)
+	backbone = args.backbone
+	calculate_score(method_names, datasets, backbone)
 
 	print(
 		f'Scores calculated and saved to {os.path.join(get_top_level_path(), "results/ood_scores.csv")}'

@@ -82,6 +82,7 @@ class AshSPruningModule(Module):
 		return x
 
 	def ash_s(self, x, percentile=65):
+		percentile = int(percentile)
 		assert x.dim() == 4
 		assert 0 <= percentile <= 100
 		b, c, h, w = x.shape
