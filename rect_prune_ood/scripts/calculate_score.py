@@ -1,4 +1,5 @@
-import os, argparse
+import argparse
+import os
 from typing import List
 
 import numpy as np
@@ -10,30 +11,32 @@ from rect_prune_ood.lib.util.paths import get_top_level_path
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="A CLI that accepts a name and a list of integers (1–19).")
+	parser = argparse.ArgumentParser(
+		description='A CLI that accepts a name and a list of integers (1–19).'
+	)
 
-    parser.add_argument(
-        "--method_names",
-        type=str,
-		nargs="+",
-        required=True,
-        help="The names of the methods to be used. Examples are 'react', 'ashs', 'ashp', 'apes@95', etc."
-    )
+	parser.add_argument(
+		'--method_names',
+		type=str,
+		nargs='+',
+		required=True,
+		help="The names of the methods to be used. Examples are 'react', 'ashs', 'ashp', 'apes@95', etc.",
+	)
 
-    parser.add_argument(
-        "--datasets",
-        type=int,
-        nargs="+",
-        required=True,
-        help="A List of dataset names to be used. Examples are 'imagenet', 'inat', 'dtd', 'sun', 'places', 'ninco', 'ssb_hard'."
-    )
+	parser.add_argument(
+		'--datasets',
+		type=int,
+		nargs='+',
+		required=True,
+		help="A List of dataset names to be used. Examples are 'imagenet', 'inat', 'dtd', 'sun', 'places', 'ninco', 'ssb_hard'.",
+	)
 
-    args = parser.parse_args()
+	args = parser.parse_args()
 
-    return args
+	return args
 
-def calculate_score(method_names:List[str], datasets:List[str]):
 
+def calculate_score(method_names: List[str], datasets: List[str]):
 	results_dir = os.path.join(get_top_level_path(), 'results')
 	metrics_path = os.path.join(results_dir, 'ood_scores.csv')
 
@@ -81,7 +84,8 @@ def calculate_score(method_names:List[str], datasets:List[str]):
 
 			ood_scores = np.load(
 				os.path.join(
-					get_top_level_path(), f'results/imagenet/{method_name}/{dataset}.npy'
+					get_top_level_path(),
+					f'results/imagenet/{method_name}/{dataset}.npy',
 				),
 				allow_pickle=True,
 			).item()['energy_score']
@@ -108,6 +112,7 @@ def calculate_score(method_names:List[str], datasets:List[str]):
 			result_df = pd.DataFrame([result_dict]).set_index('index')
 			result_df.to_csv(metrics_path, mode='a', header=False)
 
+
 def main():
 	args = parse_args()
 	method_names = args.method_names
@@ -115,9 +120,9 @@ def main():
 	calculate_score(method_names, datasets)
 
 	print(
-		f"Scores calculated and saved to {os.path.join(get_top_level_path(), 'results/ood_scores.csv')}"
+		f'Scores calculated and saved to {os.path.join(get_top_level_path(), "results/ood_scores.csv")}'
 	)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 	main()

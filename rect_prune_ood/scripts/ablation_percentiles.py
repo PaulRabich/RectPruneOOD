@@ -1,156 +1,165 @@
-import sys
-import os
-import torch
 import csv
+import os
+import sys
+
 import numpy as np
-
-from torch.nn import Module
-from torch import Tensor
-
+import torch
 from lightning import Trainer
+from torch import Tensor
+from torch.nn import Module
 
-sys.path.append("./")
+sys.path.append('./')
 
-from rect_prune_ood.lib.util.paths import get_top_level_path
-from rect_prune_ood.lib.experiments.feature_extractor import FeatureExtractor
+from rect_prune_ood.lib.eval.metrics import *
 from rect_prune_ood.lib.experiments.backbones import get_resnet50
+from rect_prune_ood.lib.experiments.feature_extractor import FeatureExtractor
 from rect_prune_ood.lib.experiments.pipeline import Pipeline
 from rect_prune_ood.lib.util.data_loader import get_data_loader
-from rect_prune_ood.lib.eval.metrics import *
+from rect_prune_ood.lib.util.paths import get_top_level_path
 
 results_dir = os.path.join(get_top_level_path(), 'results')
-imagenet_c_results_dir = os.path.join(results_dir, 'imagenet', "baseline", "imagenet_c")
+imagenet_c_results_dir = os.path.join(results_dir, 'imagenet', 'baseline', 'imagenet_c')
 
-print("Loading ImageNet-C activations")
+print('Loading ImageNet-C activations')
 
 severity = 1
 
-imagenet_c_activations = np.load(os.path.join(imagenet_c_results_dir, f"imagenet_c_activations_severity_{severity}.npy"))
+imagenet_c_activations = np.load(
+	os.path.join(
+		imagenet_c_results_dir, f'imagenet_c_activations_severity_{severity}.npy'
+	)
+)
 
 imagenet_c_perturbations = [
-    "brightness",
-    "defocus_blur",
-    "fog",
-    "gaussian_blur",
-    "glass_blur",
-    "jpeg_compression",
-    "pixelate",
-    "shot_noise",
-    "spatter",
-    "zoom_blur",
-    "contrast",
-    "elastic_transform",
-    "frost",
-    "gaussian_noise", 
-    "impulse_noise",
-    "motion_blur",
-    "saturate",
-    "snow",
-    "speckle_noise"
+	'brightness',
+	'defocus_blur',
+	'fog',
+	'gaussian_blur',
+	'glass_blur',
+	'jpeg_compression',
+	'pixelate',
+	'shot_noise',
+	'spatter',
+	'zoom_blur',
+	'contrast',
+	'elastic_transform',
+	'frost',
+	'gaussian_noise',
+	'impulse_noise',
+	'motion_blur',
+	'saturate',
+	'snow',
+	'speckle_noise',
 ]
 
+
 class APESP(Module):
-    def __init__(self, mask) -> None:
-        super(APESP, self).__init__()
-        self.mask = mask
-        
-    
-    def forward(self, x: Tensor) -> Tensor:
-        x = self.apes_p(x)
-        return x
-    
-    def apes_p(self, x):
-        assert x.dim() == 4
-        _, c, _, _ = x.shape
-        assert self.mask.shape[0] == c 
+	def __init__(self, mask) -> None:
+		super(APESP, self).__init__()
+		self.mask = mask
 
-        x = x * self.mask
+	def forward(self, x: Tensor) -> Tensor:
+		x = self.apes_p(x)
+		return x
 
-        return x
+	def apes_p(self, x):
+		assert x.dim() == 4
+		_, c, _, _ = x.shape
+		assert self.mask.shape[0] == c
 
-for percentile in [95]:# [i * 5 for i in reversed(range(2, 19))]:
-    if percentile == 0:
-        continue
+		x = x * self.mask
 
-    all_metrics = []
+		return x
 
-    for perturbation in range(len(imagenet_c_perturbations)):
-        print()
-        print("#" * 50)
-        print(f"Percentile: {percentile}")
-        print(f"Perturbation: {imagenet_c_perturbations[perturbation]}")
-        print("#" * 50)
 
-        activations = imagenet_c_activations[perturbation]
+for percentile in [95]:  # [i * 5 for i in reversed(range(2, 19))]:
+	if percentile == 0:
+		continue
 
-        variance = np.var(activations, axis=1)
-        variance = torch.tensor(variance)
+	all_metrics = []
 
-        p = np.percentile(variance, percentile)
+	for perturbation in range(len(imagenet_c_perturbations)):
+		print()
+		print('#' * 50)
+		print(f'Percentile: {percentile}')
+		print(f'Perturbation: {imagenet_c_perturbations[perturbation]}')
+		print('#' * 50)
 
-        mask = torch.where(variance <= p, 1, 0)
-        mask = mask.view(variance.shape[0], 1, 1).cuda()
-        
-        
-        #################
-        ### ImageNet ####
-        #################
+		activations = imagenet_c_activations[perturbation]
 
-        feature_extractor = FeatureExtractor(get_resnet50(), 'avgpool')
+		variance = np.var(activations, axis=1)
+		variance = torch.tensor(variance)
 
-        fc_layer = feature_extractor.get_fc_layer()
+		p = np.percentile(variance, percentile)
 
-        pipeline = Pipeline(feature_extractor, 'ashs', fc_layer, caputure_activations=False)
-        pipeline.method_list.append(APESP(mask))
+		mask = torch.where(variance <= p, 1, 0)
+		mask = mask.view(variance.shape[0], 1, 1).cuda()
 
-        dataloader, _ = get_data_loader('imagenet', batch_size=16)
+		#################
+		### ImageNet ####
+		#################
 
-        # Trainer
-        trainer = Trainer(logger=None)
-        trainer.test(pipeline, dataloader)
+		feature_extractor = FeatureExtractor(get_resnet50(), 'avgpool')
 
-        results = pipeline.results
+		fc_layer = feature_extractor.get_fc_layer()
 
-        imagenet_scores = results['energy_score']
+		pipeline = Pipeline(
+			feature_extractor, 'ashs', fc_layer, caputure_activations=False
+		)
+		pipeline.method_list.append(APESP(mask))
 
-        ####################
-        ### OpenImage-O ####
-        ####################
+		dataloader, _ = get_data_loader('imagenet', batch_size=16)
 
-        feature_extractor = FeatureExtractor(get_resnet50(), 'avgpool')
+		# Trainer
+		trainer = Trainer(logger=None)
+		trainer.test(pipeline, dataloader)
 
-        fc_layer = feature_extractor.get_fc_layer()
+		results = pipeline.results
 
-        pipeline = Pipeline(feature_extractor, 'ashs', fc_layer, caputure_activations=False)
-        pipeline.method_list.append(APESP(mask))
+		imagenet_scores = results['energy_score']
 
-        dataloader, _ = get_data_loader('openimage-o', batch_size=16)
+		####################
+		### OpenImage-O ####
+		####################
 
-        # Trainer
-        trainer = Trainer(logger=None)
-        trainer.test(pipeline, dataloader)
+		feature_extractor = FeatureExtractor(get_resnet50(), 'avgpool')
 
-        results = pipeline.results
+		fc_layer = feature_extractor.get_fc_layer()
 
-        openimage_o_scores = results['energy_score']
+		pipeline = Pipeline(
+			feature_extractor, 'ashs', fc_layer, caputure_activations=False
+		)
+		pipeline.method_list.append(APESP(mask))
 
-        ###############
-        ### Metrics ###
-        ###############
+		dataloader, _ = get_data_loader('openimage-o', batch_size=16)
 
-        metrics = cal_metric(imagenet_scores, openimage_o_scores)
-        metrics['perturbation'] = imagenet_c_perturbations[perturbation]
+		# Trainer
+		trainer = Trainer(logger=None)
+		trainer.test(pipeline, dataloader)
 
-        all_metrics.append(metrics)
+		results = pipeline.results
 
-    csv_file = os.path.join(
-        results_dir, f"ablation_1_ashs_apes_sev_{severity}", f'percentile_{percentile}.csv'
-    )
+		openimage_o_scores = results['energy_score']
 
-    os.makedirs(os.path.dirname(csv_file), exist_ok=True)
+		###############
+		### Metrics ###
+		###############
 
-    with open(csv_file, mode='w') as file:
-        writer = csv.DictWriter(file, fieldnames=all_metrics[0].keys())
-        writer.writeheader()
-        for metric in all_metrics:
-            writer.writerow(metric)
+		metrics = cal_metric(imagenet_scores, openimage_o_scores)
+		metrics['perturbation'] = imagenet_c_perturbations[perturbation]
+
+		all_metrics.append(metrics)
+
+	csv_file = os.path.join(
+		results_dir,
+		f'ablation_1_ashs_apes_sev_{severity}',
+		f'percentile_{percentile}.csv',
+	)
+
+	os.makedirs(os.path.dirname(csv_file), exist_ok=True)
+
+	with open(csv_file, mode='w') as file:
+		writer = csv.DictWriter(file, fieldnames=all_metrics[0].keys())
+		writer.writeheader()
+		for metric in all_metrics:
+			writer.writerow(metric)

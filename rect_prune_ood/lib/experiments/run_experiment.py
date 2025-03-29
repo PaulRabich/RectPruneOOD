@@ -18,6 +18,7 @@ from rect_prune_ood.lib.util.data_loader import (
     get_imagenet_c_subset_loader
 )
 
+from rect_prune_ood.lib.util.paths import get_method_result_path
 
 prune_types = Literal["", "ashb", "ashp", "ashs", "dice", "line"]
 # weight_pruning_types= Literal["Methoden", "hier", "einfügen"]
@@ -120,7 +121,7 @@ def run_single_experiment(
 	method_name: str,
 	capture_activations: bool = False,
 	base_dataset: id_datasets = 'imagenet',
-):
+	):
 	"""
 	Runs a single experiment for a specified dataset and method. Saves the results in the corresponding directory.
 
@@ -132,19 +133,19 @@ def run_single_experiment(
     capture_activations (bool): Whether to capture the activations.
     base_dataset (id_datasets): Base dataset. Mainly used for paths. Defaults to "imagenet".
     """
-    if dataset == "imagenet_c":
-        _run_imagenet_c_experiment(
+	if dataset == "imagenet_c":
+		_run_imagenet_c_experiment(
             backbone=backbone,
             layer=layer,
             method_name=method_name,
             capture_activations=capture_activations,
         )
-        return
+		return
 
     #backbone = get_backbone(backbone)
-    feature_extractor = get_feature_extractor(backbone, layer)
+	feature_extractor = get_feature_extractor(backbone, layer)
     
-    fc_layer = fc_layer=feature_extractor.get_fc_layer()
+	fc_layer = fc_layer=feature_extractor.get_fc_layer()
 
 	# get the pipeline and the dataloader
 	pipeline = Pipeline(
@@ -164,9 +165,9 @@ def run_single_experiment(
 	trainer.test(pipeline, dataloader)
 
 	np.save(os.path.join(result_dir, f'{dataset}.npy'), pipeline.results)
-
-    if capture_activations:
-        np.save(
+	
+	if capture_activations:
+		np.save(
             os.path.join(result_dir, f"{dataset}_activations.npy"),
             pipeline.activations,
         )
