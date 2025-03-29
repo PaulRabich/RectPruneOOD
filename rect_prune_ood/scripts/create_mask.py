@@ -14,6 +14,13 @@ def validate_values(values):
 
 	return values
 
+def validate_percentile(percentile):
+	if percentile < 0 or percentile > 100:
+		raise argparse.ArgumentTypeError(
+			f'Percentile {percentile} is out of range (0–100)'
+		)
+	return percentile
+
 def validate_backbone(backbone):
 	if backbone not in ["resnet50", "mobilenet"]:
 		raise argparse.ArgumentTypeError(
@@ -41,6 +48,7 @@ def parse_args():
 
 	args = parser.parse_args()
 	args.values = validate_values(args.values)
+	args.percentile = validate_values(args.percentile)
 	args.backbone = validate_backbone(args.backbone)
 
 	return args
@@ -51,6 +59,7 @@ def main():
 	name = args.name
 	values = args.values
 	backbone = args.backbone
+	percentile = args.percentile
 
 	# crate mask and save
 
