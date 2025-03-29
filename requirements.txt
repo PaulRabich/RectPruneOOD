@@ -6,6 +6,8 @@ lightning
 scipy
 scikit-image
 opencv-python
+black
+ruff
 
 # jupyter
 ipykernel

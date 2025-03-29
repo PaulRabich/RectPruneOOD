@@ -1,21 +1,16 @@
-
-import sys
 import os
 
-sys.path.append("./")
-
-import argparse
 import numpy as np
 import pandas as pd
 
+from rect_prune_ood.lib.eval.metrics import cal_metric
 from rect_prune_ood.lib.experiments.run_experiment import (
     run_full_spec_experiment,
     run_single_experiment,
 )
 from rect_prune_ood.lib.util.paths import get_top_level_path
-from rect_prune_ood.lib.eval.metrics import cal_metric
 
-#init paths
+# init paths
 results_dir = os.path.join(get_top_level_path(), "results")
 metrics_path = os.path.join(results_dir, "full_spectrum_scores.csv")
 
@@ -24,15 +19,22 @@ os.makedirs(results_dir, exist_ok=True)
 
 # Initialize CSV if it doesn't exist
 if not os.path.exists(metrics_path):
-    pd.DataFrame(columns=["index", "method", "ood_dataset", "FPR", "AUROC", "DTERR", "AUIN", "AUOUT"]) \
-        .set_index("index") \
-        .to_csv(metrics_path)
+    pd.DataFrame(
+        columns=[
+            "index",
+            "method",
+            "ood_dataset",
+            "FPR",
+            "AUROC",
+            "DTERR",
+            "AUIN",
+            "AUOUT",
+        ]
+    ).set_index("index").to_csv(metrics_path)
 
-for method_name in ["ashp_apes@95"]:# "apes@95", "react", "ashs", "ashp", "scale"
+for method_name in ["ashp_apes@95"]:  # "apes@95", "react", "ashs", "ashp", "scale"
     run_full_spec_experiment(
-        backbone="resnet50", 
-        layer="avgpool",
-        method_name=method_name,
+        backbone="resnet50", layer="avgpool", method_name=method_name
     )
 
     for dataset in ["inat", "dtd", "sun", "places", "ninco", "ssb_hard"]:
@@ -55,8 +57,7 @@ for method_name in ["ashp_apes@95"]:# "apes@95", "react", "ashs", "ashp", "scale
 
         ood_scores = np.load(
             os.path.join(
-                get_top_level_path(),
-                f"results/imagenet/{method_name}/{dataset}.npy",
+                get_top_level_path(), f"results/imagenet/{method_name}/{dataset}.npy"
             ),
             allow_pickle=True,
         ).item()["energy_score"]

@@ -1,25 +1,13 @@
-import sys
-
+from pandas import DataFrame
 from tqdm import tqdm
 
-sys.path.append("./")
-
-from rect_prune_ood.lib.experiments.run_experiment import run_experiment_for_method, run_full_spec_experiment, run_single_experiment
 from rect_prune_ood.lib.eval.metrics import compute_traditional_ood
-from pandas import DataFrame
+from rect_prune_ood.lib.experiments.run_experiment import run_single_experiment
+
+columns = ["FPR", "AUROC", "DTERR", "AUIN", "AUOUT"]
 
 
-columns = [
-    "FPR",
-    "AUROC",
-    "DTERR",
-    "AUIN",
-    "AUOUT",
-]
-
-def build_table(
-    df, 
-):
+def build_table(df):
     df["FPR"] = df["FPR"] * 100
     df["AUROC"] = df["AUROC"] * 100
     df["DTERR"] = df["DTERR"] * 100
@@ -30,7 +18,9 @@ def build_table(
 
     # print the resutls in a nice table
     # Determine the maximum width for the ood_dataset column
-    max_width = max(len("ood_datasets"), max(len(str(val)) for val in df["ood_dataset"])) + 2
+    max_width = (
+        max(len("ood_datasets"), max(len(str(val)) for val in df["ood_dataset"])) + 2
+    )
 
     # Define consistent column widths for the numerical columns
     col_width = 10
@@ -60,12 +50,13 @@ def build_table(
             f"{df.iloc[i]['AUOUT']:<{col_width}.2f}"
             "\n"
         )
-    
+
     return string_table
 
-ash_methods = ["ashs"] # ["", "ashs", "ashb", "ashp", "scale"]
 
-apes_methodds = ["apesp"] #["apesscale", "apesp", "apess"]
+ash_methods = ["ashs"]  # ["", "ashs", "ashb", "ashp", "scale"]
+
+apes_methodds = ["apesp"]  # ["apesscale", "apesp", "apess"]
 
 for ash_methode in tqdm(ash_methods):
     for apes_methode in tqdm(apes_methodds):
@@ -87,24 +78,19 @@ for ash_methode in tqdm(ash_methods):
                 method_name=method_name,
             )
 
-
             metrics = compute_traditional_ood(
                 id_dataset="imagenet",
                 ood_datasets=["openimage-o"],
                 method_name=method_name,
-                print_results=False
+                print_results=False,
             )
             result_df = DataFrame(metrics)
-            
-            table = build_table(result_df)  
-            
+
+            table = build_table(result_df)
+
             result_str = f"Results for {method_name}:\n \n"
             result_str += table
             result_str += "\n\n"
 
             with open(f"results/ablation_studies/{method_name}.txt", "a") as f:
                 f.write(result_str)
-            
-
-
-

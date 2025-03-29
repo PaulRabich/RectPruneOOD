@@ -1,43 +1,44 @@
-from typing import Literal, Union
 import os
+from typing import Literal, Union
 
 import numpy as np
 from lightning import Trainer
-from lightning.pytorch.loggers import CSVLogger
 
+from rect_prune_ood.lib.experiments.backbones import get_mobilenetV2, get_resnet50
 from rect_prune_ood.lib.experiments.feature_extractor import FeatureExtractor
-from rect_prune_ood.lib.experiments.mobilenet_feature_extractor import MobileNetFeatureExtractor
-from rect_prune_ood.lib.experiments.pipeline import Pipeline
-from rect_prune_ood.lib.experiments.backbones import get_resnet50, get_mobilenetV2
-from rect_prune_ood.lib.util.paths import get_method_result_path
-from rect_prune_ood.lib.util.data_loader import (
-    id_datasets, 
-    ood_datasets, 
-    perturbed_datasets, 
-    get_data_loader
+from rect_prune_ood.lib.experiments.mobilenet_feature_extractor import (
+    MobileNetFeatureExtractor,
 )
+from rect_prune_ood.lib.experiments.pipeline import Pipeline
+from rect_prune_ood.lib.util.data_loader import (
+    get_data_loader,
+    id_datasets,
+    ood_datasets,
+    perturbed_datasets,
+)
+from rect_prune_ood.lib.util.paths import get_method_result_path
 
+# this file contains methods that are used to run full experiments for OOD detection
 
-#this file contains methods that are used to run full experiments for OOD detection
-
-#different activation shaping methods
+# different activation shaping methods
 prune_types = Literal["", "ashb", "ashp", "ashs", "apesp"]
 rectification_types = Literal["", "react"]
-#possible backbones
+# possible backbones
 backbones = Literal["resnet50", "mobilenetV2"]
 
-#get feature extractof matching to backbone
+
+# get feature extractof matching to backbone
 def get_feature_extractor(backbone: backbones, layer: str):
     if backbone == "mobilenetV2":
         return MobileNetFeatureExtractor(get_mobilenetV2())
     else:
         return FeatureExtractor(get_resnet50(), layer)
 
-#get desired pretrained model
+
+# get desired pretrained model
 def get_backbone(backbone: backbones):
     if backbone == "resnet50":
         return get_resnet50()
-
 
 
 def run_all_experiments(
@@ -80,7 +81,7 @@ def run_all_experiments(
 def run_experiment_for_method(
     backbone: backbones,
     layer: str,
-    method_name:str,
+    method_name: str,
     capture_activations: bool = False,
     base_dataset: id_datasets = "imagenet",
 ):
@@ -94,15 +95,15 @@ def run_experiment_for_method(
         base_dataset (id_datasets, optional): _description_. Defaults to "imagenet".
     """
     for dataset in [
-        'imagenet',
+        "imagenet",
         #'imagenet_perturbed',
-        'inat',
-        'dtd',
-        'sun',
-        'places',
-        'ninco',
-        'ssb_hard',
-        'openimage-o'
+        "inat",
+        "dtd",
+        "sun",
+        "places",
+        "ninco",
+        "ssb_hard",
+        "openimage-o",
     ]:
         run_single_experiment(
             backbone=backbone,
@@ -112,12 +113,13 @@ def run_experiment_for_method(
             capture_activations=capture_activations,
             base_dataset=base_dataset,
         )
-    
+
+
 def run_single_experiment(
     backbone: backbones,
     layer: str,
     dataset: Union[id_datasets, ood_datasets, perturbed_datasets],
-    method_name:str,
+    method_name: str,
     capture_activations: bool = False,
     base_dataset: id_datasets = "imagenet",
 ):
@@ -132,13 +134,18 @@ def run_single_experiment(
     capture_activations (bool): Whether to capture the activations.
     base_dataset (id_datasets): Base dataset. Mainly used for paths. Defaults to "imagenet".
     """
-    #backbone = get_backbone(backbone)
+    # backbone = get_backbone(backbone)
     feature_extractor = get_feature_extractor(backbone, layer)
-    
-    fc_layer = fc_layer=feature_extractor.get_fc_layer()
+
+    fc_layer = fc_layer = feature_extractor.get_fc_layer()
 
     # get the pipeline and the dataloader
-    pipeline = Pipeline(feature_extractor, method_name, fc_layer, caputure_activations=capture_activations)
+    pipeline = Pipeline(
+        feature_extractor,
+        method_name,
+        fc_layer,
+        caputure_activations=capture_activations,
+    )
 
     result_dir = get_method_result_path(base_dataset, method_name)
 
@@ -153,15 +160,12 @@ def run_single_experiment(
 
     if capture_activations:
         np.save(
-            os.path.join(result_dir, f"{dataset}_activations.npy"),
-            pipeline.activations,
+            os.path.join(result_dir, f"{dataset}_activations.npy"), pipeline.activations
         )
 
+
 def run_full_spec_experiment(
-    backbone: backbones,
-    layer: str,
-    method_name:str,
-    capture_activations: bool = False,
+    backbone: backbones, layer: str, method_name: str, capture_activations: bool = False
 ):
     """
     Runs the experiment for both datasets, imagenet and imagenet_perturbed and concatenates the results. The results are saved in the corresponding directory.
@@ -180,15 +184,22 @@ def run_full_spec_experiment(
     backbone = get_backbone(backbone)
     feature_extractor = FeatureExtractor(backbone, layer)
 
-    fc_layer=feature_extractor.get_fc_layer()
+    fc_layer = feature_extractor.get_fc_layer()
 
     # get the pipeline and the dataloader
-    pipeline = Pipeline(feature_extractor, method_name, fc_layer, caputure_activations=capture_activations)
-        
+    pipeline = Pipeline(
+        feature_extractor,
+        method_name,
+        fc_layer,
+        caputure_activations=capture_activations,
+    )
+
     result_dir = get_method_result_path(base_dataset, method_name)
 
-    print(f'Creating full spectrum results for "{base_dataset}" with method "{method_name}"')
-    
+    print(
+        f'Creating full spectrum results for "{base_dataset}" with method "{method_name}"'
+    )
+
     dataloader, _ = get_data_loader(base_dataset, batch_size=16)
 
     # Trainer
@@ -207,12 +218,24 @@ def run_full_spec_experiment(
         activations_pert = pipeline.activations
 
     results = {
-        "energy_score": np.concatenate([results_normal["energy_score"], results_pert["energy_score"]], axis=0),
-        "msp_score": np.concatenate([results_normal["msp_score"], results_pert["msp_score"]], axis=0),
-        "entropy_score": np.concatenate([results_normal["entropy_score"], results_pert["entropy_score"]], axis=0),
-        "prediction": np.concatenate([results_normal["prediction"], results_pert["prediction"]], axis=0),
-        "label": np.concatenate([results_normal["label"], results_pert["label"]], axis=0),
-        "confidence": np.concatenate([results_normal["confidence"], results_pert["confidence"]], axis=0),
+        "energy_score": np.concatenate(
+            [results_normal["energy_score"], results_pert["energy_score"]], axis=0
+        ),
+        "msp_score": np.concatenate(
+            [results_normal["msp_score"], results_pert["msp_score"]], axis=0
+        ),
+        "entropy_score": np.concatenate(
+            [results_normal["entropy_score"], results_pert["entropy_score"]], axis=0
+        ),
+        "prediction": np.concatenate(
+            [results_normal["prediction"], results_pert["prediction"]], axis=0
+        ),
+        "label": np.concatenate(
+            [results_normal["label"], results_pert["label"]], axis=0
+        ),
+        "confidence": np.concatenate(
+            [results_normal["confidence"], results_pert["confidence"]], axis=0
+        ),
     }
 
     if capture_activations:
@@ -225,4 +248,3 @@ def run_full_spec_experiment(
             os.path.join(result_dir, f"{base_dataset}_full_spec_activations.npy"),
             activations,
         )
-

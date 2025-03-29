@@ -1,21 +1,23 @@
-import os
-import numpy as np
 import matplotlib.pyplot as plt
-from rect_prune_ood.lib.util.results_loader import load_scores_for_method
+import numpy as np
+from scipy.ndimage import gaussian_filter1d
+
 from rect_prune_ood.lib.eval.metrics import cal_metric, compute_average_results
+from rect_prune_ood.lib.util.results_loader import load_scores_for_method
+
 
 def plot_compare_methods(
-        ood_datasets: list[str], 
-        id_dataset: str = "imagenet",
-        first_method: str = "baseline",
-        second_method: str = "react",
-        score_function: str = "energy_score",
-        base_dataset: str = "imagenet",
-        plot_iou: bool = False,
-        plot_auroc: bool = False,
-        use_full_spec: bool = True,
-        scale_y: bool = False
-    ):
+    ood_datasets: list[str],
+    id_dataset: str = "imagenet",
+    first_method: str = "baseline",
+    second_method: str = "react",
+    score_function: str = "energy_score",
+    base_dataset: str = "imagenet",
+    plot_iou: bool = False,
+    plot_auroc: bool = False,
+    use_full_spec: bool = True,
+    scale_y: bool = False,
+):
     """
     Plots the comparison of two methods for a specified ID dataset and OOD datasets.
 
@@ -24,7 +26,7 @@ def plot_compare_methods(
     plot_compare_methods(["inat", "dtd", "sun", "places"], "imagenet", "baseline", "react", "energy_score", plot_iou=True, plot_auroc=True, use_full_spec=True, scale_y=False)
 
     Args:
-    ood_datasets (list[str]): Names of the OOD datasets. 
+    ood_datasets (list[str]): Names of the OOD datasets.
     id_dataset (str): Name of the ID dataset.
     first_method (str): Name of the first method.
     second_method (str): Name of the second method.
@@ -72,21 +74,29 @@ def plot_compare_methods(
 
     fm_bin_range = (
         min(min(fm_id_scores), min(fm_ood_scores)),
-        max(max(fm_id_scores), max(fm_ood_scores))
+        max(max(fm_id_scores), max(fm_ood_scores)),
     )
 
     sm_bin_range = (
         min(min(sm_id_scores), min(sm_ood_scores)),
-        max(max(sm_id_scores), max(sm_ood_scores))
+        max(max(sm_id_scores), max(sm_ood_scores)),
     )
 
     # Histograms for the first plot
-    fm_id_hist, fm_bin_edges = np.histogram(fm_id_scores, bins=1000, range=fm_bin_range, density=True)
-    fm_ood_hist, _ = np.histogram(fm_ood_scores, bins=1000, range=fm_bin_range, density=True)
+    fm_id_hist, fm_bin_edges = np.histogram(
+        fm_id_scores, bins=1000, range=fm_bin_range, density=True
+    )
+    fm_ood_hist, _ = np.histogram(
+        fm_ood_scores, bins=1000, range=fm_bin_range, density=True
+    )
 
     # Histograms for the second plot
-    sm_id_hist, sm_bin_edges = np.histogram(sm_id_scores, bins=1000, range=sm_bin_range, density=True)
-    sm_ood_hist, _ = np.histogram(sm_ood_scores, bins=1000, range=sm_bin_range, density=True)
+    sm_id_hist, sm_bin_edges = np.histogram(
+        sm_id_scores, bins=1000, range=sm_bin_range, density=True
+    )
+    sm_ood_hist, _ = np.histogram(
+        sm_ood_scores, bins=1000, range=sm_bin_range, density=True
+    )
 
     # Midpoints of bins for plotting
     fm_bin_centers = (fm_bin_edges[:-1] + fm_bin_edges[1:]) / 2
@@ -106,20 +116,36 @@ def plot_compare_methods(
     score_function_name = _beautify_score_function_name(score_function)
 
     # Plot 1
-    axs[0].fill_between(fm_bin_centers, 0, fm_id_hist, color='blue', alpha=0.3, label=f"{fm_name} ID")
-    axs[0].fill_between(fm_bin_centers, 0, fm_ood_hist, color='red', alpha=0.3, label=f"{fm_name} OOD")
-    axs[0].plot(fm_bin_centers, fm_id_hist, color='blue', alpha=0.6, linewidth=0.2)
-    axs[0].plot(fm_bin_centers, fm_ood_hist, color='red', alpha=0.6, linewidth=0.2)
+    axs[0].fill_between(
+        fm_bin_centers, 0, fm_id_hist, color="blue", alpha=0.3, label=f"{fm_name} ID"
+    )
+    axs[0].fill_between(
+        fm_bin_centers, 0, fm_ood_hist, color="red", alpha=0.3, label=f"{fm_name} OOD"
+    )
+    axs[0].plot(fm_bin_centers, fm_id_hist, color="blue", alpha=0.6, linewidth=0.2)
+    axs[0].plot(fm_bin_centers, fm_ood_hist, color="red", alpha=0.6, linewidth=0.2)
 
     # Plot IoU
     if plot_iou:
         iou, intersection, _ = compute_iou(fm_id_hist, fm_ood_hist)
 
-        axs[0].fill_between(fm_bin_centers, 0, intersection, color='darkgray', alpha=0.5, label=f"IoU (↓) = {iou:.4f}")
+        axs[0].fill_between(
+            fm_bin_centers,
+            0,
+            intersection,
+            color="darkgray",
+            alpha=0.5,
+            label=f"IoU (↓) = {iou:.4f}",
+        )
 
     # Plot AUROC
     if plot_auroc:
-        axs[0].plot(min(fm_bin_range), 0, color='none', label=f'AUROC (↑) = {100.*fm_metrics["AUROC"]:6.2f}')
+        axs[0].plot(
+            min(fm_bin_range),
+            0,
+            color="none",
+            label=f'AUROC (↑) = {100.0 * fm_metrics["AUROC"]:6.2f}',
+        )
 
     if use_full_spec:
         axs[0].set_title(f"{fm_name}: ID (full spec) vs OOD ({ood_datasets_str})")
@@ -131,20 +157,36 @@ def plot_compare_methods(
     axs[0].legend()
 
     # Plot 2
-    axs[1].fill_between(sm_bin_centers, 0, sm_id_hist, color='blue', alpha=0.3, label=f"{sm_name} ID")
-    axs[1].fill_between(sm_bin_centers, 0, sm_ood_hist, color='red', alpha=0.3, label=f"{sm_name} OOD")
-    axs[1].plot(sm_bin_centers, sm_id_hist, color='blue', alpha=0.6, linewidth=0.2)
-    axs[1].plot(sm_bin_centers, sm_ood_hist, color='red', alpha=0.6, linewidth=0.2)
+    axs[1].fill_between(
+        sm_bin_centers, 0, sm_id_hist, color="blue", alpha=0.3, label=f"{sm_name} ID"
+    )
+    axs[1].fill_between(
+        sm_bin_centers, 0, sm_ood_hist, color="red", alpha=0.3, label=f"{sm_name} OOD"
+    )
+    axs[1].plot(sm_bin_centers, sm_id_hist, color="blue", alpha=0.6, linewidth=0.2)
+    axs[1].plot(sm_bin_centers, sm_ood_hist, color="red", alpha=0.6, linewidth=0.2)
 
     # Plot IoU
     if plot_iou:
         iou, intersection, _ = compute_iou(sm_id_hist, sm_ood_hist)
 
-        axs[1].fill_between(sm_bin_centers, 0, intersection, color='darkgray', alpha=0.5, label=f"IoU (↓) = {iou:.4f}")
+        axs[1].fill_between(
+            sm_bin_centers,
+            0,
+            intersection,
+            color="darkgray",
+            alpha=0.5,
+            label=f"IoU (↓) = {iou:.4f}",
+        )
 
     # Plot AUROC
     if plot_auroc:
-        axs[1].plot(min(sm_bin_range), 0, color='none', label=f'AUROC (↑) = {100.*sm_metrics["AUROC"]:6.2f}')
+        axs[1].plot(
+            min(sm_bin_range),
+            0,
+            color="none",
+            label=f'AUROC (↑) = {100.0 * sm_metrics["AUROC"]:6.2f}',
+        )
 
     if use_full_spec:
         axs[1].set_title(f"{sm_name}: ID (full spec) vs OOD ({ood_datasets_str})")
@@ -158,28 +200,35 @@ def plot_compare_methods(
     if scale_y:
         axs[1].set_ylim(axs[0].get_ylim())
 
-    fig.suptitle(f"{fm_name} vs {sm_name}: {score_function_name} comparison for ID dataset {id_dataset_name}", fontsize=16)
+    fig.suptitle(
+        f"{fm_name} vs {sm_name}: {score_function_name} comparison for ID dataset {id_dataset_name}",
+        fontsize=16,
+    )
     fig.subplots_adjust(top=0.85)
 
 
 def plot_triple_distribution_plot(id_scores, perturbed_scores, ood_scores):
- 
     bin_range = (
         min(min(id_scores), min(ood_scores)),
-        max(max(ood_scores), max(ood_scores))
+        max(max(ood_scores), max(ood_scores)),
     )
 
     # Histograms for the first plot
-    num_bins = 1000 #1000
-    id_hist, id_bin_edges = np.histogram(id_scores, bins=num_bins, range=bin_range, density=True)
-    pert_id_hist, pert_id_bin_edges = np.histogram(perturbed_scores, bins=num_bins, range=bin_range, density=True)
-    ood_hist, ood_bin_edges = np.histogram(ood_scores, bins=num_bins, range=bin_range, density=True)
-    
+    num_bins = 1000  # 1000
+    id_hist, id_bin_edges = np.histogram(
+        id_scores, bins=num_bins, range=bin_range, density=True
+    )
+    pert_id_hist, pert_id_bin_edges = np.histogram(
+        perturbed_scores, bins=num_bins, range=bin_range, density=True
+    )
+    ood_hist, ood_bin_edges = np.histogram(
+        ood_scores, bins=num_bins, range=bin_range, density=True
+    )
 
     id_hist = gaussian_filter1d(id_hist, sigma=18)
     pert_id_hist = gaussian_filter1d(pert_id_hist, sigma=18)
     ood_hist = gaussian_filter1d(ood_hist, sigma=18)
-    
+
     """for i in range(1, len(id_hist) -1):
         id_hist[i] = (id_hist[i - 1] + id_hist[i] + id_hist[i + 1]) / 3
     
@@ -189,28 +238,35 @@ def plot_triple_distribution_plot(id_scores, perturbed_scores, ood_scores):
 
     for i in range(1, len(ood_hist) -1):
         ood_hist[i] = (ood_hist[i - 1] + ood_hist[i] + ood_hist[i + 1]) / 3"""
-    
 
     # Midpoints of bins for plotting
-    #id_bin_centers = (ood_bin_edges[:-1] + id_bin_edges[1:]) / 2
-    
+    # id_bin_centers = (ood_bin_edges[:-1] + id_bin_edges[1:]) / 2
 
     # Beautify names
     name = "Distribution Shift Visualization"
-    #sm_name = _beautify_method_name(second_method)
-
-    dataset_name = "ImageNet"
+    # sm_name = _beautify_method_name(second_method)
 
     score_function_name = "Energy Score"
 
     # Plot 1
-    plt.fill_between(ood_bin_edges[:-1], 0, ood_hist, color='orangered', alpha=0.2, label=f"OOD")
-    plt.fill_between(pert_id_bin_edges[:-1], 0, pert_id_hist, color='green', alpha=0.3, label=f"ID Perturbed")
-    plt.fill_between(id_bin_edges[:-1], 0, id_hist, color='blue', alpha=0.4, label=f"ID")
+    plt.fill_between(
+        ood_bin_edges[:-1], 0, ood_hist, color="orangered", alpha=0.2, label="OOD"
+    )
+    plt.fill_between(
+        pert_id_bin_edges[:-1],
+        0,
+        pert_id_hist,
+        color="green",
+        alpha=0.3,
+        label="ID Perturbed",
+    )
+    plt.fill_between(id_bin_edges[:-1], 0, id_hist, color="blue", alpha=0.4, label="ID")
 
-    plt.plot(id_bin_edges[:-1], id_hist, color='black', alpha=0.9, linewidth=0.5)
-    plt.plot(pert_id_bin_edges[:-1], pert_id_hist, color='black', alpha=0.9, linewidth=0.5)
-    plt.plot(ood_bin_edges[:-1], ood_hist, color='black', alpha=0.9, linewidth=0.5)
+    plt.plot(id_bin_edges[:-1], id_hist, color="black", alpha=0.9, linewidth=0.5)
+    plt.plot(
+        pert_id_bin_edges[:-1], pert_id_hist, color="black", alpha=0.9, linewidth=0.5
+    )
+    plt.plot(ood_bin_edges[:-1], ood_hist, color="black", alpha=0.9, linewidth=0.5)
 
     plt.title(name)
 
@@ -219,7 +275,7 @@ def plot_triple_distribution_plot(id_scores, perturbed_scores, ood_scores):
     plt.legend()
 
     plt.savefig("plot.png")
-        
+
 
 def _beautify_method_name(method_name: str = "") -> str:
     if method_name == "baseline":
@@ -251,6 +307,7 @@ def _beautify_method_name(method_name: str = "") -> str:
 
     return method_name
 
+
 def _beautify_dataset_name(dataset_name: str = "") -> str:
     if dataset_name == "imagenet":
         return "ImageNet"
@@ -273,6 +330,7 @@ def _beautify_dataset_name(dataset_name: str = "") -> str:
 
     return dataset_name
 
+
 def _beautify_score_function_name(score_function: str = "") -> str:
     if score_function == "energy_score":
         return "Energy Score"
@@ -283,7 +341,10 @@ def _beautify_score_function_name(score_function: str = "") -> str:
     else:
         return "Confidence"
 
-def compute_iou_for_array(data_1: np.array, data_2: np.array, num_bins: int = 1000) -> tuple[float, np.array, np.array]:
+
+def compute_iou_for_array(
+    data_1: np.array, data_2: np.array, num_bins: int = 1000
+) -> tuple[float, np.array, np.array]:
     """
     Compute the Intersection over Union (IoU) of two arrays.
 
@@ -310,7 +371,9 @@ def compute_iou_for_array(data_1: np.array, data_2: np.array, num_bins: int = 10
     return compute_iou(data_1_hist, data_2_hist)
 
 
-def compute_iou(hist_1: np.histogram, hist_2: np.histogram) -> tuple[float, np.array, np.array]:
+def compute_iou(
+    hist_1: np.histogram, hist_2: np.histogram
+) -> tuple[float, np.array, np.array]:
     """
     Compute the Intersection over Union (IoU) of two histograms.
 

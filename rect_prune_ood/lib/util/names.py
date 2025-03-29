@@ -1,28 +1,38 @@
 from typing import List
+
 from torch.nn import Module
 
 from rect_prune_ood.lib.methods.apes import APES, APESB, APESP, APESS, APESSCALE
-from rect_prune_ood.lib.methods.rect_prune_methods import AshBPruningModule, AshPPruningModule, AshSPruningModule, DicePruningModule, ReactRectModule, BatsRectModule, SCALEModule
+from rect_prune_ood.lib.methods.rect_prune_methods import (
+    AshBPruningModule,
+    AshPPruningModule,
+    AshSPruningModule,
+    BatsRectModule,
+    DicePruningModule,
+    ReactRectModule,
+    SCALEModule,
+)
 
 module_dict = {
     "ashp": AshPPruningModule,
     "ashb": AshBPruningModule,
     "ashs": AshSPruningModule,
-    "scale":SCALEModule,
+    "scale": SCALEModule,
     "dice": DicePruningModule,
     "react": ReactRectModule,
     "bats": BatsRectModule,
-    "apes": APES, 
+    "apes": APES,
     "apesb": APESB,
     "apess": APESS,
     "apesp": APESP,
     "apesscale": APESSCALE,
 }
 
-def get_module_list(method_name:str) -> List[Module]:
+
+def get_module_list(method_name: str) -> List[Module]:
     if method_name == "baseline":
         return []
-    
+
     modules = []
     modules_str = method_name.split("_")
 
@@ -37,5 +47,5 @@ def get_module_list(method_name:str) -> List[Module]:
             modules.append(module_dict[module](param))
         else:
             raise ValueError(f"Invalid module string: {module_str}")
-        
+
     return modules

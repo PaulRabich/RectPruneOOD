@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "APES"
+version = "0.1.0"
+description = "Implementation of the APES algorithm for OOD detection"
+
+
+[tool.setuptools]
+packages = ["rect_prune_ood"]
+
+
+
+[tool.black]
+line-length = 88        # Max characters per line (default is 88)
+target-version = ['py312']  # Target Python version(s), e.g., 'py38', 'py311'
+skip-magic-trailing-comma = true  # Don't add trailing commas automatically
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | build
+  | dist
+)/
+'''                     
+
+[tool.ruff]
+line-length = 88                    
+target-version = "py312"                                    
+fix = true                         
+exclude = ["cache", "results"] 
+
+[tool.ruff.lint]
+extend-ignore = ["E501"] 
+extend-select = ["E", "I", "F"] # Include all linting rules
+
+[tool.ruff.format]
+quote-style = "preserve" 
+indent-style = "tab"             
+
+[tool.ruff.lint.isort]
+known-first-party = ["rect_prune_ood"] # Your package name for import sorting

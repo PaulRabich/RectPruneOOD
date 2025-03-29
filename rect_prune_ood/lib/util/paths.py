@@ -1,5 +1,5 @@
 import os
-import numpy as np
+
 
 def get_top_level_path():
     # get the absolute path of this file
@@ -9,10 +9,12 @@ def get_top_level_path():
 
     return top_level_path
 
-def get_method_result_path(base_dataset: str = "imagenet", method_name: str = "baseline"):        
+
+def get_method_result_path(
+    base_dataset: str = "imagenet", method_name: str = "baseline"
+):
     result_dir = os.path.join(
-        get_top_level_path(),
-        f"results/{base_dataset}/{method_name}",
+        get_top_level_path(), f"results/{base_dataset}/{method_name}"
     )
     os.makedirs(result_dir, exist_ok=True)
 
