@@ -347,8 +347,7 @@ def compute_stat(base_dir, in_dataset, out_datasets, method, name):
     return
 
 
-
-def compute_in(path_to_results: str, method: str): #ruff: noqa: E501, F401
+def compute_in(path_to_results: str, method: str):  # ruff: noqa: E501, F401
     result_path = os.path.join(get_top_level_path(), "results", "results.npy")
     results = np.load(result_path, allow_pickle=True).item()
     known_nat = results[method].cpu().numpy()
