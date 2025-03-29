@@ -1,5 +1,5 @@
 import os
-
+from rect_prune_ood.lib.experiments.run_experiment import backbones
 
 def get_top_level_path():
 	# get the absolute path of this file
@@ -11,10 +11,10 @@ def get_top_level_path():
 
 
 def get_method_result_path(
-	base_dataset: str = 'imagenet', method_name: str = 'baseline'
+	base_dataset: str = 'imagenet', backbone: backbones = "resnet50", method_name: str = 'baseline'
 ):
 	result_dir = os.path.join(
-		get_top_level_path(), f'results/{base_dataset}/{method_name}'
+		get_top_level_path(), f'results/{base_dataset}/{backbone}/{method_name}'
 	)
 	os.makedirs(result_dir, exist_ok=True)
 

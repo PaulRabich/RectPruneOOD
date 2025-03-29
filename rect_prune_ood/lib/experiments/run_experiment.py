@@ -121,6 +121,7 @@ def run_single_experiment(
 	method_name: str,
 	capture_activations: bool = False,
 	base_dataset: id_datasets = 'imagenet',
+	severity: int = 1,
 	):
 	"""
 	Runs a single experiment for a specified dataset and method. Saves the results in the corresponding directory.
@@ -139,6 +140,7 @@ def run_single_experiment(
             layer=layer,
             method_name=method_name,
             capture_activations=capture_activations,
+			severity=severity,
         )
 		return
 
@@ -177,6 +179,7 @@ def _run_imagenet_c_experiment(
     layer: str,
     method_name:str,
     capture_activations: bool = False,
+	severity: int = 1,
 ):
     imagenet_c_pertubations = [
         "brightness",
@@ -209,17 +212,17 @@ def _run_imagenet_c_experiment(
     result_dir = get_method_result_path("imagenet", method_name + "/imagenet_c")
 
     for pertubation in imagenet_c_pertubations:
-        dataloader = get_imagenet_c_subset_loader(pertubation, batch_size=16)
+        dataloader = get_imagenet_c_subset_loader(pertubation, severity, batch_size=16)
 
         # Trainer
         trainer = Trainer(logger=None)
         trainer.test(pipeline, dataloader)
 
-        np.save(os.path.join(result_dir, f"imagenet_c_{pertubation}.npy"), pipeline.results)
+        np.save(os.path.join(result_dir, f"imagenet_c_sev{severity}_{pertubation}.npy"), pipeline.results)
 
         if capture_activations:
             np.save(
-                os.path.join(result_dir, f"imagenet_c_{pertubation}_activations.npy"),
+                os.path.join(result_dir, f"imagenet_c_sev{severity}_{pertubation}_activations.npy"),
                 pipeline.activations,
             )
 

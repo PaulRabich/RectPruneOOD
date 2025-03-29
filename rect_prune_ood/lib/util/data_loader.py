@@ -54,6 +54,28 @@ paths = {
 	'openimage-o': os.path.join(ood_base_path, 'openimage-o'),
 }
 
+imagenet_c_perturbations = Literal[
+	'brightness',
+	'defocus_blur',
+	'fog',
+	'gaussian_blur',
+	'glass_blur',
+	'jpeg_compression',
+	'pixelate',
+	'shot_noise',
+	'spatter',
+	'zoom_blur',
+	'contrast',
+	'elastic_transform',
+	'frost',
+	'gaussian_noise',
+	'impulse_noise',
+	'motion_blur',
+	'saturate',
+	'snow',
+	'speckle_noise',
+]
+
 
 def get_data_loader(dataset: str, batch_size: int = 100, shuffle: bool = False):
 	"""
@@ -187,7 +209,7 @@ def _get_perturbation_data_loader(
         
 	return val_loader
 
-def get_imagenet_c_subset_loader(subset: str, batch_size: int = 100, shuffle: bool = False):
+def get_imagenet_c_subset_loader(subset: imagenet_c_perturbations, severity: int=1, batch_size: int = 100, shuffle: bool = False):
     """
         Loads a subset of the ImageNet-C dataset and returns a DataLoader for testing.
 
@@ -200,7 +222,7 @@ def get_imagenet_c_subset_loader(subset: str, batch_size: int = 100, shuffle: bo
         - val_loader (DataLoader or None): DataLoader for the specified ImageNet-C subset if available; None otherwise.
     """
 
-    dataset = ImageFolder(root=os.path.join(paths['imagenet_c'], subset), transform=transform_test_largescale)
+    dataset = ImageFolder(root=os.path.join(paths['imagenet_c'], subset, f'{severity}'), transform=transform_test_largescale)
     val_loader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
 
     return val_loader
