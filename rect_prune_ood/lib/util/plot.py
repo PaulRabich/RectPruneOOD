@@ -7,229 +7,229 @@ from rect_prune_ood.lib.util.results_loader import load_scores_for_method
 
 
 def plot_compare_methods(
-    ood_datasets: list[str],
-    id_dataset: str = "imagenet",
-    first_method: str = "baseline",
-    second_method: str = "react",
-    score_function: str = "energy_score",
-    base_dataset: str = "imagenet",
-    plot_iou: bool = False,
-    plot_auroc: bool = False,
-    use_full_spec: bool = True,
-    scale_y: bool = False,
+	ood_datasets: list[str],
+	id_dataset: str = 'imagenet',
+	first_method: str = 'baseline',
+	second_method: str = 'react',
+	score_function: str = 'energy_score',
+	base_dataset: str = 'imagenet',
+	plot_iou: bool = False,
+	plot_auroc: bool = False,
+	use_full_spec: bool = True,
+	scale_y: bool = False,
 ):
-    """
-    Plots the comparison of two methods for a specified ID dataset and OOD datasets.
+	"""
+	Plots the comparison of two methods for a specified ID dataset and OOD datasets.
 
-    Example call for plotting the comparison of the baseline and ReAct methods for the ImageNet dataset and the iNaturalist, DTD, SUN, and Places365 OOD datasets:
+	Example call for plotting the comparison of the baseline and ReAct methods for the ImageNet dataset and the iNaturalist, DTD, SUN, and Places365 OOD datasets:
 
-    plot_compare_methods(["inat", "dtd", "sun", "places"], "imagenet", "baseline", "react", "energy_score", plot_iou=True, plot_auroc=True, use_full_spec=True, scale_y=False)
+	plot_compare_methods(["inat", "dtd", "sun", "places"], "imagenet", "baseline", "react", "energy_score", plot_iou=True, plot_auroc=True, use_full_spec=True, scale_y=False)
 
-    Args:
-    ood_datasets (list[str]): Names of the OOD datasets.
-    id_dataset (str): Name of the ID dataset.
-    first_method (str): Name of the first method.
-    second_method (str): Name of the second method.
-    score_function (str): Name of the score function.
-    base_dataset (str): Name of the base dataset. Mainly used for the path. Defaults to "imagenet".
-    plot_iou (bool): Whether to plot the IoU.
-    plot_auroc (bool): Whether to plot the AUROC.
-    use_full_spec (bool): Whether to use the full spectrum of the ID dataset (ImageNet + ImageNet perturbed).
-    scale_y (bool): Whether to match the scale of the y-axis for both methods.
-    """
-    fm_scores = load_scores_for_method(first_method, score_function, base_dataset)
-    sm_scores = load_scores_for_method(second_method, score_function, base_dataset)
+	Args:
+	ood_datasets (list[str]): Names of the OOD datasets.
+	id_dataset (str): Name of the ID dataset.
+	first_method (str): Name of the first method.
+	second_method (str): Name of the second method.
+	score_function (str): Name of the score function.
+	base_dataset (str): Name of the base dataset. Mainly used for the path. Defaults to "imagenet".
+	plot_iou (bool): Whether to plot the IoU.
+	plot_auroc (bool): Whether to plot the AUROC.
+	use_full_spec (bool): Whether to use the full spectrum of the ID dataset (ImageNet + ImageNet perturbed).
+	scale_y (bool): Whether to match the scale of the y-axis for both methods.
+	"""
+	fm_scores = load_scores_for_method(first_method, score_function, base_dataset)
+	sm_scores = load_scores_for_method(second_method, score_function, base_dataset)
 
-    if use_full_spec:
-        fm_id_scores = fm_scores[f"{id_dataset}_full_spec"]
-        sm_id_scores = sm_scores[f"{id_dataset}_full_spec"]
-    else:
-        fm_id_scores = fm_scores[f"{id_dataset}"]
-        sm_id_scores = sm_scores[f"{id_dataset}"]
+	if use_full_spec:
+		fm_id_scores = fm_scores[f'{id_dataset}_full_spec']
+		sm_id_scores = sm_scores[f'{id_dataset}_full_spec']
+	else:
+		fm_id_scores = fm_scores[f'{id_dataset}']
+		sm_id_scores = sm_scores[f'{id_dataset}']
 
-    fm_ood_scores = []
-    sm_ood_scores = []
+	fm_ood_scores = []
+	sm_ood_scores = []
 
-    if plot_auroc:
-        fm_metrics = []
-        sm_metrics = []
+	if plot_auroc:
+		fm_metrics = []
+		sm_metrics = []
 
-    ood_datasets_str = ""
+	ood_datasets_str = ''
 
-    for ood_dataset in ood_datasets:
-        fm_ood_scores.extend(fm_scores[ood_dataset])
-        sm_ood_scores.extend(sm_scores[ood_dataset])
+	for ood_dataset in ood_datasets:
+		fm_ood_scores.extend(fm_scores[ood_dataset])
+		sm_ood_scores.extend(sm_scores[ood_dataset])
 
-        ood_datasets_str += f"{ood_dataset}, "
+		ood_datasets_str += f'{ood_dataset}, '
 
-        if plot_auroc:
-            fm_metrics.append(cal_metric(fm_id_scores, fm_scores[ood_dataset]))
-            sm_metrics.append(cal_metric(sm_id_scores, sm_scores[ood_dataset]))
+		if plot_auroc:
+			fm_metrics.append(cal_metric(fm_id_scores, fm_scores[ood_dataset]))
+			sm_metrics.append(cal_metric(sm_id_scores, sm_scores[ood_dataset]))
 
-    ood_datasets_str = ood_datasets_str[:-2]
+	ood_datasets_str = ood_datasets_str[:-2]
 
-    if plot_auroc:
-        fm_metrics = compute_average_results(fm_metrics)
-        sm_metrics = compute_average_results(sm_metrics)
+	if plot_auroc:
+		fm_metrics = compute_average_results(fm_metrics)
+		sm_metrics = compute_average_results(sm_metrics)
 
-    fm_bin_range = (
-        min(min(fm_id_scores), min(fm_ood_scores)),
-        max(max(fm_id_scores), max(fm_ood_scores)),
-    )
+	fm_bin_range = (
+		min(min(fm_id_scores), min(fm_ood_scores)),
+		max(max(fm_id_scores), max(fm_ood_scores)),
+	)
 
-    sm_bin_range = (
-        min(min(sm_id_scores), min(sm_ood_scores)),
-        max(max(sm_id_scores), max(sm_ood_scores)),
-    )
+	sm_bin_range = (
+		min(min(sm_id_scores), min(sm_ood_scores)),
+		max(max(sm_id_scores), max(sm_ood_scores)),
+	)
 
-    # Histograms for the first plot
-    fm_id_hist, fm_bin_edges = np.histogram(
-        fm_id_scores, bins=1000, range=fm_bin_range, density=True
-    )
-    fm_ood_hist, _ = np.histogram(
-        fm_ood_scores, bins=1000, range=fm_bin_range, density=True
-    )
+	# Histograms for the first plot
+	fm_id_hist, fm_bin_edges = np.histogram(
+		fm_id_scores, bins=1000, range=fm_bin_range, density=True
+	)
+	fm_ood_hist, _ = np.histogram(
+		fm_ood_scores, bins=1000, range=fm_bin_range, density=True
+	)
 
-    # Histograms for the second plot
-    sm_id_hist, sm_bin_edges = np.histogram(
-        sm_id_scores, bins=1000, range=sm_bin_range, density=True
-    )
-    sm_ood_hist, _ = np.histogram(
-        sm_ood_scores, bins=1000, range=sm_bin_range, density=True
-    )
+	# Histograms for the second plot
+	sm_id_hist, sm_bin_edges = np.histogram(
+		sm_id_scores, bins=1000, range=sm_bin_range, density=True
+	)
+	sm_ood_hist, _ = np.histogram(
+		sm_ood_scores, bins=1000, range=sm_bin_range, density=True
+	)
 
-    # Midpoints of bins for plotting
-    fm_bin_centers = (fm_bin_edges[:-1] + fm_bin_edges[1:]) / 2
-    sm_bin_centers = (sm_bin_edges[:-1] + sm_bin_edges[1:]) / 2
+	# Midpoints of bins for plotting
+	fm_bin_centers = (fm_bin_edges[:-1] + fm_bin_edges[1:]) / 2
+	sm_bin_centers = (sm_bin_edges[:-1] + sm_bin_edges[1:]) / 2
 
-    # Two subplots
-    fig, axs = plt.subplots(1, 2, figsize=(12, 4))
+	# Two subplots
+	fig, axs = plt.subplots(1, 2, figsize=(12, 4))
 
-    # Beautify names
-    fm_name = _beautify_method_name(first_method)
-    sm_name = _beautify_method_name(second_method)
+	# Beautify names
+	fm_name = _beautify_method_name(first_method)
+	sm_name = _beautify_method_name(second_method)
 
-    id_dataset_name = _beautify_dataset_name(id_dataset)
-    if use_full_spec:
-        id_dataset_name += " (full spec)"
+	id_dataset_name = _beautify_dataset_name(id_dataset)
+	if use_full_spec:
+		id_dataset_name += ' (full spec)'
 
-    score_function_name = _beautify_score_function_name(score_function)
+	score_function_name = _beautify_score_function_name(score_function)
 
-    # Plot 1
-    axs[0].fill_between(
-        fm_bin_centers, 0, fm_id_hist, color="blue", alpha=0.3, label=f"{fm_name} ID"
-    )
-    axs[0].fill_between(
-        fm_bin_centers, 0, fm_ood_hist, color="red", alpha=0.3, label=f"{fm_name} OOD"
-    )
-    axs[0].plot(fm_bin_centers, fm_id_hist, color="blue", alpha=0.6, linewidth=0.2)
-    axs[0].plot(fm_bin_centers, fm_ood_hist, color="red", alpha=0.6, linewidth=0.2)
+	# Plot 1
+	axs[0].fill_between(
+		fm_bin_centers, 0, fm_id_hist, color='blue', alpha=0.3, label=f'{fm_name} ID'
+	)
+	axs[0].fill_between(
+		fm_bin_centers, 0, fm_ood_hist, color='red', alpha=0.3, label=f'{fm_name} OOD'
+	)
+	axs[0].plot(fm_bin_centers, fm_id_hist, color='blue', alpha=0.6, linewidth=0.2)
+	axs[0].plot(fm_bin_centers, fm_ood_hist, color='red', alpha=0.6, linewidth=0.2)
 
-    # Plot IoU
-    if plot_iou:
-        iou, intersection, _ = compute_iou(fm_id_hist, fm_ood_hist)
+	# Plot IoU
+	if plot_iou:
+		iou, intersection, _ = compute_iou(fm_id_hist, fm_ood_hist)
 
-        axs[0].fill_between(
-            fm_bin_centers,
-            0,
-            intersection,
-            color="darkgray",
-            alpha=0.5,
-            label=f"IoU (↓) = {iou:.4f}",
-        )
+		axs[0].fill_between(
+			fm_bin_centers,
+			0,
+			intersection,
+			color='darkgray',
+			alpha=0.5,
+			label=f'IoU (↓) = {iou:.4f}',
+		)
 
-    # Plot AUROC
-    if plot_auroc:
-        axs[0].plot(
-            min(fm_bin_range),
-            0,
-            color="none",
-            label=f'AUROC (↑) = {100.0 * fm_metrics["AUROC"]:6.2f}',
-        )
+	# Plot AUROC
+	if plot_auroc:
+		axs[0].plot(
+			min(fm_bin_range),
+			0,
+			color='none',
+			label=f'AUROC (↑) = {100.0 * fm_metrics["AUROC"]:6.2f}',
+		)
 
-    if use_full_spec:
-        axs[0].set_title(f"{fm_name}: ID (full spec) vs OOD ({ood_datasets_str})")
-    else:
-        axs[0].set_title(f"{fm_name}: ID vs OOD ({ood_datasets_str})")
+	if use_full_spec:
+		axs[0].set_title(f'{fm_name}: ID (full spec) vs OOD ({ood_datasets_str})')
+	else:
+		axs[0].set_title(f'{fm_name}: ID vs OOD ({ood_datasets_str})')
 
-    axs[0].set_xlabel(score_function_name)
-    axs[0].set_ylabel("Frequency")
-    axs[0].legend()
+	axs[0].set_xlabel(score_function_name)
+	axs[0].set_ylabel('Frequency')
+	axs[0].legend()
 
-    # Plot 2
-    axs[1].fill_between(
-        sm_bin_centers, 0, sm_id_hist, color="blue", alpha=0.3, label=f"{sm_name} ID"
-    )
-    axs[1].fill_between(
-        sm_bin_centers, 0, sm_ood_hist, color="red", alpha=0.3, label=f"{sm_name} OOD"
-    )
-    axs[1].plot(sm_bin_centers, sm_id_hist, color="blue", alpha=0.6, linewidth=0.2)
-    axs[1].plot(sm_bin_centers, sm_ood_hist, color="red", alpha=0.6, linewidth=0.2)
+	# Plot 2
+	axs[1].fill_between(
+		sm_bin_centers, 0, sm_id_hist, color='blue', alpha=0.3, label=f'{sm_name} ID'
+	)
+	axs[1].fill_between(
+		sm_bin_centers, 0, sm_ood_hist, color='red', alpha=0.3, label=f'{sm_name} OOD'
+	)
+	axs[1].plot(sm_bin_centers, sm_id_hist, color='blue', alpha=0.6, linewidth=0.2)
+	axs[1].plot(sm_bin_centers, sm_ood_hist, color='red', alpha=0.6, linewidth=0.2)
 
-    # Plot IoU
-    if plot_iou:
-        iou, intersection, _ = compute_iou(sm_id_hist, sm_ood_hist)
+	# Plot IoU
+	if plot_iou:
+		iou, intersection, _ = compute_iou(sm_id_hist, sm_ood_hist)
 
-        axs[1].fill_between(
-            sm_bin_centers,
-            0,
-            intersection,
-            color="darkgray",
-            alpha=0.5,
-            label=f"IoU (↓) = {iou:.4f}",
-        )
+		axs[1].fill_between(
+			sm_bin_centers,
+			0,
+			intersection,
+			color='darkgray',
+			alpha=0.5,
+			label=f'IoU (↓) = {iou:.4f}',
+		)
 
-    # Plot AUROC
-    if plot_auroc:
-        axs[1].plot(
-            min(sm_bin_range),
-            0,
-            color="none",
-            label=f'AUROC (↑) = {100.0 * sm_metrics["AUROC"]:6.2f}',
-        )
+	# Plot AUROC
+	if plot_auroc:
+		axs[1].plot(
+			min(sm_bin_range),
+			0,
+			color='none',
+			label=f'AUROC (↑) = {100.0 * sm_metrics["AUROC"]:6.2f}',
+		)
 
-    if use_full_spec:
-        axs[1].set_title(f"{sm_name}: ID (full spec) vs OOD ({ood_datasets_str})")
-    else:
-        axs[1].set_title(f"{sm_name}: ID vs OOD ({ood_datasets_str})")
-    axs[1].set_xlabel(score_function_name)
-    axs[1].set_ylabel("Frequency")
-    axs[1].legend()
+	if use_full_spec:
+		axs[1].set_title(f'{sm_name}: ID (full spec) vs OOD ({ood_datasets_str})')
+	else:
+		axs[1].set_title(f'{sm_name}: ID vs OOD ({ood_datasets_str})')
+	axs[1].set_xlabel(score_function_name)
+	axs[1].set_ylabel('Frequency')
+	axs[1].legend()
 
-    # scale y axis to the same as the first plot
-    if scale_y:
-        axs[1].set_ylim(axs[0].get_ylim())
+	# scale y axis to the same as the first plot
+	if scale_y:
+		axs[1].set_ylim(axs[0].get_ylim())
 
-    fig.suptitle(
-        f"{fm_name} vs {sm_name}: {score_function_name} comparison for ID dataset {id_dataset_name}",
-        fontsize=16,
-    )
-    fig.subplots_adjust(top=0.85)
+	fig.suptitle(
+		f'{fm_name} vs {sm_name}: {score_function_name} comparison for ID dataset {id_dataset_name}',
+		fontsize=16,
+	)
+	fig.subplots_adjust(top=0.85)
 
 
 def plot_triple_distribution_plot(id_scores, perturbed_scores, ood_scores):
-    bin_range = (
-        min(min(id_scores), min(ood_scores)),
-        max(max(ood_scores), max(ood_scores)),
-    )
+	bin_range = (
+		min(min(id_scores), min(ood_scores)),
+		max(max(ood_scores), max(ood_scores)),
+	)
 
-    # Histograms for the first plot
-    num_bins = 1000  # 1000
-    id_hist, id_bin_edges = np.histogram(
-        id_scores, bins=num_bins, range=bin_range, density=True
-    )
-    pert_id_hist, pert_id_bin_edges = np.histogram(
-        perturbed_scores, bins=num_bins, range=bin_range, density=True
-    )
-    ood_hist, ood_bin_edges = np.histogram(
-        ood_scores, bins=num_bins, range=bin_range, density=True
-    )
+	# Histograms for the first plot
+	num_bins = 1000  # 1000
+	id_hist, id_bin_edges = np.histogram(
+		id_scores, bins=num_bins, range=bin_range, density=True
+	)
+	pert_id_hist, pert_id_bin_edges = np.histogram(
+		perturbed_scores, bins=num_bins, range=bin_range, density=True
+	)
+	ood_hist, ood_bin_edges = np.histogram(
+		ood_scores, bins=num_bins, range=bin_range, density=True
+	)
 
-    id_hist = gaussian_filter1d(id_hist, sigma=18)
-    pert_id_hist = gaussian_filter1d(pert_id_hist, sigma=18)
-    ood_hist = gaussian_filter1d(ood_hist, sigma=18)
+	id_hist = gaussian_filter1d(id_hist, sigma=18)
+	pert_id_hist = gaussian_filter1d(pert_id_hist, sigma=18)
+	ood_hist = gaussian_filter1d(ood_hist, sigma=18)
 
-    """for i in range(1, len(id_hist) -1):
+	"""for i in range(1, len(id_hist) -1):
         id_hist[i] = (id_hist[i - 1] + id_hist[i] + id_hist[i + 1]) / 3
     
 
@@ -239,157 +239,157 @@ def plot_triple_distribution_plot(id_scores, perturbed_scores, ood_scores):
     for i in range(1, len(ood_hist) -1):
         ood_hist[i] = (ood_hist[i - 1] + ood_hist[i] + ood_hist[i + 1]) / 3"""
 
-    # Midpoints of bins for plotting
-    # id_bin_centers = (ood_bin_edges[:-1] + id_bin_edges[1:]) / 2
+	# Midpoints of bins for plotting
+	# id_bin_centers = (ood_bin_edges[:-1] + id_bin_edges[1:]) / 2
 
-    # Beautify names
-    name = "Distribution Shift Visualization"
-    # sm_name = _beautify_method_name(second_method)
+	# Beautify names
+	name = 'Distribution Shift Visualization'
+	# sm_name = _beautify_method_name(second_method)
 
-    score_function_name = "Energy Score"
+	score_function_name = 'Energy Score'
 
-    # Plot 1
-    plt.fill_between(
-        ood_bin_edges[:-1], 0, ood_hist, color="orangered", alpha=0.2, label="OOD"
-    )
-    plt.fill_between(
-        pert_id_bin_edges[:-1],
-        0,
-        pert_id_hist,
-        color="green",
-        alpha=0.3,
-        label="ID Perturbed",
-    )
-    plt.fill_between(id_bin_edges[:-1], 0, id_hist, color="blue", alpha=0.4, label="ID")
+	# Plot 1
+	plt.fill_between(
+		ood_bin_edges[:-1], 0, ood_hist, color='orangered', alpha=0.2, label='OOD'
+	)
+	plt.fill_between(
+		pert_id_bin_edges[:-1],
+		0,
+		pert_id_hist,
+		color='green',
+		alpha=0.3,
+		label='ID Perturbed',
+	)
+	plt.fill_between(id_bin_edges[:-1], 0, id_hist, color='blue', alpha=0.4, label='ID')
 
-    plt.plot(id_bin_edges[:-1], id_hist, color="black", alpha=0.9, linewidth=0.5)
-    plt.plot(
-        pert_id_bin_edges[:-1], pert_id_hist, color="black", alpha=0.9, linewidth=0.5
-    )
-    plt.plot(ood_bin_edges[:-1], ood_hist, color="black", alpha=0.9, linewidth=0.5)
+	plt.plot(id_bin_edges[:-1], id_hist, color='black', alpha=0.9, linewidth=0.5)
+	plt.plot(
+		pert_id_bin_edges[:-1], pert_id_hist, color='black', alpha=0.9, linewidth=0.5
+	)
+	plt.plot(ood_bin_edges[:-1], ood_hist, color='black', alpha=0.9, linewidth=0.5)
 
-    plt.title(name)
+	plt.title(name)
 
-    plt.xlabel(score_function_name)
-    plt.ylabel("Frequency")
-    plt.legend()
+	plt.xlabel(score_function_name)
+	plt.ylabel('Frequency')
+	plt.legend()
 
-    plt.savefig("plot.png")
-
-
-def _beautify_method_name(method_name: str = "") -> str:
-    if method_name == "baseline":
-        return "Baseline"
-    elif method_name == "react":
-        return "ReAct"
-    elif method_name == "bats":
-        return "BATS"
-    elif method_name == "ashs":
-        return "AshS"
-    elif method_name == "ashb":
-        return "AshB"
-    elif method_name == "ashp":
-        return "AshP"
-    elif method_name == "dice":
-        return "Dice"
-    elif method_name == "line":
-        return "Line"
-    elif method_name == "react_ashs":
-        return "ReAct + AshS"
-    elif method_name == "react_ashb":
-        return "ReAct + AshB"
-    elif method_name == "react_ashp":
-        return "ReAct + AshP"
-    elif method_name == "react_dice":
-        return "ReAct + Dice"
-    elif method_name == "react_line":
-        return "ReAct + Line"
-
-    return method_name
+	plt.savefig('plot.png')
 
 
-def _beautify_dataset_name(dataset_name: str = "") -> str:
-    if dataset_name == "imagenet":
-        return "ImageNet"
-    elif dataset_name == "inat":
-        return "iNaturalist"
-    elif dataset_name == "dtd":
-        return "DTD"
-    elif dataset_name == "sun":
-        return "SUN"
-    elif dataset_name == "places":
-        return "Places365"
-    elif dataset_name == "ninco":
-        return "NINCO"
-    elif dataset_name == "ssb_hard":
-        return "SSB Hard"
-    elif dataset_name == "imagenet_perturbed":
-        return "ImageNet Perturbed"
-    elif dataset_name == "imagenet_full_spec":
-        return "ImageNet Full Spec"
+def _beautify_method_name(method_name: str = '') -> str:
+	if method_name == 'baseline':
+		return 'Baseline'
+	elif method_name == 'react':
+		return 'ReAct'
+	elif method_name == 'bats':
+		return 'BATS'
+	elif method_name == 'ashs':
+		return 'AshS'
+	elif method_name == 'ashb':
+		return 'AshB'
+	elif method_name == 'ashp':
+		return 'AshP'
+	elif method_name == 'dice':
+		return 'Dice'
+	elif method_name == 'line':
+		return 'Line'
+	elif method_name == 'react_ashs':
+		return 'ReAct + AshS'
+	elif method_name == 'react_ashb':
+		return 'ReAct + AshB'
+	elif method_name == 'react_ashp':
+		return 'ReAct + AshP'
+	elif method_name == 'react_dice':
+		return 'ReAct + Dice'
+	elif method_name == 'react_line':
+		return 'ReAct + Line'
 
-    return dataset_name
+	return method_name
 
 
-def _beautify_score_function_name(score_function: str = "") -> str:
-    if score_function == "energy_score":
-        return "Energy Score"
-    elif score_function == "msp_score":
-        return "MSP Score"
-    elif score_function == "entropy_score":
-        return "Entropy Score"
-    else:
-        return "Confidence"
+def _beautify_dataset_name(dataset_name: str = '') -> str:
+	if dataset_name == 'imagenet':
+		return 'ImageNet'
+	elif dataset_name == 'inat':
+		return 'iNaturalist'
+	elif dataset_name == 'dtd':
+		return 'DTD'
+	elif dataset_name == 'sun':
+		return 'SUN'
+	elif dataset_name == 'places':
+		return 'Places365'
+	elif dataset_name == 'ninco':
+		return 'NINCO'
+	elif dataset_name == 'ssb_hard':
+		return 'SSB Hard'
+	elif dataset_name == 'imagenet_perturbed':
+		return 'ImageNet Perturbed'
+	elif dataset_name == 'imagenet_full_spec':
+		return 'ImageNet Full Spec'
+
+	return dataset_name
+
+
+def _beautify_score_function_name(score_function: str = '') -> str:
+	if score_function == 'energy_score':
+		return 'Energy Score'
+	elif score_function == 'msp_score':
+		return 'MSP Score'
+	elif score_function == 'entropy_score':
+		return 'Entropy Score'
+	else:
+		return 'Confidence'
 
 
 def compute_iou_for_array(
-    data_1: np.array, data_2: np.array, num_bins: int = 1000
+	data_1: np.array, data_2: np.array, num_bins: int = 1000
 ) -> tuple[float, np.array, np.array]:
-    """
-    Compute the Intersection over Union (IoU) of two arrays.
+	"""
+	Compute the Intersection over Union (IoU) of two arrays.
 
-    Args:
-    data_1 (np.array): First array.
-    data_2 (np.array): Second array.
-    num_bins (int): Number of bins for the histograms.
+	Args:
+	data_1 (np.array): First array.
+	data_2 (np.array): Second array.
+	num_bins (int): Number of bins for the histograms.
 
-    Returns:
-    float: Intersection over Union (IoU) of the arrays.
-    np.array: Intersection of the arrays.
-    np.array: Union of the arrays.
-    """
+	Returns:
+	float: Intersection over Union (IoU) of the arrays.
+	np.array: Intersection of the arrays.
+	np.array: Union of the arrays.
+	"""
 
-    # Determine range of the histograms
-    max_val = max(max(data_1), max(data_2))
-    min_val = min(min(data_1), min(data_2))
-    bin_range = (min_val, max_val)
+	# Determine range of the histograms
+	max_val = max(max(data_1), max(data_2))
+	min_val = min(min(data_1), min(data_2))
+	bin_range = (min_val, max_val)
 
-    # Calculate histograms and bin edges
-    data_1_hist, _ = np.histogram(data_1, bins=num_bins, range=bin_range, density=True)
-    data_2_hist, _ = np.histogram(data_2, bins=num_bins, range=bin_range, density=True)
+	# Calculate histograms and bin edges
+	data_1_hist, _ = np.histogram(data_1, bins=num_bins, range=bin_range, density=True)
+	data_2_hist, _ = np.histogram(data_2, bins=num_bins, range=bin_range, density=True)
 
-    return compute_iou(data_1_hist, data_2_hist)
+	return compute_iou(data_1_hist, data_2_hist)
 
 
 def compute_iou(
-    hist_1: np.histogram, hist_2: np.histogram
+	hist_1: np.histogram, hist_2: np.histogram
 ) -> tuple[float, np.array, np.array]:
-    """
-    Compute the Intersection over Union (IoU) of two histograms.
+	"""
+	Compute the Intersection over Union (IoU) of two histograms.
 
-    Args:
-    hist_1 (np.histogram): First histogram.
-    hist_2 (np.histogram): Second histogram.
+	Args:
+	hist_1 (np.histogram): First histogram.
+	hist_2 (np.histogram): Second histogram.
 
-    Returns:
-    float: Intersection over Union (IoU) of the histograms.
-    np.array: Intersection of the histograms.
-    np.array: Union of the histograms.
-    """
+	Returns:
+	float: Intersection over Union (IoU) of the histograms.
+	np.array: Intersection of the histograms.
+	np.array: Union of the histograms.
+	"""
 
-    # Intersection over Union (IoU)
-    intersection = np.minimum(hist_1, hist_2)
-    union = np.maximum(hist_1, hist_2)
-    iou = np.sum(intersection) / np.sum(union)
+	# Intersection over Union (IoU)
+	intersection = np.minimum(hist_1, hist_2)
+	union = np.maximum(hist_1, hist_2)
+	iou = np.sum(intersection) / np.sum(union)
 
-    return iou, intersection, union
+	return iou, intersection, union

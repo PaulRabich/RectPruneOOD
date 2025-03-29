@@ -12,12 +12,12 @@ from rect_prune_ood.lib.util.paths import get_top_level_path
 
 # path to results
 results_dir = os.path.join(
-    get_top_level_path(), "results", "imagenet", "baseline_no_pruning"
+	get_top_level_path(), 'results', 'imagenet', 'baseline_no_pruning'
 )
 
 # load activations from file
 activations_perturbed = np.load(
-    os.path.join(results_dir, "imagenet_perturbed_activations.npy"), allow_pickle=True
+	os.path.join(results_dir, 'imagenet_perturbed_activations.npy'), allow_pickle=True
 )
 
 

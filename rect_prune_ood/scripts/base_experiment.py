@@ -4,12 +4,12 @@ from rect_prune_ood.lib.experiments.run_experiment import run_experiment
 
 # Define the parser and set up all the arguments
 parser = argparse.ArgumentParser(
-    description="Define the experiement to run. Changable are the different pruning and rectification methods, the dataset and the backbone."
+	description='Define the experiement to run. Changable are the different pruning and rectification methods, the dataset and the backbone.'
 )
-parser.add_argument("-backbone", type=str, help="Backbone to use")
-parser.add_argument("layer", type=str, help="Layer to use")
-parser.add_argument("pruning", type=str, help="Pruning method to use")
-parser.add_argument("rectification", type=str, help="Rectification method to use")
+parser.add_argument('-backbone', type=str, help='Backbone to use')
+parser.add_argument('layer', type=str, help='Layer to use')
+parser.add_argument('pruning', type=str, help='Pruning method to use')
+parser.add_argument('rectification', type=str, help='Rectification method to use')
 
 # Parse command-line arguments
 args = parser.parse_args()
