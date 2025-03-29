@@ -15,7 +15,7 @@ sys.path.append("./")
 
 from rect_prune_ood.lib.util.paths import get_top_level_path
 from rect_prune_ood.lib.experiments.feature_extractor import FeatureExtractor
-from rect_prune_ood.lib.experiments.backbones import get_resnet50
+from rect_prune_ood.lib.experiments.backbones import get_resnet50, get_mobilenetV2
 from rect_prune_ood.lib.experiments.pipeline import Pipeline
 from rect_prune_ood.lib.util.data_loader import get_data_loader
 from rect_prune_ood.lib.eval.metrics import *
@@ -25,9 +25,12 @@ SEVERITY = 1
 results_dir = os.path.join(get_top_level_path(), 'results')
 imagenet_c_results_dir = os.path.join(results_dir, 'imagenet', "baseline", "imagenet_c")
 data_dir = os.path.join(get_top_level_path(), 'results', f'ablation_1_apes_sev_{SEVERITY}')
-data_dir = os.path.join(get_top_level_path(), 'results', f'ablation_1_ashs_apes_sev_{SEVERITY}')
+#data_dir = os.path.join(get_top_level_path(), 'results', f'ablation_1_ashs_apes_sev_{SEVERITY}')
 
 print("Loading ImageNet-C activations")
+
+base_method = 'scale'
+backbone = 'resnet50'
 
 imagenet_c_activations = np.load(os.path.join(imagenet_c_results_dir, f"imagenet_c_activations_severity_{SEVERITY}.npy"))
 
@@ -73,7 +76,7 @@ class APESP(Module):
         return x
     
 percentile = 95
-top_p = 1
+top_p = 19
 
 file_path = os.path.join(data_dir, f'percentile_{percentile}.csv')
 if os.path.exists(file_path):
@@ -120,12 +123,12 @@ mask = mask.view(variance.shape[0], 1, 1).cuda()
 ### ImageNet ####
 #################
 
-feature_extractor = FeatureExtractor(get_resnet50(), 'avgpool')
+feature_extractor = FeatureExtractor(get_resnet50(), 'avgpool') if backbone == 'resnet50' else FeatureExtractor(get_mobilenetV2(), 'avgpool')
 
 fc_layer = feature_extractor.get_fc_layer()
 
 # pipeline = Pipeline(feature_extractor, 'baseline', fc_layer, caputure_activations=False)
-pipeline = Pipeline(feature_extractor, 'ashs', fc_layer, caputure_activations=False)
+pipeline = Pipeline(feature_extractor, base_method, fc_layer, caputure_activations=False)
 # pipeline = Pipeline(feature_extractor, 'scale', fc_layer, caputure_activations=False)
 pipeline.method_list.append(APESP(mask))
 
@@ -149,12 +152,12 @@ all_metrics = {}
 
 for ood_dataset in ood_datasets:
 
-    feature_extractor = FeatureExtractor(get_resnet50(), 'avgpool')
+    feature_extractor = FeatureExtractor(get_resnet50(), 'avgpool') if backbone == 'resnet50' else FeatureExtractor(get_mobilenetV2(), 'avgpool')
 
     fc_layer = feature_extractor.get_fc_layer()
 
     # pipeline = Pipeline(feature_extractor, 'baseline', fc_layer, caputure_activations=False)
-    pipeline = Pipeline(feature_extractor, 'ashs', fc_layer, caputure_activations=False)
+    pipeline = Pipeline(feature_extractor, base_method, fc_layer, caputure_activations=False)
     # pipeline = Pipeline(feature_extractor, 'scale', fc_layer, caputure_activations=False)
     pipeline.method_list.append(APESP(mask))
 
@@ -166,13 +169,18 @@ for ood_dataset in ood_datasets:
 
     results = pipeline.results
 
-    inat_scores = results['energy_score']
+    ood_scores = results['energy_score']
 
     ###############
     ### Metrics ###
     ###############
 
-    metrics = cal_metric(imagenet_scores, inat_scores)
+    metrics = cal_metric(imagenet_scores, ood_scores)
+
+    # if ood_dataset in ['ninco', 'ssb_hard']:
+    #     alt_metrics = cal_metric(ood_scores, imagenet_scores)
+    #     metrics['FPR'] = alt_metrics['FPR']
+
     all_metrics[ood_dataset] = metrics
 
 print(all_metrics)
