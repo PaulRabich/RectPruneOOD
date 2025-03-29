@@ -14,12 +14,21 @@ def validate_values(values):
 
 	return values
 
+def validate_backbone(backbone):
+	if backbone not in ["resnet50", "mobilenet"]:
+		raise argparse.ArgumentTypeError(
+            f'Backbone {backbone} is not supported. Choose from ["resnet50", "mobilenet"].'
+        )
+	return backbone
+
 
 def parse_args():
 	parser = argparse.ArgumentParser(
 		description='A CLI that accepts a name and a list of integers (1–19).'
 	)
 
+	parser.add_argument('--backbone', type=str, required=True, help='Backbone model name.')
+	parser.add_argument('--percentile', type=float, required=True, help='Percentile for mask creation.')
 	parser.add_argument('--name', type=str, required=True, help='Your name (string).')
 
 	parser.add_argument(
@@ -32,6 +41,7 @@ def parse_args():
 
 	args = parser.parse_args()
 	args.values = validate_values(args.values)
+	args.backbone = validate_backbone(args.backbone)
 
 	return args
 
@@ -40,6 +50,7 @@ def main():
 	args = parse_args()
 	name = args.name
 	values = args.values
+	backbone = args.backbone
 
 	# crate mask and save
 

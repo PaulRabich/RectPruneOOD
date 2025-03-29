@@ -7,7 +7,7 @@ import pandas as pd
 
 from rect_prune_ood.lib.eval.metrics import cal_metric
 from rect_prune_ood.lib.experiments.run_experiment import run_single_experiment
-from rect_prune_ood.lib.util.paths import get_top_level_path
+from rect_prune_ood.lib.util.paths import get_top_level_path, get_method_result_path
 
 
 def parse_args():
@@ -43,21 +43,6 @@ def calculate_score(method_names: List[str], datasets: List[str]):
 	# Create results dir if needed
 	os.makedirs(results_dir, exist_ok=True)
 
-	# Initialize CSV if it doesn't exist
-	if not os.path.exists(metrics_path):
-		pd.DataFrame(
-			columns=[
-				'index',
-				'method',
-				'ood_dataset',
-				'FPR',
-				'AUROC',
-				'DTERR',
-				'AUIN',
-				'AUOUT',
-			]
-		).set_index('index').to_csv(metrics_path)
-
 	for method_name in method_names:
 		run_single_experiment(
 			backbone='resnet50',
@@ -76,16 +61,13 @@ def calculate_score(method_names: List[str], datasets: List[str]):
 			)
 			# Load scores
 			id_scores = np.load(
-				os.path.join(
-					get_top_level_path(), f'results/imagenet/{method_name}/imagenet.npy'
-				),
+				get_method_result_path(backbone="resnet50", method_name=method_name) + f"/scores/imagenet.npy", 
 				allow_pickle=True,
 			).item()['energy_score']
 
 			ood_scores = np.load(
 				os.path.join(
-					get_top_level_path(),
-					f'results/imagenet/{method_name}/{dataset}.npy',
+					get_method_result_path(backbone="resnet50", method_name=method_name), f"scores/{dataset}.npy"
 				),
 				allow_pickle=True,
 			).item()['energy_score']
@@ -103,9 +85,6 @@ def calculate_score(method_names: List[str], datasets: List[str]):
 				'ood_dataset': dataset,
 				'FPR': metrics['FPR'],
 				'AUROC': metrics['AUROC'],
-				'DTERR': metrics['DTERR'],
-				'AUIN': metrics['AUIN'],
-				'AUOUT': metrics['AUOUT'],
 			}
 
 			# Append result and save
