@@ -7,7 +7,7 @@ import pandas as pd
 
 from rect_prune_ood.lib.eval.metrics import cal_metric
 from rect_prune_ood.lib.experiments.run_experiment import run_single_experiment
-from rect_prune_ood.lib.util.paths import get_top_level_path, get_method_result_path
+from rect_prune_ood.lib.util.paths import get_method_result_path, get_top_level_path
 
 
 def parse_args():
@@ -61,13 +61,17 @@ def calculate_score(method_names: List[str], datasets: List[str]):
 			)
 			# Load scores
 			id_scores = np.load(
-				get_method_result_path(backbone="resnet50", method_name=method_name) + f"/scores/imagenet.npy", 
+				get_method_result_path(backbone='resnet50', method_name=method_name)
+				+ '/scores/imagenet.npy',
 				allow_pickle=True,
 			).item()['energy_score']
 
 			ood_scores = np.load(
 				os.path.join(
-					get_method_result_path(backbone="resnet50", method_name=method_name), f"scores/{dataset}.npy"
+					get_method_result_path(
+						backbone='resnet50', method_name=method_name
+					),
+					f'scores/{dataset}.npy',
 				),
 				allow_pickle=True,
 			).item()['energy_score']

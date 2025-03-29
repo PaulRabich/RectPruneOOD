@@ -5,9 +5,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import CIFAR10, ImageFolder
 
-id_datasets = Literal[
-	'imagenet'
-]
+id_datasets = Literal['imagenet']
 ood_datasets = Literal[
 	'inat', 'dtd', 'sun', 'places', 'ninco', 'ssb-hard', 'openimage-o'
 ]
@@ -73,6 +71,7 @@ imagenet_c_perturbations = Literal[
 	'speckle_noise',
 ]
 
+
 def get_data_loader(dataset: str, batch_size: int = 100, shuffle: bool = False):
 	"""
 	Loads a dataset and returns a DataLoader for testing.
@@ -107,6 +106,7 @@ def get_data_loader(dataset: str, batch_size: int = 100, shuffle: bool = False):
 		)
 
 	return val_loader, num_classes
+
 
 def _get_id_data_loader(
 	id_dataset: id_datasets, batch_size: int = 100, shuffle: bool = False
@@ -151,6 +151,7 @@ def _get_id_data_loader(
 
 	return val_loader, num_classes
 
+
 def _get_ood_data_loader(
 	ood_dataset: str, batch_size: int = 100, shuffle: bool = False
 ):
@@ -175,21 +176,32 @@ def _get_ood_data_loader(
 
 	return val_loader
 
-def get_imagenet_c_subset_loader(subset: imagenet_c_perturbations, severity: int=1, batch_size: int = 100, shuffle: bool = False):
-    """
-        Loads a subset of the ImageNet-C dataset and returns a DataLoader for testing.
 
-        Parameters:
-        - subset (str): Name of the ImageNet-C subset ('gaussian_noise', 'shot_noise', 'impulse_noise', 'defocus_blur', 'glass_blur', 'motion_blur', 'zoom_blur', 'snow', 'frost', 'fog', 'brightness', 'contrast', 'elastic_transform', 'pixelate', 'jpeg_compression', 'speckle_noise', 'gaussian_blur', 'spatter', 'saturate').
-        - batch_size (int, optional): Number of samples per batch. Default is 100.
-        - shuffle (bool, optional): Whether to shuffle the dataset. Default is True.
-		- severity (int, optional): Severity level of the perturbation. Default is 1.
+def get_imagenet_c_subset_loader(
+	subset: imagenet_c_perturbations,
+	severity: int = 1,
+	batch_size: int = 100,
+	shuffle: bool = False,
+):
+	"""
+	Loads a subset of the ImageNet-C dataset and returns a DataLoader for testing.
 
-        Returns:
-        - val_loader (DataLoader or None): DataLoader for the specified ImageNet-C subset if available; None otherwise.
-    """
+	Parameters:
+	- subset (str): Name of the ImageNet-C subset ('gaussian_noise', 'shot_noise', 'impulse_noise', 'defocus_blur', 'glass_blur', 'motion_blur', 'zoom_blur', 'snow', 'frost', 'fog', 'brightness', 'contrast', 'elastic_transform', 'pixelate', 'jpeg_compression', 'speckle_noise', 'gaussian_blur', 'spatter', 'saturate').
+	- batch_size (int, optional): Number of samples per batch. Default is 100.
+	- shuffle (bool, optional): Whether to shuffle the dataset. Default is True.
+	- severity (int, optional): Severity level of the perturbation. Default is 1.
 
-    dataset = ImageFolder(root=os.path.join(paths['imagenet-c'], subset, f'{severity}'), transform=transform_test_largescale)
-    val_loader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
+	Returns:
+	- val_loader (DataLoader or None): DataLoader for the specified ImageNet-C subset if available; None otherwise.
+	"""
 
-    return val_loader
+	dataset = ImageFolder(
+		root=os.path.join(paths['imagenet-c'], subset, f'{severity}'),
+		transform=transform_test_largescale,
+	)
+	val_loader = DataLoader(
+		dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers
+	)
+
+	return val_loader

@@ -12,7 +12,7 @@ class EnergyScore(Metric):
 		super().__init__()
 		self.add_state('scores', default=[], dist_reduce_fx='cat')
 
-	def update(self, logits: Tensor):
+	def update(self, logits: Tensor) -> None:
 		"""Updates the inner state with the energy score of the logits.
 
 		The energy score is computed as the negative log-sum-exp of the logits.

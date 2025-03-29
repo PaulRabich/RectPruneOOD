@@ -1,14 +1,14 @@
 import argparse
-import os
 import csv
+import os
 from typing import List
-from tqdm import tqdm
 
 import numpy as np
+from tqdm import tqdm
 
 from rect_prune_ood.lib.eval.metrics import cal_metric
 from rect_prune_ood.lib.experiments.run_experiment import run_single_experiment
-from rect_prune_ood.lib.util.paths import get_top_level_path, get_method_result_path
+from rect_prune_ood.lib.util.paths import get_method_result_path, get_top_level_path
 
 
 def parse_args():
@@ -45,7 +45,7 @@ def parse_args():
 	return args
 
 
-def calculate_score(method_names: List[str], datasets: List[str], backbone:str):
+def calculate_score(method_names: List[str], datasets: List[str], backbone: str):
 	results_dir = os.path.join(get_top_level_path(), 'results')
 	metrics_path = os.path.join(results_dir, 'final_metrics.csv')
 
@@ -53,7 +53,9 @@ def calculate_score(method_names: List[str], datasets: List[str], backbone:str):
 	if not os.path.isfile(metrics_path):
 		with open(metrics_path, 'w', newline='') as f:
 			writer = csv.writer(f)
-			writer.writerow(['backbone', 'method', 'id_dataset', 'ood_dataset', 'FPR', 'AUROC'])
+			writer.writerow(
+				['backbone', 'method', 'id_dataset', 'ood_dataset', 'FPR', 'AUROC']
+			)
 
 	# Create results dir if needed
 	os.makedirs(results_dir, exist_ok=True)
@@ -76,13 +78,15 @@ def calculate_score(method_names: List[str], datasets: List[str], backbone:str):
 			)
 			# Load scores
 			id_scores = np.load(
-				get_method_result_path(backbone=backbone, method_name=method_name) + f"/scores/imagenet.npy", 
+				get_method_result_path(backbone=backbone, method_name=method_name)
+				+ '/scores/imagenet.npy',
 				allow_pickle=True,
 			).item()['energy_score']
 
 			ood_scores = np.load(
 				os.path.join(
-					get_method_result_path(backbone=backbone, method_name=method_name), f"scores/{dataset}.npy"
+					get_method_result_path(backbone=backbone, method_name=method_name),
+					f'scores/{dataset}.npy',
 				),
 				allow_pickle=True,
 			).item()['energy_score']
@@ -91,9 +95,9 @@ def calculate_score(method_names: List[str], datasets: List[str], backbone:str):
 			metrics = cal_metric(id_scores, ood_scores)
 
 			print(
-				f"Method: {method_name}, Dataset: {dataset}, FPR: {metrics['FPR']}, AUROC: {metrics['AUROC']}"
+				f'Method: {method_name}, Dataset: {dataset}, FPR: {metrics["FPR"]}, AUROC: {metrics["AUROC"]}'
 			)
-			
+
 			# Save metrics to CSV
 			with open(metrics_path, 'a', newline='') as f:
 				writer = csv.writer(f)

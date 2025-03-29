@@ -10,7 +10,7 @@ from torch.nn import Module
 
 sys.path.append('./')
 
-from rect_prune_ood.lib.eval.metrics import *
+from rect_prune_ood.lib.eval.metrics import cal_metric
 from rect_prune_ood.lib.experiments.backbones import get_mobilenetV2, get_resnet50
 from rect_prune_ood.lib.experiments.feature_extractor import FeatureExtractor
 from rect_prune_ood.lib.experiments.pipeline import Pipeline

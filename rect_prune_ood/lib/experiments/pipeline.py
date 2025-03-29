@@ -11,14 +11,7 @@ from rect_prune_ood.lib.util.names import get_module_list
 
 # pipeline for (APES) methods
 class Pipeline(LightningModule):
-	def __init__(
-		self,
-		featureExtractor,
-		method_name: str,
-		fc_layer: Module,
-		caputure_activations=False,
-	) -> None:
-		"""applies activation shaping methods to data and performs post hoc OOD prediction on input data
+	"""Applies activation shaping methods to data and performs post hoc OOD prediction on input data
 
 		Args:
 			featureExtractor (MobileNetFeatureExtractor | FeatureExtractor): gets activations of penultimate layer of backbone
@@ -26,7 +19,13 @@ class Pipeline(LightningModule):
 			fc_layer (Module): Fully connected layer matching to the backbone to get final prediction result
 			caputure_activations (bool, optional): If we want to save the layer activations in addition to the results. Defaults to False.
 		"""
-
+	def __init__(
+		self,
+		featureExtractor,
+		method_name: str,
+		fc_layer: Module,
+		caputure_activations=False,
+	) -> None:
 		super().__init__()
 		self.featureExtractor = featureExtractor
 		self.method_name = method_name
@@ -50,7 +49,16 @@ class Pipeline(LightningModule):
 			self.activations: np.ndarray = None
 
 	# forwards step of methods
-	def forward(self, x) -> torch.Tensor:
+	def forward(self, x:torch.Tensor) -> torch.Tensor:
+		"""Forward pass through the pipeline.
+		Apply the feature extractor, followed by the methods specified in method_list,
+
+		Args:
+			x (torch.Tensor): Input tensor.
+
+		Returns:
+			torch.Tensor: Output tensor after applying the feature extractor and methods.
+		"""		
 		# get features of layer
 		x = self.featureExtractor(x)
 		# potentially save them
@@ -65,7 +73,7 @@ class Pipeline(LightningModule):
 
 		return x
 
-	def training_step(self, batch, batch_idx):
+	def training_step(self, batch:torch.Tensor, batch_idx:int):
 		raise NotImplementedError(
 			'The aim of this class is only to evaluate the performance of the model'
 		)
@@ -76,7 +84,13 @@ class Pipeline(LightningModule):
 		)
 
 	# lightning implementation of test step
-	def test_step(self, batch, batch_idx):
+	def test_step(self, batch:torch.Tensor, batch_idx:int) -> None:
+		"""Test step for the pipeline.
+
+		Args:
+			batch (torch.Tensor): Input batch of data.
+			batch_idx (int): Batch index.
+		"""		
 		image, label = batch
 
 		images = image.cuda()
@@ -95,7 +109,9 @@ class Pipeline(LightningModule):
 		# compute the metrics
 		self.metrics.update(logits)
 
-	def on_test_epoch_end(self):
+	def on_test_epoch_end(self) -> None:
+		"""Saving the results of the test step and resetting the metrics and prediction list.
+		"""		
 		# Compute Metrics
 		self.results = {}
 		self.results = self.metrics.compute()

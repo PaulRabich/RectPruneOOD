@@ -6,6 +6,16 @@ from torch.nn import Module
 
 # Class to extract activations of the specified layer from resnet50
 class FeatureExtractor(Module):
+	"""Class for extracting features from a specific layer of a backbone model.
+
+	Args:
+		backbone (Module): The backbone model from which to extract features.
+		layer (str): The name of the layer from which to extract features.
+		fc_name (str, optional): The name of the fully connected layer. Defaults to 'fc'.
+
+	Raises:
+		ValueError: If the specified layer is not found in the backbone model.
+	"""	
 	def __init__(self, backbone: Module, layer: str, fc_name: str = 'fc') -> None:
 		super().__init__()
 		# init attributes
@@ -44,15 +54,35 @@ class FeatureExtractor(Module):
 
 	# hook that saves the activations of specified layer in the feature list on forwards call
 	def _forward_hook(self, module: Module, input: Any, output: Any) -> None:
+		"""Forward hook to save the activations of the specified layer.
+
+		Args:
+			module (Module): The module that is being hooked
+			input (Any): The input to the module
+			output (Any): The output of the module
+		"""		
 		self.feature = output
 
 	# perform forward step, feature now contains activations because of hook
-	def forward(self, x: Any) -> torch.Tensor:
+	def forward(self, x: torch.Tensor) -> torch.Tensor:
+		"""Forward pass through the backbone model.
+
+		Args:
+			x (torch.Tensor): Input tensor to the model.
+
+		Returns:
+			torch.Tensor: The output tensor from the model.
+		"""		
 		_ = self.backbone(x)
 		return self.feature
 
 	# for pipeline later, return fully connected layer to continue after features
 	def get_fc_layer(self) -> Module:
+		"""Return the fully connected layer of the backbone model.
+
+		Returns:
+			Module: The fully connected layer of the backbone model.
+		"""		
 		return self.fc_layer
 
 

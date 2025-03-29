@@ -1,7 +1,8 @@
 import os
 from typing import Literal
 
-backbones = Literal["resnet50", "mobilenetV2"]
+backbones = Literal['resnet50', 'mobilenetV2']
+
 
 def get_top_level_path():
 	# get the absolute path of this file
@@ -13,7 +14,9 @@ def get_top_level_path():
 
 
 def get_method_result_path(
-	base_dataset: str = 'imagenet', backbone: backbones = "resnet50", method_name: str = 'baseline'
+	base_dataset: str = 'imagenet',
+	backbone: backbones = 'resnet50',
+	method_name: str = 'baseline',
 ):
 	result_dir = os.path.join(
 		get_top_level_path(), f'results/{base_dataset}/{backbone}/{method_name}'
