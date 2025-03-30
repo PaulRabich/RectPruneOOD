@@ -15,7 +15,8 @@ class FeatureExtractor(Module):
 
 	Raises:
 		ValueError: If the specified layer is not found in the backbone model.
-	"""	
+	"""
+
 	def __init__(self, backbone: Module, layer: str, fc_name: str = 'fc') -> None:
 		super().__init__()
 		# init attributes
@@ -60,7 +61,7 @@ class FeatureExtractor(Module):
 			module (Module): The module that is being hooked
 			input (Any): The input to the module
 			output (Any): The output of the module
-		"""		
+		"""
 		self.feature = output
 
 	# perform forward step, feature now contains activations because of hook
@@ -72,7 +73,7 @@ class FeatureExtractor(Module):
 
 		Returns:
 			torch.Tensor: The output tensor from the model.
-		"""		
+		"""
 		_ = self.backbone(x)
 		return self.feature
 
@@ -82,7 +83,7 @@ class FeatureExtractor(Module):
 
 		Returns:
 			Module: The fully connected layer of the backbone model.
-		"""		
+		"""
 		return self.fc_layer
 
 

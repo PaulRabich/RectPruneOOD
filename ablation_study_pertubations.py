@@ -10,12 +10,6 @@ from rect_prune_ood.lib.experiments.backbones import get_resnet50
 from rect_prune_ood.lib.experiments.feature_extractor import FeatureExtractor
 from rect_prune_ood.lib.experiments.pipeline import Pipeline
 from rect_prune_ood.lib.util.data_loader import get_data_loader
-
-# module_path = os.path.abspath(os.path.join('..', ''))
-# if module_path not in sys.path:
-#     sys.path.append(module_path)
-# import sys
-# sys.path.append("./")
 from rect_prune_ood.lib.util.paths import get_top_level_path
 
 results_dir = os.path.join(get_top_level_path(), 'results')
@@ -26,7 +20,6 @@ os.makedirs(ablation_study_results_dir, exist_ok=True)
 
 class APESP(Module):
 	def __init__(self, mask) -> None:
-		# super(LayerScaler, self).__init__()
 		super(APESP, self).__init__()
 		self.mask = mask
 

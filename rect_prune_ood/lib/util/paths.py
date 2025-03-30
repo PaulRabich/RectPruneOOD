@@ -9,7 +9,7 @@ def get_top_level_path() -> os.PathLike:
 
 	Returns:
 		os.PathLike: The absolute path of the top level directory.
-	"""	
+	"""
 	# get the absolute path of this file
 	abs_path = os.path.dirname(os.path.abspath(__file__))
 	# get the parent directory
@@ -32,7 +32,7 @@ def get_method_result_path(
 
 	Returns:
 		os.PathLike: The path to the results directory for the specified method.
-	"""	
+	"""
 	result_dir = os.path.join(
 		get_top_level_path(), f'results/{base_dataset}/{backbone}/{method_name}'
 	)

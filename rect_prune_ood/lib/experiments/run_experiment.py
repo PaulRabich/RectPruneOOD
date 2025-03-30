@@ -169,7 +169,7 @@ def _run_imagenet_c_experiment(
 		method_name (str): The name of the method to apply.
 		capture_activations (bool, optional): Whether to caputure and save the activations. Defaults to False.
 		severity (int, optional): The severity of the perturbation. Defaults to 1.
-	"""	
+	"""
 	imagenet_c_pertubations = [
 		'brightness',
 		'defocus_blur',

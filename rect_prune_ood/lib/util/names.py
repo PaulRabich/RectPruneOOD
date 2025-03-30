@@ -36,7 +36,7 @@ def get_module_list(method_name: str) -> List[Module]:
 
 	Returns:
 		List[Module]: A list of instantiated modules corresponding to the method name and given parameters.
-	"""	
+	"""
 	if method_name == 'baseline':
 		return []
 

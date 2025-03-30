@@ -1,8 +1,7 @@
-import os
-
 import numpy as np
 import torch
 from torch.nn import Module
+
 
 class AshBPruningModule(Module):
 	def __init__(self, percentage=65):
@@ -10,11 +9,11 @@ class AshBPruningModule(Module):
 
 		Args:
 			percentage (int, optional): The percentage of pruning. Defaults to 65.
-		"""		
+		"""
 		super().__init__()
 		self.percentage = percentage
 
-	def forward(self, x:torch.Tensor) -> torch.Tensor:
+	def forward(self, x: torch.Tensor) -> torch.Tensor:
 		"""Forward pass of the AshB module.
 
 		Args:
@@ -22,7 +21,7 @@ class AshBPruningModule(Module):
 
 		Returns:
 			torch.Tensor: Output tensor after applying the AshB pruning.
-		"""		
+		"""
 		x = self.ash_b(x, self.percentage)
 		return x
 
@@ -53,7 +52,7 @@ class SCALEModule(Module):
 
 		Args:
 			percentage (int, optional): Percentage of pruning. Defaults to 90.
-		"""		
+		"""
 		super().__init__()
 		self.percentage = percentage
 
@@ -93,7 +92,7 @@ class AshSPruningModule(Module):
 
 		Args:
 			percentage (int, optional): Pruning percentage. Defaults to 90.
-		"""		
+		"""
 		super().__init__()
 		self.percentage = int(percentage)
 
@@ -134,7 +133,7 @@ class AshPPruningModule(Module):
 
 		Args:
 			percentage (int, optional): Pruning percentage. Defaults to 50.
-		"""		
+		"""
 		super(AshPPruningModule, self).__init__()
 		self.percentage = percentage
 
@@ -166,7 +165,7 @@ class ReactRectModule(Module):
 
 		Args:
 			threshold (float, optional): Threshold for clipping the values. Defaults to 1.0.
-		"""		
+		"""
 		super(ReactRectModule, self).__init__()
 		self.threshold = threshold
 

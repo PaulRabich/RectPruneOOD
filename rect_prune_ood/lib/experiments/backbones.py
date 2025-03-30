@@ -14,7 +14,7 @@ model_urls = {
 }
 
 
-def get_resnet50(pretrained:bool=True) -> models.ResNet:
+def get_resnet50(pretrained: bool = True) -> models.ResNet:
 	"""Returns a pretrained resnet50 model.
 
 	Args:
@@ -22,7 +22,7 @@ def get_resnet50(pretrained:bool=True) -> models.ResNet:
 
 	Returns:
 		models.ResNet: The pretrained resnet50 model.
-	"""	
+	"""
 	# Load and return pretrained resnet50 model
 	resnet = resnet50(weights='IMAGENET1K_V1')
 	if pretrained:
@@ -31,7 +31,7 @@ def get_resnet50(pretrained:bool=True) -> models.ResNet:
 	return resnet
 
 
-def get_mobilenetV2(pretrained:bool=True) -> models.MobileNetV2:
+def get_mobilenetV2(pretrained: bool = True) -> models.MobileNetV2:
 	"""Returns a pretrained mobilenetV2 model.
 
 	Args:
@@ -39,7 +39,7 @@ def get_mobilenetV2(pretrained:bool=True) -> models.MobileNetV2:
 
 	Returns:
 		models.MobileNetV2: The pretrained mobilenetV2 model.
-	"""	
+	"""
 	# Load and return pretrained mobilenetV2 model
 	mobilenet = models.mobilenet_v2(weights='IMAGENET1K_V1')
 

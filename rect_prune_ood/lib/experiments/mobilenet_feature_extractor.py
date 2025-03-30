@@ -11,7 +11,8 @@ class MobileNetFeatureExtractor(Module):
 
 	Args:
 		backbone (Module): Backbone model, typically MobileNetV2.
-	"""	
+	"""
+
 	def __init__(self, backbone: Module) -> None:
 		super().__init__()
 		# bacbone is mobilenetV2
@@ -27,7 +28,7 @@ class MobileNetFeatureExtractor(Module):
 
 		Returns:
 			torch.Tensor: Pooled features from the backbone.
-		"""		
+		"""
 		x = self.backbone.features(x)
 		x = nn.functional.adaptive_avg_pool2d(x, (1, 1))
 		return x
@@ -38,5 +39,5 @@ class MobileNetFeatureExtractor(Module):
 
 		Returns:
 			Module: Fully connected layer of the backbone.
-		"""		
+		"""
 		return self.fc_layer

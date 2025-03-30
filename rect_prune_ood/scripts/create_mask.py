@@ -14,6 +14,7 @@ def validate_values(values):
 
 	return values
 
+
 def validate_percentile(percentile):
 	if percentile < 0 or percentile > 100:
 		raise argparse.ArgumentTypeError(
@@ -21,11 +22,12 @@ def validate_percentile(percentile):
 		)
 	return percentile
 
+
 def validate_backbone(backbone):
-	if backbone not in ["resnet50", "mobilenet"]:
+	if backbone not in ['resnet50', 'mobilenet']:
 		raise argparse.ArgumentTypeError(
-            f'Backbone {backbone} is not supported. Choose from ["resnet50", "mobilenet"].'
-        )
+			f'Backbone {backbone} is not supported. Choose from ["resnet50", "mobilenet"].'
+		)
 	return backbone
 
 
@@ -34,8 +36,12 @@ def parse_args():
 		description='A CLI that accepts a name and a list of integers (1–19).'
 	)
 
-	parser.add_argument('--backbone', type=str, required=True, help='Backbone model name.')
-	parser.add_argument('--percentile', type=float, required=True, help='Percentile for mask creation.')
+	parser.add_argument(
+		'--backbone', type=str, required=True, help='Backbone model name.'
+	)
+	parser.add_argument(
+		'--percentile', type=float, required=True, help='Percentile for mask creation.'
+	)
 	parser.add_argument('--name', type=str, required=True, help='Your name (string).')
 
 	parser.add_argument(
@@ -58,7 +64,7 @@ def main():
 	args = parse_args()
 	name = args.name
 	values = args.values
-	backbone = args.backbone	
+	backbone = args.backbone
 	percentile = args.percentile
 
 	# crate mask and save

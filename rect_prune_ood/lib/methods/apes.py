@@ -17,7 +17,7 @@ class APES(Module):
 
 		Raises:
 			FileNotFoundError: If the mask file does not exist in the results directory.
-		"""		
+		"""
 		super().__init__()
 		mask_path = os.path.join(
 			get_top_level_path(), 'results', f'masks/{mask_name}.npy'
