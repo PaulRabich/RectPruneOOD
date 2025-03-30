@@ -17,7 +17,7 @@ from rect_prune_ood.lib.util.paths import get_top_level_path
 
 SEVERITY = 1
 
-results_dir = os.path.join(get_top_level_path(), 'results')
+results_dir = os.path.join(get_top_level_path(), 'results', 'ablation', '2_perturbation_combination')
 imagenet_c_results_dir = os.path.join(results_dir, 'imagenet', 'baseline', 'imagenet_c')
 # data_dir = os.path.join(get_top_level_path(), 'results', f'percentile_mega_ablation_sev_{SEVERITY}')
 data_dir = os.path.join(

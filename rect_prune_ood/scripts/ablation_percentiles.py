@@ -1,31 +1,21 @@
+import argparse
+import subprocess
 import csv
 import os
-
+from tqdm import tqdm
 import numpy as np
-import torch
-from lightning import Trainer
-from torch import Tensor
-from torch.nn import Module
 
-from rect_prune_ood.lib.eval.metrics import cal_metric
-from rect_prune_ood.lib.experiments.backbones import get_resnet50
-from rect_prune_ood.lib.experiments.feature_extractor import FeatureExtractor
-from rect_prune_ood.lib.experiments.pipeline import Pipeline
-from rect_prune_ood.lib.util.data_loader import get_data_loader
+from rect_prune_ood.lib.eval.metrics import cal_metric, cal_metric_near_ood
 from rect_prune_ood.lib.util.paths import get_top_level_path
+from rect_prune_ood.lib.experiments.run_experiment import run_single_experiment
 
 results_dir = os.path.join(get_top_level_path(), 'results')
-imagenet_c_results_dir = os.path.join(results_dir, 'imagenet', 'baseline', 'imagenet_c')
 
-print('Loading ImageNet-C activations')
+ablation_results_dir = os.path.join(results_dir, 'ablation', '1_percentiles')
+os.makedirs(ablation_results_dir, exist_ok=True)
 
-severity = 1
-
-imagenet_c_activations = np.load(
-	os.path.join(
-		imagenet_c_results_dir, f'imagenet_c_activations_severity_{severity}.npy'
-	)
-)
+masks_dir = os.path.join(results_dir, 'masks')
+os.makedirs(masks_dir, exist_ok=True)
 
 imagenet_c_perturbations = [
 	'brightness',
@@ -49,114 +39,174 @@ imagenet_c_perturbations = [
 	'speckle_noise',
 ]
 
+def run_mask_creation(backbone: str, percentile: int, name: str, severity: int, value: int):
+	command = [
+		'python',
+		'./create_mask.py',
+		'--name',
+		name,
+		'--backbone',
+		backbone,
+		'--percentile',
+		str(percentile),
+		'--severity',
+		str(severity),
+		'--values',
+		str(value),
+	]
 
-class APESP(Module):
-	def __init__(self, mask) -> None:
-		super(APESP, self).__init__()
-		self.mask = mask
+	result = subprocess.run(command, capture_output=True, text=True)
+	if result.stderr:
+		print("Error:", result.stderr)
 
-	def forward(self, x: Tensor) -> Tensor:
-		x = self.apes_p(x)
-		return x
+def run_single_experiment(backbone: str, dataset: str, method_name: str):
+	command = [
+		'python',
+		'./calculate_score.py',
+		'--method_names',
+		method_name,
+		'--datasets',
+		f'imagenet {dataset}',
+		'--backbone',
+		backbone
+	]
+	
+	result = subprocess.run(command, capture_output=True, text=True)
+	if result.stderr:
+		print("Error:", result.stderr)
 
-	def apes_p(self, x):
-		assert x.dim() == 4
-		_, c, _, _ = x.shape
-		assert self.mask.shape[0] == c
+def validate_percentiles(percentiles):
+	for percentile in percentiles:
+		if not (0 <= percentile <= 100):
+			raise argparse.ArgumentTypeError(
+				f"Percentile {percentile} is not between 0 and 100."
+			)
+	return percentiles
 
-		x = x * self.mask
-
-		return x
-
-
-for percentile in [95]:  # [i * 5 for i in reversed(range(2, 19))]:
-	if percentile == 0:
-		continue
-
-	all_metrics = []
-
-	for perturbation in range(len(imagenet_c_perturbations)):
-		print()
-		print('#' * 50)
-		print(f'Percentile: {percentile}')
-		print(f'Perturbation: {imagenet_c_perturbations[perturbation]}')
-		print('#' * 50)
-
-		activations = imagenet_c_activations[perturbation]
-
-		variance = np.var(activations, axis=1)
-		variance = torch.tensor(variance)
-
-		p = np.percentile(variance, percentile)
-
-		mask = torch.where(variance <= p, 1, 0)
-		mask = mask.view(variance.shape[0], 1, 1).cuda()
-
-		#################
-		### ImageNet ####
-		#################
-
-		feature_extractor = FeatureExtractor(get_resnet50(), 'avgpool')
-
-		fc_layer = feature_extractor.get_fc_layer()
-
-		pipeline = Pipeline(
-			feature_extractor, 'ashs', fc_layer, caputure_activations=False
-		)
-		pipeline.method_list.append(APESP(mask))
-
-		dataloader, _ = get_data_loader('imagenet', batch_size=16)
-
-		# Trainer
-		trainer = Trainer(logger=None)
-		trainer.test(pipeline, dataloader)
-
-		results = pipeline.results
-
-		imagenet_scores = results['energy_score']
-
-		####################
-		### OpenImage-O ####
-		####################
-
-		feature_extractor = FeatureExtractor(get_resnet50(), 'avgpool')
-
-		fc_layer = feature_extractor.get_fc_layer()
-
-		pipeline = Pipeline(
-			feature_extractor, 'ashs', fc_layer, caputure_activations=False
-		)
-		pipeline.method_list.append(APESP(mask))
-
-		dataloader, _ = get_data_loader('openimage-o', batch_size=16)
-
-		# Trainer
-		trainer = Trainer(logger=None)
-		trainer.test(pipeline, dataloader)
-
-		results = pipeline.results
-
-		openimage_o_scores = results['energy_score']
-
-		###############
-		### Metrics ###
-		###############
-
-		metrics = cal_metric(imagenet_scores, openimage_o_scores)
-		metrics['perturbation'] = imagenet_c_perturbations[perturbation]
-
-		all_metrics.append(metrics)
-
-	csv_file = os.path.join(
-		results_dir,
-		f'ablation_1_ashs_apes_sev_{severity}',
-		f'percentile_{percentile}.csv',
+def parse_args():
+	parser = argparse.ArgumentParser(
+		description='CLI that allows to recreate the ablation study over pruning percentiles for the report.'
 	)
 
-	os.makedirs(os.path.dirname(csv_file), exist_ok=True)
+	parser.add_argument(
+		'--severity',
+		type=int,
+		default=1,
+		help='Imagenet-C severity level (default: 1).',
+	)
 
-	with open(csv_file, mode='w') as file:
-		writer = csv.DictWriter(file, fieldnames=all_metrics[0].keys())
-		writer.writeheader()
-		for metric in all_metrics:
-			writer.writerow(metric)
+	parser.add_argument(
+		'--backbone',
+		type=str,
+		default='resnet50',
+		choices=['resnet50', 'mobilenetv2'],
+		help='Backbone model name (default: resnet50). Options: [resnet50, mobilenetv2]',
+	)
+
+	parser.add_argument(
+		'--percentiles',
+		type=int,
+		nargs='*',
+		required=True,
+		help='List of integers between 0 and 100. Percentile p corresponds to pruning 100-p% of the activations.',
+	)
+
+	parser.add_argument(
+		'--dataset',
+		type=str,
+		default='openimage-o',
+		help='Dataset to run the ablation on (default: openimage-o).',
+	)
+
+	return parser.parse_args()
+
+def main():
+	args = parse_args()
+	percentiles = validate_percentiles(args.percentiles)
+	severity = args.severity
+	backbone = args.backbone
+	dataset = args.dataset
+
+	for percentile in tqdm(percentiles):
+
+		all_metrics = []
+
+		for value in tqdm(range(1, 20)):
+			perturbation_name = imagenet_c_perturbations[value - 1]
+
+			mask_name = f'{backbone}-sev{severity}-{perturbation_name}-percentile-{percentile}'
+
+			# Check if the mask file exists
+			mask_file_path = os.path.join(
+				masks_dir, f'{mask_name}.npy'
+			)
+
+			if not os.path.isfile(mask_file_path):
+				print(
+					f'Mask file for {perturbation_name} does not exist. Running experiment...'
+				)
+				run_mask_creation(
+					backbone=backbone,
+					percentile=percentile,
+					name=mask_name,
+					severity=severity,
+					value=value,
+				)
+
+			method_name = f'apes@{mask_name}'
+			
+			run_single_experiment(
+				backbone=backbone,
+				dataset=dataset,
+				method_name=method_name,
+			)
+
+			scores_path = os.path.join(
+				results_dir,
+				'imagenet',
+				backbone,
+				method_name,
+				'scores'
+			)
+
+			# Load imagenet scores
+			id_scores = np.load(
+				os.path.join(
+					scores_path,
+					'imagenet.npy',
+				),
+				allow_pickle=True,
+			).item()['energy_score']
+
+			ood_scores = np.load(
+				os.path.join(
+					scores_path,
+					f'{dataset}.npy',
+				),
+				allow_pickle=True,
+			).item()['energy_score']
+
+			# Calculate metrics
+			if dataset in ['ninco', 'ssb-hard']:
+				metrics = cal_metric_near_ood(id_scores, ood_scores)
+			else:
+				metrics = cal_metric(id_scores, ood_scores)
+
+			metrics['perturbation'] = perturbation_name
+			all_metrics.append(metrics)
+
+		csv_file = os.path.join(
+			ablation_results_dir,
+			f'{backbone}_sev_{severity}_percentile_{percentile}.csv',
+		)
+
+		os.makedirs(os.path.dirname(csv_file), exist_ok=True)
+
+		with open(csv_file, mode='w') as file:
+			writer = csv.DictWriter(file, fieldnames=all_metrics[0].keys())
+			writer.writeheader()
+			for metric in all_metrics:
+				writer.writerow(metric)
+
+if __name__ == '__main__':
+	main()
