@@ -7,9 +7,12 @@ name = "APES"
 version = "0.1.0"
 description = "Implementation of the APES algorithm for OOD detection"
 
-
 [tool.setuptools]
 packages = ["rect_prune_ood"]
+dynamic = ["dependencies", "optional-dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
 
 [tool.ruff]
 line-length = 88                    

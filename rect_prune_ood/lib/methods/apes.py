@@ -10,6 +10,14 @@ from rect_prune_ood.lib.util.paths import get_top_level_path
 
 class APES(Module):
 	def __init__(self, mask_name: str) -> None:
+		"""Main implementation of APES. The mask is loaded from the results directory.
+
+		Args:
+			mask_name (str): Name of the mask file without the .npy extension or path.
+
+		Raises:
+			FileNotFoundError: If the mask file does not exist in the results directory.
+		"""		
 		super().__init__()
 		mask_path = os.path.join(
 			get_top_level_path(), 'results', f'masks/{mask_name}.npy'

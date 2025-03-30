@@ -4,19 +4,29 @@ import numpy as np
 import torch
 from torch.nn import Module
 
-from rect_prune_ood.lib.methods.route_classes import RouteDICE
-
-
 class AshBPruningModule(Module):
 	def __init__(self, percentage=65):
-		super(AshBPruningModule, self).__init__()
+		"""Reimplementaion of the AshB method from the paper.
+
+		Args:
+			percentage (int, optional): The percentage of pruning. Defaults to 65.
+		"""		
+		super().__init__()
 		self.percentage = percentage
 
-	def forward(self, x):
+	def forward(self, x:torch.Tensor) -> torch.Tensor:
+		"""Forward pass of the AshB module.
+
+		Args:
+			x (torch.Tensor): Input tensor of shape (batch_size, channels, height, width).
+
+		Returns:
+			torch.Tensor: Output tensor after applying the AshB pruning.
+		"""		
 		x = self.ash_b(x, self.percentage)
 		return x
 
-	def ash_b(self, x, percentile=65):
+	def ash_b(self, x, percentile):
 		assert x.dim() == 4
 		assert 0 <= percentile <= 100
 		b, c, h, w = x.shape
@@ -39,7 +49,12 @@ class AshBPruningModule(Module):
 
 class SCALEModule(Module):
 	def __init__(self, percentage=90):
-		super(SCALEModule, self).__init__()
+		"""Reimplementation of the SCALE method.
+
+		Args:
+			percentage (int, optional): Percentage of pruning. Defaults to 90.
+		"""		
+		super().__init__()
 		self.percentage = percentage
 
 	def forward(self, x):
@@ -74,14 +89,19 @@ class SCALEModule(Module):
 
 class AshSPruningModule(Module):
 	def __init__(self, percentage=90):
-		super(AshSPruningModule, self).__init__()
-		self.percentage = percentage
+		"""Reimplementation of the AshS method.
+
+		Args:
+			percentage (int, optional): Pruning percentage. Defaults to 90.
+		"""		
+		super().__init__()
+		self.percentage = int(percentage)
 
 	def forward(self, x):
 		x = self.ash_s(x, self.percentage)
 		return x
 
-	def ash_s(self, x, percentile=65):
+	def ash_s(self, x, percentile):
 		percentile = int(percentile)
 		assert x.dim() == 4
 		assert 0 <= percentile <= 100
@@ -110,6 +130,11 @@ class AshSPruningModule(Module):
 
 class AshPPruningModule(Module):
 	def __init__(self, percentage=50):
+		"""REimplementation of the AshP method.
+
+		Args:
+			percentage (int, optional): Pruning percentage. Defaults to 50.
+		"""		
 		super(AshPPruningModule, self).__init__()
 		self.percentage = percentage
 
@@ -117,7 +142,7 @@ class AshPPruningModule(Module):
 		x = self.ash_p(x, self.percentage)
 		return x
 
-	def ash_p(self, x, percentile=50):
+	def ash_p(self, x, percentile):
 		assert x.dim() == 4
 		assert 0 <= percentile <= 100
 
@@ -135,41 +160,13 @@ class AshPPruningModule(Module):
 		return super().__str__() + f' with percentage {self.percentage}'
 
 
-class DicePruningModule(Module):
-	def __init__(
-		self,
-		fc_layer,
-		p=90,
-		num_classes=1000,
-		info_path=os.path.join(
-			os.path.dirname(os.path.abspath(__file__)),
-			'imagenet_resnet50_feat_stat.npy',
-		),
-		clip_threshold=1e5,
-	):
-		self.p = p
-		self.info_path = info_path
-
-		# f"cache/{args.in_dataset}_{args.model_arch}_feat_stat.npy")
-		# info = np.load(self.info_path)
-		in_features = 512 * 4  # block.expansion
-		out_features = num_classes
-		last_layer = RouteDICE(in_features, out_features, p=p, info=info_path)
-		self.clip_threshold = clip_threshold
-
-		super(DicePruningModule, self).__init__(last_layer)
-
-	def forward(self, x):
-		raise NotImplementedError(
-			'This method should not be called. Problem with the fully connected layer at the end.'
-		)
-		# x = x.clip(max=self.clip_threshold)
-		x = x.view(x.size(0), -1)
-		return self.fc_layer(x)
-
-
 class ReactRectModule(Module):
 	def __init__(self, threshold=1.0):
+		"""Reimplementation of the ReactRect method.
+
+		Args:
+			threshold (float, optional): Threshold for clipping the values. Defaults to 1.0.
+		"""		
 		super(ReactRectModule, self).__init__()
 		self.threshold = threshold
 
@@ -178,47 +175,3 @@ class ReactRectModule(Module):
 
 	def __str__(self):
 		return super().__str__() + f' with threshold {self.threshold}'
-
-
-class BatsRectModule(torch.nn.Module):
-	def __init__(
-		self,
-		dataset: str = 'ImageNet',
-		mean_path: str = os.path.join('RectPruneOOD', 'cache', 'vit_features_std.pt'),
-		std_path: str = os.path.join('RectPruneOOD', 'cache', 'vit_features_mean.pt'),
-	):
-		super().__init__()
-		self.mean_path = mean_path
-		self.std_path = std_path
-		self.dataset = dataset
-		# if self.dataset == 'ImageNet':
-		# mean std data
-		self.feature_std = torch.load(
-			os.path.join(
-				os.path.dirname(os.path.abspath(__file__)), 'last_batchnorm_mean.pt'
-			)
-		).cuda()
-		self.feature_mean = torch.load(
-			os.path.join(
-				os.path.dirname(os.path.abspath(__file__)), 'last_batchnorm_std.pt'
-			)
-		).cuda()
-		self.lam = 1.05
-
-	def forward(self, x):
-		# mean std data
-		# feature_std = torch.load(self.mean_path).cuda()
-		# feature_mean = torch.load(self.std_path).cuda()
-
-		x = x.view(x.size(0), -1)
-		x = torch.where(
-			x < (self.feature_std * self.lam + self.feature_mean),
-			x,
-			self.feature_std * self.lam + self.feature_mean,
-		)
-		x = torch.where(
-			x > (-self.feature_std * self.lam + self.feature_mean),
-			x,
-			-self.feature_std * self.lam + self.feature_mean,
-		)
-		return x

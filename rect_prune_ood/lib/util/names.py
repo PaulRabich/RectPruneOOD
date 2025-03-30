@@ -26,6 +26,17 @@ module_dict = {
 
 
 def get_module_list(method_name: str) -> List[Module]:
+	"""Creates a list of modules based on the method name.
+
+	Args:
+		method_name (str): The name of the method to create modules for. The method name can be a combination of module names separated by underscores.
+
+	Raises:
+		ValueError: If the method name is invalid or if a module string is not recognized.
+
+	Returns:
+		List[Module]: A list of instantiated modules corresponding to the method name and given parameters.
+	"""	
 	if method_name == 'baseline':
 		return []
 
