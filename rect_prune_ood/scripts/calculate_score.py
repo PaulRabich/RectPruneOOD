@@ -6,7 +6,7 @@ from typing import List
 import numpy as np
 from tqdm import tqdm
 
-from rect_prune_ood.lib.eval.metrics import cal_metric
+from rect_prune_ood.lib.eval.metrics import cal_metric, cal_metric_near_ood
 from rect_prune_ood.lib.experiments.run_experiment import run_single_experiment
 from rect_prune_ood.lib.util.paths import get_method_result_path, get_top_level_path
 
@@ -92,7 +92,10 @@ def calculate_score(method_names: List[str], datasets: List[str], backbone: str)
 			).item()['energy_score']
 
 			# Calculate metrics
-			metrics = cal_metric(id_scores, ood_scores)
+			if dataset in ['ninco', 'ssb-hard']:
+				metrics = cal_metric_near_ood(id_scores, ood_scores)
+			else:
+				metrics = cal_metric(id_scores, ood_scores)
 
 			print(
 				f'Method: {method_name}, Dataset: {dataset}, FPR: {metrics["FPR"]}, AUROC: {metrics["AUROC"]}'

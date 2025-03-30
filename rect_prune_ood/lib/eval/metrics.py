@@ -6,6 +6,7 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
+from sklearn import metrics
 
 from rect_prune_ood.lib.util.paths import get_method_result_path, get_top_level_path
 from rect_prune_ood.lib.util.results_loader import load_scores_for_method
@@ -13,8 +14,45 @@ from rect_prune_ood.lib.util.results_loader import load_scores_for_method
 """
 Code in here is taken straight from: https://github.com/deeplearning-wisc/react/blob/master/util/metrics.py 
 -> for reproducability purposes
+
+cal_metric_near_ood is a modified version of the original cal_metric function, taking the logic for FPR computation
+from SCALE: https://github.com/kai422/SCALE/blob/main/openood/evaluators/metrics.py
 """
 
+def cal_metric_near_ood(id_scores, ood_scores, tpr_th=0.95):
+    """
+    Computes AUROC and FPR by swapping ID and OOD in the calculation.
+
+    Args:
+        id_scores (numpy array): Scores for the in-distribution (ID) samples.
+        ood_scores (numpy array): Scores for the out-of-distribution (OOD) samples.
+        tpr_th (float, optional): Threshold for computing FPR at a given TPR. Default is 0.95.
+
+    Returns:
+        dict: Contains 'AUROC' and 'FPR' values.
+    """
+    
+    # Labels: ID samples = 1, OOD samples = -1
+    id_labels = np.ones_like(id_scores)
+    ood_labels = -np.ones_like(ood_scores)
+
+    # Concatenate scores and labels
+    scores = np.concatenate([id_scores, ood_scores])
+    labels = np.concatenate([id_labels, ood_labels])
+
+    # Convert OOD labels (-1) to 1 (positive class for ROC)
+    ood_indicator = (labels == -1).astype(int)
+
+    # Reverse scores because we assume ID scores are higher
+    fpr_list, tpr_list, _ = metrics.roc_curve(ood_indicator, -scores)
+
+    # Get FPR at the specified TPR threshold
+    fpr_at_tpr_th = fpr_list[np.argmax(tpr_list >= tpr_th)]
+
+    # Compute AUROC
+    auroc = metrics.auc(fpr_list, tpr_list)
+
+    return {"AUROC": auroc, "FPR": fpr_at_tpr_th}
 
 def cal_metric(
 	known,

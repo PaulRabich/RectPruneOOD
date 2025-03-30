@@ -23,3 +23,9 @@ mobilenetv2,scale_apes@mobile-sev1-all,imagenet,places,0.4643,0.883815287
 mobilenetv2,scale_apes@mobile-sev1-all,imagenet,dtd,0.12907801418439716,0.9723528209219858
 mobilenetv2,scale_apes@mobile-sev1-all,imagenet,ninco,0.7015991833957128,0.7997456498809119
 mobilenetv2,scale_apes@mobile-sev1-all,imagenet,ssb-hard,0.8030612244897959,0.7171803408163265
+resnet50,apes@sev1-all,imagenet,ninco,0.57112,0.8319959799251446
+resnet50,apes@sev1-all,imagenet,ssb-hard,0.72748,0.7719857589795918
+resnet50,ashs_apes@sev1-all,imagenet,ninco,0.54992,0.8508660343654305
+resnet50,ashs_apes@sev1-all,imagenet,ssb-hard,0.6684,0.779999776122449
+resnet50,scale_apes@sev1-all,imagenet,ninco,0.61066,0.8431109510037428
+resnet50,scale_apes@sev1-all,imagenet,ssb-hard,0.64912,0.793875133877551

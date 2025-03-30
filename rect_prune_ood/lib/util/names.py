@@ -7,8 +7,6 @@ from rect_prune_ood.lib.methods.rect_prune_methods import (
 	AshBPruningModule,
 	AshPPruningModule,
 	AshSPruningModule,
-	BatsRectModule,
-	DicePruningModule,
 	ReactRectModule,
 	SCALEModule,
 )
@@ -18,9 +16,7 @@ module_dict = {
 	'ashb': AshBPruningModule,
 	'ashs': AshSPruningModule,
 	'scale': SCALEModule,
-	'dice': DicePruningModule,
 	'react': ReactRectModule,
-	'bats': BatsRectModule,
 	'apes': APES,
 }
 
