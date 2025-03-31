@@ -9,3 +9,5 @@
 
 **/results/imagenet/*
 **/results/plots/*
+
+/APES.egg-info/
