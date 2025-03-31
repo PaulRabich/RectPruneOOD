@@ -6,7 +6,7 @@ lightning
 scipy
 scikit-image
 opencv-python
-sklearn
+scikit-learn
 ruff
 
 # jupyter
