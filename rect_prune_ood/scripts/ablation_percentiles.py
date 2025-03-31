@@ -9,14 +9,6 @@ from rect_prune_ood.lib.eval.metrics import cal_metric, cal_metric_near_ood
 from rect_prune_ood.lib.util.paths import get_top_level_path
 from rect_prune_ood.lib.experiments.run_experiment import run_single_experiment
 
-results_dir = os.path.join(get_top_level_path(), 'results')
-
-ablation_results_dir = os.path.join(results_dir, 'ablation', '1_percentiles')
-os.makedirs(ablation_results_dir, exist_ok=True)
-
-masks_dir = os.path.join(results_dir, 'masks')
-os.makedirs(masks_dir, exist_ok=True)
-
 imagenet_c_perturbations = [
 	'brightness',
 	'defocus_blur',
@@ -55,9 +47,13 @@ def run_mask_creation(backbone: str, percentile: int, name: str, severity: int, 
 		str(value),
 	]
 
-	result = subprocess.run(command, capture_output=True, text=True)
-	if result.stderr:
-		print("Error:", result.stderr)
+	process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+	# Stream output line-by-line
+	for line in process.stdout:
+		print(line, end='')  # Print as it comes
+
+	process.wait()  # Ensure process completes
 
 def run_single_experiment(backbone: str, dataset: str, method_name: str):
 	command = [
@@ -66,14 +62,21 @@ def run_single_experiment(backbone: str, dataset: str, method_name: str):
 		'--method_names',
 		method_name,
 		'--datasets',
-		f'imagenet {dataset}',
+		'imagenet',
+		dataset,
 		'--backbone',
-		backbone
+		backbone,
+		'--save_results',
+		'False',
 	]
 	
-	result = subprocess.run(command, capture_output=True, text=True)
-	if result.stderr:
-		print("Error:", result.stderr)
+	process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+	# Stream output line-by-line
+	for line in process.stdout:
+		print(line, end='')  # Print as it comes
+
+	process.wait()  # Ensure process completes
 
 def validate_percentiles(percentiles):
 	for percentile in percentiles:
@@ -108,7 +111,7 @@ def parse_args():
 		type=int,
 		nargs='*',
 		required=True,
-		help='List of integers between 0 and 100. Percentile p corresponds to pruning 100-p% of the activations.',
+		help='List of integers between 0 and 100. Percentile p corresponds to pruning 100-p%% of the activations.',
 	)
 
 	parser.add_argument(
@@ -127,14 +130,20 @@ def main():
 	backbone = args.backbone
 	dataset = args.dataset
 
+	results_dir = os.path.join(get_top_level_path(), 'results')
+
+	masks_dir = os.path.join(results_dir, 'masks')
+	os.makedirs(masks_dir, exist_ok=True)
+
 	for percentile in tqdm(percentiles):
 
 		all_metrics = []
 
 		for value in tqdm(range(1, 20)):
-			perturbation_name = imagenet_c_perturbations[value - 1]
+			perturbation_name_ = imagenet_c_perturbations[value - 1]
+			perturbation_name = perturbation_name_.replace('_', '')
 
-			mask_name = f'{backbone}-sev{severity}-{perturbation_name}-percentile-{percentile}'
+			mask_name = f'{backbone}-sev{severity}-{perturbation_name}-p{percentile}'
 
 			# Check if the mask file exists
 			mask_file_path = os.path.join(
@@ -142,9 +151,11 @@ def main():
 			)
 
 			if not os.path.isfile(mask_file_path):
+				print()
 				print(
-					f'Mask file for {perturbation_name} does not exist. Running experiment...'
+					f'Mask file for {perturbation_name_} does not exist. Running mask creation...'
 				)
+				print()
 				run_mask_creation(
 					backbone=backbone,
 					percentile=percentile,
@@ -192,21 +203,36 @@ def main():
 			else:
 				metrics = cal_metric(id_scores, ood_scores)
 
-			metrics['perturbation'] = perturbation_name
+			metrics['perturbation'] = perturbation_name_
 			all_metrics.append(metrics)
+
+		ablation_results_dir = os.path.join(
+			results_dir, 
+			'ablation',
+			dataset,
+			'1_percentiles'
+		)
+
+		os.makedirs(ablation_results_dir, exist_ok=True)
 
 		csv_file = os.path.join(
 			ablation_results_dir,
-			f'{backbone}_sev_{severity}_percentile_{percentile}.csv',
+			f'{backbone}_sev_{severity}_p{percentile}.csv',
 		)
 
 		os.makedirs(os.path.dirname(csv_file), exist_ok=True)
 
 		with open(csv_file, mode='w') as file:
-			writer = csv.DictWriter(file, fieldnames=all_metrics[0].keys())
+			# ONLY write perturbation name, FPR and AUROC
+			writer = csv.DictWriter(file, fieldnames=['perturbation', 'FPR', 'AUROC'])
 			writer.writeheader()
 			for metric in all_metrics:
-				writer.writerow(metric)
+				writer.writerow({
+					'perturbation': metric['perturbation'],
+					'FPR': metric['FPR'],
+					'AUROC': metric['AUROC']
+				})
+			
 
 if __name__ == '__main__':
 	main()

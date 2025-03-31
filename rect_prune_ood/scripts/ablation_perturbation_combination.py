@@ -1,5 +1,9 @@
+import argparse
+import subprocess
 import csv
 import os
+
+from tqdm import tqdm
 
 import numpy as np
 import pandas as pd
@@ -16,6 +20,10 @@ from rect_prune_ood.lib.util.data_loader import get_data_loader
 from rect_prune_ood.lib.util.paths import get_top_level_path
 
 SEVERITY = 1
+
+ablation_1_results = os.path.join(
+	get_top_level_path(), 'results', 'ablation', '1_percentiles'
+)
 
 results_dir = os.path.join(get_top_level_path(), 'results', 'ablation', '2_perturbation_combination')
 imagenet_c_results_dir = os.path.join(results_dir, 'imagenet', 'baseline', 'imagenet_c')
@@ -53,26 +61,6 @@ imagenet_c_perturbations = [
 	'snow',
 	'speckle_noise',
 ]
-
-
-class APESP(Module):
-	def __init__(self, mask) -> None:
-		super(APESP, self).__init__()
-		self.mask = mask
-
-	def forward(self, x: Tensor) -> Tensor:
-		x = self.apes_p(x)
-		return x
-
-	def apes_p(self, x):
-		assert x.dim() == 4
-		_, c, _, _ = x.shape
-		assert self.mask.shape[0] == c
-
-		x = x * self.mask
-
-		return x
-
 
 for percentile in [95]:  # [85, 90, 95]:
 	all_metrics = []
@@ -182,3 +170,108 @@ for percentile in [95]:  # [85, 90, 95]:
 		writer.writeheader()
 		for metric in all_metrics:
 			writer.writerow(metric)
+
+def run_mask_creation(backbone: str, percentile: int, name: str, severity: int, value: int):
+	command = [
+		'python',
+		'./create_mask.py',
+		'--name',
+		name,
+		'--backbone',
+		backbone,
+		'--percentile',
+		str(percentile),
+		'--severity',
+		str(severity),
+		'--values',
+		str(value),
+	]
+
+	process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+	# Stream output line-by-line
+	for line in process.stdout:
+		print(line, end='')  # Print as it comes
+
+	process.wait()  # Ensure process completes
+
+def run_single_experiment(backbone: str, dataset: str, method_name: str):
+	command = [
+		'python',
+		'./calculate_score.py',
+		'--method_names',
+		method_name,
+		'--datasets',
+		'imagenet',
+		dataset,
+		'--backbone',
+		backbone
+	]
+	
+	process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+	# Stream output line-by-line
+	for line in process.stdout:
+		print(line, end='')  # Print as it comes
+
+	process.wait()  # Ensure process completes
+
+def validate_percentiles(percentiles):
+	for percentile in percentiles:
+		if not (0 <= percentile <= 100):
+			raise argparse.ArgumentTypeError(
+				f"Percentile {percentile} is not between 0 and 100."
+			)
+	return percentiles
+
+def parse_args():
+	parser = argparse.ArgumentParser(
+		description='CLI that allows to recreate the ablation study over perturbation combinations for the report.'
+	)
+
+	parser.add_argument(
+		'--severity',
+		type=int,
+		default=1,
+		help='Imagenet-C severity level (default: 1).',
+	)
+
+	parser.add_argument(
+		'--backbone',
+		type=str,
+		default='resnet50',
+		choices=['resnet50', 'mobilenetv2'],
+		help='Backbone model name (default: resnet50). Options: [resnet50, mobilenetv2]',
+	)
+
+	parser.add_argument(
+		'--percentiles',
+		type=int,
+		nargs='*',
+		required=True,
+		help='List of integers between 0 and 100. Percentile p corresponds to pruning 100-p%% of the activations.',
+	)
+
+	parser.add_argument(
+		'--dataset',
+		type=str,
+		default='openimage-o',
+		help='Dataset to run the ablation on (default: openimage-o).',
+	)
+
+	return parser.parse_args()
+
+def main():
+	args = parse_args()
+	percentiles = validate_percentiles(args.percentiles)
+	severity = args.severity
+	backbone = args.backbone
+	dataset = args.dataset
+
+	for percentile in tqdm(percentiles):
+
+		if not os.path.isfile(
+			os.path.join(ablation_1_results, f'{backbone}_sev_{severity}_p{percentile}.csv')
+		):
+			print(f'Percentile {percentile} not found in ablation 1 results. Skipping...')
+			continue

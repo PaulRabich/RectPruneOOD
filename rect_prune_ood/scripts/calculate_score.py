@@ -40,12 +40,19 @@ def parse_args():
 		help='The backbone model to be used. Choose between "resnet50" and "mobilenetv2".',
 	)
 
+	parser.add_argument(
+		'--save_results',
+		type=bool,
+		default=True,
+		help='Whether to save results to the final_metrics file. Default is True.',
+	)
+
 	args = parser.parse_args()
 
 	return args
 
 
-def calculate_score(method_names: List[str], datasets: List[str], backbone: str):
+def calculate_score(method_names: List[str], datasets: List[str], backbone: str, save_results: bool):
 	results_dir = os.path.join(get_top_level_path(), 'results')
 	metrics_path = os.path.join(results_dir, 'final_metrics.csv')
 
@@ -101,19 +108,20 @@ def calculate_score(method_names: List[str], datasets: List[str], backbone: str)
 				f'Method: {method_name}, Dataset: {dataset}, FPR: {metrics["FPR"]}, AUROC: {metrics["AUROC"]}'
 			)
 
-			# Save metrics to CSV
-			with open(metrics_path, 'a', newline='') as f:
-				writer = csv.writer(f)
-				writer.writerow(
-					[
-						backbone,
-						method_name,
-						'imagenet',
-						dataset,
-						metrics['FPR'],
-						metrics['AUROC'],
-					]
-				)
+			if save_results:
+				# Save metrics to CSV
+				with open(metrics_path, 'a', newline='') as f:
+					writer = csv.writer(f)
+					writer.writerow(
+						[
+							backbone,
+							method_name,
+							'imagenet',
+							dataset,
+							metrics['FPR'],
+							metrics['AUROC'],
+						]
+					)
 
 
 def main():
@@ -121,12 +129,16 @@ def main():
 	method_names = args.method_names
 	datasets = args.datasets
 	backbone = args.backbone
-	calculate_score(method_names, datasets, backbone)
+	save_results = args.save_results
+	calculate_score(method_names, datasets, backbone, save_results)
 
-	print(
-		f'Scores calculated and saved to {os.path.join(get_top_level_path(), "results/ood_scores.csv")}'
-	)
-
+	if save_results:
+		print(
+			f'Scores calculated and saved to {os.path.join(get_top_level_path(), "results/final_metrics.csv")}'
+		)
+	else:
+		# If not saving results, just print the scores
+		print('Scores calculated but not saved to CSV file.')
 
 if __name__ == '__main__':
 	main()
