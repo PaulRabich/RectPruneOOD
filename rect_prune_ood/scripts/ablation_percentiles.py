@@ -219,7 +219,7 @@ def main():
 
 		csv_file = os.path.join(
 			ablation_results_dir,
-			f'{backbone}_sev_{severity}_p{percentile}.csv',
+			f'{backbone}_sev{severity}_p{percentile}.csv',
 		)
 
 		os.makedirs(os.path.dirname(csv_file), exist_ok=True)

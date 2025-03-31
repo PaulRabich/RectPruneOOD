@@ -4,6 +4,7 @@ from typing import Literal
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import CIFAR10, ImageFolder
+from rect_prune_ood.lib.util.paths import get_top_level_path
 
 id_datasets = Literal['imagenet']
 ood_datasets = Literal[
@@ -34,19 +35,44 @@ transform_test_largescale = transforms.Compose(
 	]
 )
 
-ood_base_path = os.path.abspath('/fastdata/vilab17/out_distribution')
-imagenet_base_path = os.path.abspath('/fastdata/vilab17/imagenet')
+# ood_base_path = os.path.abspath('/fastdata/vilab17/out_distribution')
+# imagenet_base_path = os.path.abspath('/fastdata/vilab17/imagenet')
+
+# paths = {
+# 	'imagenet': os.path.join(imagenet_base_path, 'val'),
+# 	'imagenet-c': os.path.abspath('/fastdata/vilab17/imagenet_c'),
+# 	'dtd': os.path.join(ood_base_path, 'dtd', 'images'),
+# 	'places': os.path.join(ood_base_path, 'Places'),
+# 	'inat': os.path.join(ood_base_path, 'iNaturalist'),
+# 	'sun': os.path.join(ood_base_path, 'SUN'),
+# 	'ninco': os.path.join(ood_base_path, 'NINCO', 'NINCO_OOD_classes'),
+# 	'ssb-hard': os.path.join(ood_base_path, 'ssb_hard'),
+# 	'openimage-o': os.path.join(ood_base_path, 'openimage-o'),
+# }
+
+datasets_dir = os.path.join(
+    get_top_level_path(), 'datasets'
+)
+id_datasets_dir = os.path.join(
+    datasets_dir, 'id_datasets'
+)
+perturbed_datasets_dir = os.path.join(
+    datasets_dir, 'perturbed_datasets'
+)
+ood_datasets_dir = os.path.join(
+    datasets_dir, 'ood_datasets'
+)
 
 paths = {
-	'imagenet': os.path.join(imagenet_base_path, 'val'),
-	'imagenet-c': os.path.abspath('/fastdata/vilab17/imagenet_c'),
-	'dtd': os.path.join(ood_base_path, 'dtd', 'images'),
-	'places': os.path.join(ood_base_path, 'Places'),
-	'inat': os.path.join(ood_base_path, 'iNaturalist'),
-	'sun': os.path.join(ood_base_path, 'SUN'),
-	'ninco': os.path.join(ood_base_path, 'NINCO', 'NINCO_OOD_classes'),
-	'ssb-hard': os.path.join(ood_base_path, 'ssb_hard'),
-	'openimage-o': os.path.join(ood_base_path, 'openimage-o'),
+    'imagenet': os.path.join(id_datasets_dir, 'imagenet'),
+    'imagenet-c': os.path.join(perturbed_datasets_dir, 'imagenet-c'),
+    'openimage-o': os.path.join(ood_datasets_dir, 'openimage-o'),
+    'inat': os.path.join(ood_datasets_dir, 'iNaturalist'),
+    'sun': os.path.join(ood_datasets_dir, 'SUN'),
+    'places': os.path.join(ood_datasets_dir, 'Places'),
+    'dtd': os.path.join(ood_datasets_dir, 'dtd'),
+    'ninco': os.path.join(ood_datasets_dir, 'NINCO'),
+    'ssb-hard': os.path.join(ood_datasets_dir, 'ssb-hard'),
 }
 
 imagenet_c_perturbations = Literal[
