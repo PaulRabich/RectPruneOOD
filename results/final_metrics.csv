@@ -260,3 +260,5 @@ resnet50,apes@resnet50-sev1-snow-p95,imagenet,imagenet,0.94998,0.499999999999999
 resnet50,apes@resnet50-sev1-snow-p95,imagenet,openimage-o,0.6519963702359347,0.859097935004537
 resnet50,apes@resnet50-sev1-specklenoise-p95,imagenet,imagenet,0.94998,0.49999999999999994
 resnet50,apes@resnet50-sev1-specklenoise-p95,imagenet,openimage-o,0.588929219600726,0.8666295065789474
+resnet50,apes@sev1-all,imagenet_full_spec,inat,0.6548,0.8530759533499995
+resnet50,apes@sev1-all,imagenet_full_spec,sun,0.6965,0.80575296105

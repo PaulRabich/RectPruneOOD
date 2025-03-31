@@ -170,6 +170,32 @@ def _run_imagenet_c_experiment(
 	os.makedirs(result_dir, exist_ok=True)
 
 	for perturbation in imagenet_c_pertubations:
+		# Check whether result file already exists
+		scores_dir = os.path.join(result_dir, 'scores')
+		os.makedirs(scores_dir, exist_ok=True)
+		activations_dir = os.path.join(result_dir, 'activations')
+		os.makedirs(activations_dir, exist_ok=True)
+		scores_exist = os.path.isfile(
+			os.path.join(scores_dir, f'imagenet-c_sev{severity}_{perturbation}.npy')
+		)
+		activations_exist = os.path.isfile(
+			os.path.join(activations_dir, f'imagenet-c_sev{severity}_{perturbation}.npy')
+		)
+
+		if scores_exist and not capture_activations:
+			print(
+				f'Score results for imagenet-c {perturbation} already exist. Skipping...'
+			)
+			continue
+		elif (
+			scores_exist and capture_activations and activations_exist
+		):
+			print(
+				f'Score and activation results for imagenet-c {perturbation} already exist. Skipping...'
+			)
+			continue
+		print(f'Running experiment for imagenet-c {perturbation}...')
+
 		dataloader = get_imagenet_c_subset_loader(perturbation, severity, batch_size=16)
 
 		# Trainer

@@ -70,8 +70,7 @@ def get_full_spec_scores(method_name: str, backbone: str):
 	]
 
 	result_dir = os.path.join(
-		get_method_result_path(base_dataset=base_dataset, backbone=backbone, method_name=method_name),
-		'results',
+		get_method_result_path(base_dataset=base_dataset, backbone=backbone, method_name=method_name)
 	)
 
 	all_perturbed_scores = []
