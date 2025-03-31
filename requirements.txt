@@ -8,6 +8,8 @@ scikit-image
 opencv-python
 scikit-learn
 ruff
+torch
+torchvision
 
 # jupyter
 ipykernel
