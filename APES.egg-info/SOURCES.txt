@@ -1,7 +1,0 @@
-README.md
-pyproject.toml
-APES.egg-info/PKG-INFO
-APES.egg-info/SOURCES.txt
-APES.egg-info/dependency_links.txt
-APES.egg-info/top_level.txt
-rect_prune_ood/__init__.py

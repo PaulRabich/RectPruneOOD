@@ -32,43 +32,6 @@ def get_feature_extractor(backbone: backbones, layer: str):
 		return FeatureExtractor(get_resnet50(), layer)
 
 
-def run_experiment_for_method(
-	backbone: backbones,
-	layer: str,
-	method_name: str,
-	capture_activations: bool = False,
-	base_dataset: id_datasets = 'imagenet',
-):
-	"""Runs the experiment for a specified method and backbone. The results are saved in the corresponding directory.
-
-	Args:
-		backbone (backbones): _description_
-		layer (str): _description_
-		method_name (str): _description_
-		capture_activations (bool, optional): _description_. Defaults to False.
-		base_dataset (id_datasets, optional): _description_. Defaults to "imagenet".
-	"""
-	for dataset in [
-		'imagenet',
-		'imagenet-c',
-		'inat',
-		'dtd',
-		'sun',
-		'places',
-		'ninco',
-		'ssb-hard',
-		'openimage-o',
-	]:
-		run_single_experiment(
-			backbone=backbone,
-			layer=layer,
-			dataset=dataset,
-			method_name=method_name,
-			capture_activations=capture_activations,
-			base_dataset=base_dataset,
-		)
-
-
 def run_single_experiment(
 	backbone: backbones,
 	layer: str,
@@ -231,14 +194,3 @@ def _run_imagenet_c_experiment(
 				),
 				pipeline.activations,
 			)
-
-
-if __name__ == '__main__':
-	# Example usage
-	run_experiment_for_method(
-		backbone='resnet50',
-		layer='avgpool',
-		method_name='baseline',
-		capture_activations=True,
-		base_dataset='imagenet',
-	)
