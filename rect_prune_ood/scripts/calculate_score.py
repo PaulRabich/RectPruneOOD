@@ -52,7 +52,9 @@ def parse_args():
 	return args
 
 
-def calculate_score(method_names: List[str], datasets: List[str], backbone: str, save_results: bool):
+def calculate_score(
+	method_names: List[str], datasets: List[str], backbone: str, save_results: bool
+):
 	results_dir = os.path.join(get_top_level_path(), 'results')
 	metrics_path = os.path.join(results_dir, 'final_metrics.csv')
 
@@ -139,6 +141,7 @@ def main():
 	else:
 		# If not saving results, just print the scores
 		print('Scores calculated but not saved to CSV file.')
+
 
 if __name__ == '__main__':
 	main()

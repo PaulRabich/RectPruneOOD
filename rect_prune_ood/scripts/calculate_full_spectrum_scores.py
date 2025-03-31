@@ -1,10 +1,9 @@
 import argparse
-import os
 import csv
+import os
 from typing import List
 
 import numpy as np
-import pandas as pd
 
 from rect_prune_ood.lib.eval.metrics import cal_metric, cal_metric_near_ood
 from rect_prune_ood.lib.experiments.run_experiment import run_single_experiment
@@ -44,6 +43,7 @@ def parse_args():
 
 	return args
 
+
 def get_full_spec_scores(method_name: str, backbone: str):
 	base_dataset = 'imagenet'
 
@@ -70,7 +70,9 @@ def get_full_spec_scores(method_name: str, backbone: str):
 	]
 
 	result_dir = os.path.join(
-		get_method_result_path(base_dataset=base_dataset, backbone=backbone, method_name=method_name)
+		get_method_result_path(
+			base_dataset=base_dataset, backbone=backbone, method_name=method_name
+		)
 	)
 
 	all_perturbed_scores = []
@@ -93,6 +95,7 @@ def get_full_spec_scores(method_name: str, backbone: str):
 	)
 
 	return np.concatenate(all_perturbed_scores, axis=0)
+
 
 def calculate_score(method_names: List[str], datasets: List[str], backbone: str):
 	results_dir = os.path.join(get_top_level_path(), 'results')

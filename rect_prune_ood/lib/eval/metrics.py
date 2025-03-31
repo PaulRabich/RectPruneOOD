@@ -19,40 +19,42 @@ cal_metric_near_ood is a modified version of the original cal_metric function, t
 from SCALE: https://github.com/kai422/SCALE/blob/main/openood/evaluators/metrics.py
 """
 
+
 def cal_metric_near_ood(id_scores, ood_scores, tpr_th=0.95):
-    """
-    Computes AUROC and FPR by swapping ID and OOD in the calculation.
+	"""
+	Computes AUROC and FPR by swapping ID and OOD in the calculation.
 
-    Args:
-        id_scores (numpy array): Scores for the in-distribution (ID) samples.
-        ood_scores (numpy array): Scores for the out-of-distribution (OOD) samples.
-        tpr_th (float, optional): Threshold for computing FPR at a given TPR. Default is 0.95.
+	Args:
+	    id_scores (numpy array): Scores for the in-distribution (ID) samples.
+	    ood_scores (numpy array): Scores for the out-of-distribution (OOD) samples.
+	    tpr_th (float, optional): Threshold for computing FPR at a given TPR. Default is 0.95.
 
-    Returns:
-        dict: Contains 'AUROC' and 'FPR' values.
-    """
-    
-    # Labels: ID samples = 1, OOD samples = -1
-    id_labels = np.ones_like(id_scores)
-    ood_labels = -np.ones_like(ood_scores)
+	Returns:
+	    dict: Contains 'AUROC' and 'FPR' values.
+	"""
 
-    # Concatenate scores and labels
-    scores = np.concatenate([id_scores, ood_scores])
-    labels = np.concatenate([id_labels, ood_labels])
+	# Labels: ID samples = 1, OOD samples = -1
+	id_labels = np.ones_like(id_scores)
+	ood_labels = -np.ones_like(ood_scores)
 
-    # Convert OOD labels (-1) to 1 (positive class for ROC)
-    ood_indicator = (labels == -1).astype(int)
+	# Concatenate scores and labels
+	scores = np.concatenate([id_scores, ood_scores])
+	labels = np.concatenate([id_labels, ood_labels])
 
-    # Reverse scores because we assume ID scores are higher
-    fpr_list, tpr_list, _ = metrics.roc_curve(ood_indicator, -scores)
+	# Convert OOD labels (-1) to 1 (positive class for ROC)
+	ood_indicator = (labels == -1).astype(int)
 
-    # Get FPR at the specified TPR threshold
-    fpr_at_tpr_th = fpr_list[np.argmax(tpr_list >= tpr_th)]
+	# Reverse scores because we assume ID scores are higher
+	fpr_list, tpr_list, _ = metrics.roc_curve(ood_indicator, -scores)
 
-    # Compute AUROC
-    auroc = metrics.auc(fpr_list, tpr_list)
+	# Get FPR at the specified TPR threshold
+	fpr_at_tpr_th = fpr_list[np.argmax(tpr_list >= tpr_th)]
 
-    return {"AUROC": auroc, "FPR": fpr_at_tpr_th}
+	# Compute AUROC
+	auroc = metrics.auc(fpr_list, tpr_list)
+
+	return {'AUROC': auroc, 'FPR': fpr_at_tpr_th}
+
 
 def cal_metric(
 	known,

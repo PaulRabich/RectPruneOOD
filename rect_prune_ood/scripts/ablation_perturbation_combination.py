@@ -1,16 +1,13 @@
 import argparse
-import subprocess
 import csv
 import os
-
-from tqdm import tqdm
+import subprocess
 
 import numpy as np
 import pandas as pd
 import torch
 from lightning import Trainer
-from torch import Tensor
-from torch.nn import Module
+from tqdm import tqdm
 
 from rect_prune_ood.lib.eval.metrics import cal_metric
 from rect_prune_ood.lib.experiments.backbones import get_resnet50
@@ -25,7 +22,9 @@ ablation_1_results = os.path.join(
 	get_top_level_path(), 'results', 'ablation', '1_percentiles'
 )
 
-results_dir = os.path.join(get_top_level_path(), 'results', 'ablation', '2_perturbation_combination')
+results_dir = os.path.join(
+	get_top_level_path(), 'results', 'ablation', '2_perturbation_combination'
+)
 imagenet_c_results_dir = os.path.join(results_dir, 'imagenet', 'baseline', 'imagenet_c')
 # data_dir = os.path.join(get_top_level_path(), 'results', f'percentile_mega_ablation_sev_{SEVERITY}')
 data_dir = os.path.join(
@@ -171,7 +170,10 @@ for percentile in [95]:  # [85, 90, 95]:
 		for metric in all_metrics:
 			writer.writerow(metric)
 
-def run_mask_creation(backbone: str, percentile: int, name: str, severity: int, value: int):
+
+def run_mask_creation(
+	backbone: str, percentile: int, name: str, severity: int, value: int
+):
 	command = [
 		'python',
 		'./create_mask.py',
@@ -187,13 +189,16 @@ def run_mask_creation(backbone: str, percentile: int, name: str, severity: int, 
 		str(value),
 	]
 
-	process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+	process = subprocess.Popen(
+		command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+	)
 
 	# Stream output line-by-line
 	for line in process.stdout:
 		print(line, end='')  # Print as it comes
 
 	process.wait()  # Ensure process completes
+
 
 def run_single_experiment(backbone: str, dataset: str, method_name: str):
 	command = [
@@ -205,10 +210,12 @@ def run_single_experiment(backbone: str, dataset: str, method_name: str):
 		'imagenet',
 		dataset,
 		'--backbone',
-		backbone
+		backbone,
 	]
-	
-	process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+	process = subprocess.Popen(
+		command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+	)
 
 	# Stream output line-by-line
 	for line in process.stdout:
@@ -216,13 +223,15 @@ def run_single_experiment(backbone: str, dataset: str, method_name: str):
 
 	process.wait()  # Ensure process completes
 
+
 def validate_percentiles(percentiles):
 	for percentile in percentiles:
 		if not (0 <= percentile <= 100):
 			raise argparse.ArgumentTypeError(
-				f"Percentile {percentile} is not between 0 and 100."
+				f'Percentile {percentile} is not between 0 and 100.'
 			)
 	return percentiles
+
 
 def parse_args():
 	parser = argparse.ArgumentParser(
@@ -261,17 +270,21 @@ def parse_args():
 
 	return parser.parse_args()
 
+
 def main():
 	args = parse_args()
 	percentiles = validate_percentiles(args.percentiles)
 	severity = args.severity
 	backbone = args.backbone
-	dataset = args.dataset
+	# dataset = args.dataset
 
 	for percentile in tqdm(percentiles):
-
 		if not os.path.isfile(
-			os.path.join(ablation_1_results, f'{backbone}_sev_{severity}_p{percentile}.csv')
+			os.path.join(
+				ablation_1_results, f'{backbone}_sev_{severity}_p{percentile}.csv'
+			)
 		):
-			print(f'Percentile {percentile} not found in ablation 1 results. Skipping...')
+			print(
+				f'Percentile {percentile} not found in ablation 1 results. Skipping...'
+			)
 			continue

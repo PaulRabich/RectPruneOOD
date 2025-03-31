@@ -1,13 +1,14 @@
 import argparse
-import subprocess
 import csv
 import os
-from tqdm import tqdm
+import subprocess
+
 import numpy as np
+from tqdm import tqdm
 
 from rect_prune_ood.lib.eval.metrics import cal_metric, cal_metric_near_ood
-from rect_prune_ood.lib.util.paths import get_top_level_path
 from rect_prune_ood.lib.experiments.run_experiment import run_single_experiment
+from rect_prune_ood.lib.util.paths import get_top_level_path
 
 imagenet_c_perturbations = [
 	'brightness',
@@ -31,7 +32,10 @@ imagenet_c_perturbations = [
 	'speckle_noise',
 ]
 
-def run_mask_creation(backbone: str, percentile: int, name: str, severity: int, value: int):
+
+def run_mask_creation(
+	backbone: str, percentile: int, name: str, severity: int, value: int
+):
 	command = [
 		'python',
 		'./create_mask.py',
@@ -47,7 +51,9 @@ def run_mask_creation(backbone: str, percentile: int, name: str, severity: int, 
 		str(value),
 	]
 
-	process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+	process = subprocess.Popen(
+		command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+	)
 
 	# Stream output line-by-line
 	for line in process.stdout:
@@ -55,7 +61,8 @@ def run_mask_creation(backbone: str, percentile: int, name: str, severity: int, 
 
 	process.wait()  # Ensure process completes
 
-def run_single_experiment(backbone: str, dataset: str, method_name: str):
+
+def run_single_experiment_cmd(backbone: str, dataset: str, method_name: str):
 	command = [
 		'python',
 		'./calculate_score.py',
@@ -69,8 +76,10 @@ def run_single_experiment(backbone: str, dataset: str, method_name: str):
 		'--save_results',
 		'False',
 	]
-	
-	process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+	process = subprocess.Popen(
+		command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+	)
 
 	# Stream output line-by-line
 	for line in process.stdout:
@@ -78,13 +87,15 @@ def run_single_experiment(backbone: str, dataset: str, method_name: str):
 
 	process.wait()  # Ensure process completes
 
+
 def validate_percentiles(percentiles):
 	for percentile in percentiles:
 		if not (0 <= percentile <= 100):
 			raise argparse.ArgumentTypeError(
-				f"Percentile {percentile} is not between 0 and 100."
+				f'Percentile {percentile} is not between 0 and 100.'
 			)
 	return percentiles
+
 
 def parse_args():
 	parser = argparse.ArgumentParser(
@@ -123,6 +134,7 @@ def parse_args():
 
 	return parser.parse_args()
 
+
 def main():
 	args = parse_args()
 	percentiles = validate_percentiles(args.percentiles)
@@ -136,7 +148,6 @@ def main():
 	os.makedirs(masks_dir, exist_ok=True)
 
 	for percentile in tqdm(percentiles):
-
 		all_metrics = []
 
 		for value in tqdm(range(1, 20)):
@@ -146,9 +157,7 @@ def main():
 			mask_name = f'{backbone}-sev{severity}-{perturbation_name}-p{percentile}'
 
 			# Check if the mask file exists
-			mask_file_path = os.path.join(
-				masks_dir, f'{mask_name}.npy'
-			)
+			mask_file_path = os.path.join(masks_dir, f'{mask_name}.npy')
 
 			if not os.path.isfile(mask_file_path):
 				print()
@@ -165,19 +174,15 @@ def main():
 				)
 
 			method_name = f'apes@{mask_name}'
-			
-			run_single_experiment(
+
+			run_single_experiment_cmd(
 				backbone=backbone,
 				dataset=dataset,
 				method_name=method_name,
 			)
 
 			scores_path = os.path.join(
-				results_dir,
-				'imagenet',
-				backbone,
-				method_name,
-				'scores'
+				results_dir, 'imagenet', backbone, method_name, 'scores'
 			)
 
 			# Load imagenet scores
@@ -207,10 +212,7 @@ def main():
 			all_metrics.append(metrics)
 
 		ablation_results_dir = os.path.join(
-			results_dir, 
-			'ablation',
-			dataset,
-			'1_percentiles'
+			results_dir, 'ablation', dataset, '1_percentiles'
 		)
 
 		os.makedirs(ablation_results_dir, exist_ok=True)
@@ -227,12 +229,14 @@ def main():
 			writer = csv.DictWriter(file, fieldnames=['perturbation', 'FPR', 'AUROC'])
 			writer.writeheader()
 			for metric in all_metrics:
-				writer.writerow({
-					'perturbation': metric['perturbation'],
-					'FPR': metric['FPR'],
-					'AUROC': metric['AUROC']
-				})
-			
+				writer.writerow(
+					{
+						'perturbation': metric['perturbation'],
+						'FPR': metric['FPR'],
+						'AUROC': metric['AUROC'],
+					}
+				)
+
 
 if __name__ == '__main__':
 	main()

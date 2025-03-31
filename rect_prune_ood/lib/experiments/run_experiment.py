@@ -179,7 +179,9 @@ def _run_imagenet_c_experiment(
 			os.path.join(scores_dir, f'imagenet-c_sev{severity}_{perturbation}.npy')
 		)
 		activations_exist = os.path.isfile(
-			os.path.join(activations_dir, f'imagenet-c_sev{severity}_{perturbation}.npy')
+			os.path.join(
+				activations_dir, f'imagenet-c_sev{severity}_{perturbation}.npy'
+			)
 		)
 
 		if scores_exist and not capture_activations:
@@ -187,9 +189,7 @@ def _run_imagenet_c_experiment(
 				f'Score results for imagenet-c {perturbation} already exist. Skipping...'
 			)
 			continue
-		elif (
-			scores_exist and capture_activations and activations_exist
-		):
+		elif scores_exist and capture_activations and activations_exist:
 			print(
 				f'Score and activation results for imagenet-c {perturbation} already exist. Skipping...'
 			)
